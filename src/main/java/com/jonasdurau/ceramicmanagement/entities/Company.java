@@ -27,14 +27,17 @@ public class Company {
     private String password;
     private String databaseUrl;
     private Integer databasePort;
+
+    @Column(unique = true, name = "database_name")
+    private String databaseName;
+
     private Instant createdAt;
     private Instant updatedAt;
 
     public Company() {
     }
 
-    public Company(Long id, String name, String email, String cnpj, String password, String databaseUrl,
-            Integer databasePort, Instant createdAt, Instant updatedAt) {
+    public Company(Long id, String name, String email, String cnpj, String password, String databaseUrl, Integer databasePort, String databaseName, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -42,6 +45,7 @@ public class Company {
         this.password = password;
         this.databaseUrl = databaseUrl;
         this.databasePort = databasePort;
+        this.databaseName = databaseName;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -100,6 +104,14 @@ public class Company {
 
     public void setDatabasePort(Integer databasePort) {
         this.databasePort = databasePort;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public Instant getCreatedAt() {

@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,16 +80,18 @@ public class DatabaseService {
         // Cria o novo DataSource para o tenant
         DataSource newDataSource = createDataSource(url, port, username, password);
 
-        // Obtém o mapa atual de DataSources do DynamicDataSource com casting explícito
-        Map<Object, DataSource> resolvedDataSources = (Map<Object, DataSource>) dynamicDataSource
-                .getResolvedDataSources();
+        // Obtém o mapa atual de DataSources do DynamicDataSource
+        Map<Object, DataSource> currentResolved = (Map<Object, DataSource>) dynamicDataSource.getResolvedDataSources();
 
-        // Atualiza o mapa de DataSources com o novo tenant
-        resolvedDataSources.put(tenantId, newDataSource);
+        // Cria um novo mapa mutável a partir do mapa atual
+        Map<Object, Object> newDataSources = new HashMap<>(currentResolved);
 
-        // Define o novo mapa no DynamicDataSource e reaplica as configurações
-        dynamicDataSource.setTargetDataSources(new HashMap<>(resolvedDataSources));
-        dynamicDataSource.afterPropertiesSet(); // Atualiza o cache interno
+        // Adiciona o novo tenant ao mapa mutável
+        newDataSources.put(tenantId, newDataSource);
+
+        // Atualiza o DynamicDataSource com o novo mapa
+        dynamicDataSource.setTargetDataSources(newDataSources);
+        dynamicDataSource.afterPropertiesSet(); // Recarrega as configurações internas
     }
 
     private DataSource createDataSource(String url, int port, String username, String password) {
