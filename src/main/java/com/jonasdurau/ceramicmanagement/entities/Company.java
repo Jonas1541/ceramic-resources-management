@@ -28,7 +28,7 @@ public class Company {
     private String databaseUrl;
     private Integer databasePort;
 
-    @Column(unique = true, name = "database_name")
+    @Column(unique = true)
     private String databaseName;
 
     private Instant createdAt;

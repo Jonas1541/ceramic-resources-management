@@ -8,9 +8,6 @@ import com.jonasdurau.ceramicmanagement.entities.Company;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 
 @Service
@@ -47,9 +44,5 @@ public class TokenService {
         } catch (JWTVerificationException exception) {
             throw new RuntimeException("Invalid token", exception);
         }
-    }
-
-    private Instant generateExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.UTC);
     }
 }
