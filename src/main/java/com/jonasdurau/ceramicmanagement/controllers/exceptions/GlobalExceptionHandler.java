@@ -15,25 +15,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Validações de campos (Bean Validation)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         FieldError::getField,
-                        FieldError::getDefaultMessage));
+                        FieldError::getDefaultMessage
+                ));
         return ResponseEntity.badRequest().body(errors);
     }
 
+    // Exceções de negócio em geral
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Map<String, Object>> handleBusinessException(BusinessException ex) {
-        HttpStatus status = HttpStatus.CONFLICT;
-
+        HttpStatus status = HttpStatus.CONFLICT; // 409
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now());
         body.put("status", status.value());
         body.put("error", "Business Exception");
         body.put("message", ex.getMessage());
+        return ResponseEntity.status(status).body(body);
+    }
 
+    // Exceções de credenciais inválidas (login)
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED; // 401
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("status", status.value());
+        body.put("error", "Invalid Credentials");
+        body.put("message", ex.getMessage());
         return ResponseEntity.status(status).body(body);
     }
 }

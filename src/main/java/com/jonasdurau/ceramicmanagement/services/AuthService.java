@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.jonasdurau.ceramicmanagement.config.TenantContext;
 import com.jonasdurau.ceramicmanagement.config.TokenService;
 import com.jonasdurau.ceramicmanagement.entities.Company;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidCredentialsException;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 
 @Service
@@ -24,11 +25,11 @@ public class AuthService {
     public String login(String email, String password) {
         // Busca a empresa pelo email
         Company company = companyRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Credenciais inválidas"));
+            .orElseThrow(() -> new InvalidCredentialsException("Credenciais inválidas"));
 
         // Verifica a senha (já deve estar criptografada)
         if (!passwordEncoder.matches(password, company.getPassword())) {
-            throw new IllegalArgumentException("Credenciais inválidas");
+            throw new InvalidCredentialsException("Credenciais inválidas");
         }
 
         // Configura o TenantContext com a URL e porta do banco
