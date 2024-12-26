@@ -1,7 +1,6 @@
 package com.jonasdurau.ceramicmanagement.controllers.exceptions;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -12,41 +11,40 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     // Validações de campos (Bean Validation)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<StandardError> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        // Extrai os erros de validação em um Map<field, message>
         Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        FieldError::getDefaultMessage
-                ));
-        return ResponseEntity.badRequest().body(errors);
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+        // Montamos uma mensagem concatenada ou algo personalizado.
+        // Aqui, só um join simples:
+        String combinedErrors = errors.entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining("; "));
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandardError err = new StandardError(Instant.now(), status.value(), "Validation Exception", combinedErrors, request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
     }
 
     // Exceções de negócio em geral
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Map<String, Object>> handleBusinessException(BusinessException ex) {
+    public ResponseEntity<StandardError> handleBusinessException(BusinessException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.CONFLICT; // 409
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", Instant.now());
-        body.put("status", status.value());
-        body.put("error", "Business Exception");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(status).body(body);
+        StandardError err = new StandardError(Instant.now(), status.value(), "Business Exception", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
     }
 
     // Exceções de credenciais inválidas (login)
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
+    public ResponseEntity<StandardError> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNAUTHORIZED; // 401
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", Instant.now());
-        body.put("status", status.value());
-        body.put("error", "Invalid Credentials");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(status).body(body);
+        StandardError err = new StandardError(Instant.now(), status.value(), "Invalid Credentials", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
     }
 }
