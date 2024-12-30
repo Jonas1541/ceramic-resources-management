@@ -1,12 +1,6 @@
-CREATE TABLE user (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    password VARCHAR(255)
-);
-
-CREATE TABLE product (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    price DECIMAL(10, 2)
+CREATE TABLE tb_resource (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    category VARCHAR(50) NOT NULL,
+    unit_value DOUBLE NOT NULL
 );
