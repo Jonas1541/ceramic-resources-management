@@ -1,5 +1,9 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 
 import jakarta.persistence.Column;
@@ -9,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -25,12 +30,16 @@ public class Resource {
     @Enumerated(EnumType.STRING)
     private ResourceCategory category;
 
-    private double unitValue;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal unitValue;
+
+    @OneToMany(mappedBy = "resource")
+    private List<ResourceTransaction> transactions = new ArrayList<>();
 
     public Resource() {
     }
 
-    public Resource(Long id, String name, ResourceCategory category, double unitValue) {
+    public Resource(Long id, String name, ResourceCategory category, BigDecimal unitValue) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -61,12 +70,16 @@ public class Resource {
         this.category = category;
     }
 
-    public double getUnitValue() {
+    public BigDecimal getUnitValue() {
         return unitValue;
     }
 
-    public void setUnitValue(double unitValue) {
+    public void setUnitValue(BigDecimal unitValue) {
         this.unitValue = unitValue;
+    }
+
+    public List<ResourceTransaction> getTransactions() {
+        return transactions;
     }
 
     @Override

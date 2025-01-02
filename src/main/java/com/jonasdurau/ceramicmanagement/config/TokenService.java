@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,8 +43,10 @@ public class TokenService {
                     .build()
                     .verify(token)
                     .getSubject();
+        } catch (com.auth0.jwt.exceptions.TokenExpiredException exception) {
+            throw new ExpiredTokenException("Token has expired.");
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Invalid token", exception);
+            throw new InvalidTokenException("Invalid token.");
         }
     }
 }

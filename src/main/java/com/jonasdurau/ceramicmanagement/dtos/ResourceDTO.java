@@ -1,5 +1,7 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
+import java.math.BigDecimal;
+
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -19,12 +21,12 @@ public class ResourceDTO {
     private ResourceCategory category;
 
     @DecimalMin(value = "0.0", message = "O valor não pode ser negativo")
-    private double unitValue;
+    private BigDecimal unitValue;
 
     public ResourceDTO() {
     }
 
-    public ResourceDTO(Long id, String name, ResourceCategory category, double unitValue) {
+    public ResourceDTO(Long id, String name, ResourceCategory category, BigDecimal unitValue) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -43,24 +45,23 @@ public class ResourceDTO {
         return name;
     }
 
-    public ResourceCategory getCategory() {
-        return category;
-    }
-
-    public double getUnitValue() {
-        return unitValue;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public ResourceCategory getCategory() {
+        return category;
     }
 
     public void setCategory(ResourceCategory category) {
         this.category = category;
     }
 
-    public void setUnitValue(double unitValue) {
-        this.unitValue = unitValue;
+    public BigDecimal getUnitValue() {
+        return unitValue;
     }
 
+    public void setUnitValue(BigDecimal unitValue) {
+        this.unitValue = unitValue;
+    }
 }

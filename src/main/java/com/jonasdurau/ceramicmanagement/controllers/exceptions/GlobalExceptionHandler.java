@@ -55,4 +55,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(err);
     }
 
+    @ExceptionHandler(ExpiredTokenException.class)
+    public ResponseEntity<StandardError> handleExpiredToken(ExpiredTokenException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandardError err = new StandardError(Instant.now(), status.value(), "Token Expired", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<StandardError> handleInvalidToken(InvalidTokenException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        StandardError err = new StandardError(Instant.now(), status.value(), "Invalid Token", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(ResourceDeletionException.class)
+    public ResponseEntity<StandardError> handleResourceDeletionException(ResourceDeletionException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT; // 409
+        StandardError err = new StandardError(Instant.now(), status.value(), "Resource Deletion Conflict", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
 }

@@ -1,10 +1,13 @@
 package com.jonasdurau.ceramicmanagement.services;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,9 @@ public class ResourceService {
 
     @Autowired
     private ResourceRepository resourceRepository;
+
+    @Autowired
+    private ResourceTransactionRepository transactionRepository;
 
     @Transactional(readOnly = true)
     public List<ResourceDTO> findAll() {
@@ -61,6 +67,10 @@ public class ResourceService {
     public void delete(Long id) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
+        boolean hasTransactions = transactionRepository.existsByResourceId(id);
+        if (hasTransactions) {
+            throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem transações associadas.");
+        }
         resourceRepository.delete(entity);
     }
 
