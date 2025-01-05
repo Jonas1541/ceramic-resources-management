@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
 import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.ResourceService;
 
 import jakarta.validation.Valid;
@@ -46,5 +47,11 @@ public class ResourceController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         resourceService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/yearly-report")
+    public ResponseEntity<List<YearReportDTO>> getYearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> report = resourceService.getYearlyReport(id);
+        return ResponseEntity.ok(report);
     }
 }
