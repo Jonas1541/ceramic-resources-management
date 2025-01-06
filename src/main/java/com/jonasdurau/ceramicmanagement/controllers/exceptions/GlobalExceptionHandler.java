@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -74,5 +75,17 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.CONFLICT; // 409
         StandardError err = new StandardError(Instant.now(), status.value(), "Resource Deletion Conflict", ex.getMessage(), request.getRequestURI());
         return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<StandardError> handleEnumDeserializationError(HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+        if (ex.getLocalizedMessage().contains("ResourceCategory")) {
+            // Monta um corpo de resposta explicando
+            StandardError err = new StandardError(Instant.now(), HttpStatus.BAD_REQUEST.value(), "Enum Deserialization Error", "Valor inválido para o campo `ResourceCategory`", request.getRequestURI());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+        }
+        // senão, retorna um genérico
+        throw ex;
     }
 }
