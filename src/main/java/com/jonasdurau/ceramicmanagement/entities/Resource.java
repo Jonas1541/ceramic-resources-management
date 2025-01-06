@@ -1,10 +1,12 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,6 +46,24 @@ public class Resource {
         this.name = name;
         this.category = category;
         this.unitValue = unitValue;
+    }
+
+    public double getCurrentQuantity() {
+        double total = 0.0;
+        for (ResourceTransaction tx : transactions) {
+            if (tx.getType() == TransactionType.INCOMING) {
+                total += tx.getQuantity();
+            } else {
+                total -= tx.getQuantity();
+            }
+        }
+        return total;
+    }
+
+    public BigDecimal getCurrentQuantityPrice() {
+        return BigDecimal.valueOf(getCurrentQuantity())
+                .multiply(this.unitValue)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     public Long getId() {

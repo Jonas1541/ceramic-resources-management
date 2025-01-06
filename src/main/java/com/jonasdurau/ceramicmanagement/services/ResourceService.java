@@ -5,6 +5,7 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionE
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
@@ -37,9 +38,21 @@ public class ResourceService {
     private ResourceTransactionRepository transactionRepository;
 
     @Transactional(readOnly = true)
-    public List<ResourceDTO> findAll() {
+    public List<ResourceListDTO> findAll() {
         List<Resource> list = resourceRepository.findAll();
-        return list.stream().map(this::entityToDTO).collect(Collectors.toList());
+        return list.stream()
+                .map(r -> {
+                    double currentQty = r.getCurrentQuantity();
+                    BigDecimal currentPrice = r.getCurrentQuantityPrice();
+
+                    return new ResourceListDTO(
+                            r.getId(),
+                            r.getName(),
+                            r.getCategory().name(),
+                            currentQty,
+                            currentPrice);
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

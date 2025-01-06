@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
 import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.ResourceService;
 
@@ -20,8 +21,8 @@ public class ResourceController {
     private ResourceService resourceService;
 
     @GetMapping
-    public ResponseEntity<List<ResourceDTO>> findAll() {
-        List<ResourceDTO> list = resourceService.findAll();
+    public ResponseEntity<List<ResourceListDTO>> findAll() {
+        List<ResourceListDTO> list = resourceService.findAll();
         return ResponseEntity.ok(list);
     }
 
