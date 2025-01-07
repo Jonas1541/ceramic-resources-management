@@ -17,5 +17,11 @@ create table tb_resource_transaction (
     foreign key (resource_id) references tb_resource (id)
 ) engine=InnoDB;
 
+CREATE TABLE tb_machine (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    power DOUBLE NOT NULL
+);
+
 alter table tb_resource 
     add constraint UKaunvlvm32xb4e6590jc9oooq unique (name);
