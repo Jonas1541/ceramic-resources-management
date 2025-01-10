@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class MachineDTO {
 
+    private Long id;
+
     @NotBlank(message = "O nome é obrigatório")
     private String name;
 
@@ -14,9 +16,18 @@ public class MachineDTO {
     public MachineDTO() {
     }
 
-    public MachineDTO(String name, double power) {
+    public MachineDTO(Long id, String name, double power) {
+        this.id = id;
         this.name = name;
         this.power = power;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {

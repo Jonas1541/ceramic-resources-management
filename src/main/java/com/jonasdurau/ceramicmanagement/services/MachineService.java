@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
+import com.jonasdurau.ceramicmanagement.repositories.BatchMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
@@ -17,6 +19,9 @@ public class MachineService {
     
     @Autowired
     private MachineRepository machineRepository;
+
+    @Autowired
+    private BatchMachineUsageRepository batchMachineUsageRepository;
 
     @Transactional(readOnly = true)
     public List<MachineDTO> findAll() {
@@ -60,11 +65,16 @@ public class MachineService {
     public void delete(Long id) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
+        boolean hasBatchUsages = batchMachineUsageRepository.existsByMachineId(id);
+        if (hasBatchUsages) {
+            throw new ResourceDeletionException("Não é possível deletar a máquina com id " + id + " pois ela tem bateladas associadas.");
+        }     
         machineRepository.delete(entity);
     }
 
     private MachineDTO entityToDTO(Machine entity) {
         MachineDTO dto = new MachineDTO();
+        dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setPower(entity.getPower());
         return dto;

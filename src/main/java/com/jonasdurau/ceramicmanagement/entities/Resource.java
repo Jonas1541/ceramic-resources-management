@@ -8,6 +8,7 @@ import java.util.List;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,7 +36,7 @@ public class Resource {
     @Column(precision = 10, scale = 2)
     private BigDecimal unitValue;
 
-    @OneToMany(mappedBy = "resource")
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResourceTransaction> transactions = new ArrayList<>();
 
     public Resource() {

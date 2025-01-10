@@ -25,3 +25,54 @@ CREATE TABLE tb_machine (
 
 alter table tb_resource 
     add constraint UKaunvlvm32xb4e6590jc9oooq unique (name);
+
+-- ========================================
+-- Tabela principal: tb_batch
+-- ========================================
+CREATE TABLE tb_batch (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+-- ========================================
+-- Tabela intermediária: tb_batch_resource_usage
+-- ========================================
+CREATE TABLE tb_batch_resource_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    initial_quantity DOUBLE NOT NULL,
+    umidity DOUBLE NOT NULL,
+    added_quantity DOUBLE NOT NULL,
+    batch_id BIGINT NOT NULL,
+    resource_id BIGINT NOT NULL,
+    
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    
+    PRIMARY KEY (id),
+    CONSTRAINT fk_batch_res_usage_batch 
+        FOREIGN KEY (batch_id) REFERENCES tb_batch (id),
+    CONSTRAINT fk_batch_res_usage_resource 
+        FOREIGN KEY (resource_id) REFERENCES tb_resource (id)
+) ENGINE=InnoDB;
+
+-- ========================================
+-- Tabela intermediária: tb_batch_machine_usage
+-- ========================================
+CREATE TABLE tb_batch_machine_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time BIGINT NOT NULL,
+    batch_id BIGINT NOT NULL,
+    machine_id BIGINT NOT NULL,
+    
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    
+    PRIMARY KEY (id),
+    CONSTRAINT fk_batch_mach_usage_batch 
+        FOREIGN KEY (batch_id) REFERENCES tb_batch (id),
+    CONSTRAINT fk_batch_mach_usage_machine 
+        FOREIGN KEY (machine_id) REFERENCES tb_machine (id)
+) ENGINE=InnoDB;
+
