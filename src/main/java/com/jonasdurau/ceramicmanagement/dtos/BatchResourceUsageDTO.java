@@ -4,21 +4,24 @@ import java.math.BigDecimal;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public class BatchResourceUsageDTO {
     
-    @Min(value = 1, message = "O ID do recurso deve ser positivo.")
+    @NotNull(message = "O ID do produto não pode ser nulo.")
+    @Positive(message = "O ID do recurso deve ser positivo.")
     private Long resourceId;
 
-    @Min(value = 0, message = "A quantidade inicial não pode ser negativa.")
+    @PositiveOrZero(message = "A quantidade inicial não pode ser negativa.")
     private double initialQuantity;
 
-    @DecimalMin(value = "0.0", inclusive = true, message = "A umidade não pode ser negativa.")
-    @DecimalMax(value = "1.0", inclusive = true, message = "A umidade não pode exceder 1.0.")
+    @DecimalMin(value = "0.0", message = "A umidade não pode ser negativa.")
+    @DecimalMax(value = "1.0", message = "A umidade não pode exceder 1.0.")
     private double umidity;
 
-    @Min(value = 0, message = "A quantidade adicionada não pode ser negativa.")
+    @PositiveOrZero(message = "A quantidade adicionada não pode ser negativa.")
     private double addedQuantity;
 
     private double totalQuantity;

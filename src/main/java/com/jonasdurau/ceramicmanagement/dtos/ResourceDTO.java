@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class ResourceDTO {
@@ -20,7 +20,8 @@ public class ResourceDTO {
     @NotNull(message = "A categoria é obrigatória")
     private ResourceCategory category;
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "O valor deve ser maior que zero")
+    @NotNull(message = "O valor não pode ser nulo.")
+    @Positive(message = "O valor deve ser maior que zero")
     private BigDecimal unitValue;
 
     public ResourceDTO() {

@@ -5,8 +5,8 @@ import java.time.Instant;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public class ResourceTransactionDTO {
 
@@ -19,7 +19,7 @@ public class ResourceTransactionDTO {
     @NotNull(message = "O tipo de transação é obrigatório")
     private TransactionType type;
 
-    @Min(value = 0, message = "A quantidade deve ser positiva")
+    @Positive(message = "A quantidade deve ser positiva")
     private double quantity;
 
     private Long resourceId;
