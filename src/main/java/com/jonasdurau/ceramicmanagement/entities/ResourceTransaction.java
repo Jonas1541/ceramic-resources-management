@@ -39,16 +39,13 @@ public class ResourceTransaction {
     @JoinColumn(name = "resource_id")
     private Resource resource;
 
-    public ResourceTransaction() {
-    }
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "batch_id", nullable = true)
+    private Batch batch;
 
-    public ResourceTransaction(Long id, Instant createdAt, Instant updatedAt, TransactionType type, double quantity, Resource resource) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.type = type;
-        this.quantity = quantity;
-        this.resource = resource;
+    private BigDecimal costAtTime;
+
+    public ResourceTransaction() {
     }
 
     public BigDecimal getCost() {
@@ -114,6 +111,22 @@ public class ResourceTransaction {
 
     public void setResource(Resource resource) {
         this.resource = resource;
+    }
+
+    public Batch getBatch() {
+        return batch;
+    }
+
+    public void setBatch(Batch batch) {
+        this.batch = batch;
+    }
+
+    public BigDecimal getCostAtTime() {
+        return costAtTime;
+    }
+
+    public void setCostAtTime(BigDecimal costAtTime) {
+        this.costAtTime = costAtTime;
     }
 
     @Override

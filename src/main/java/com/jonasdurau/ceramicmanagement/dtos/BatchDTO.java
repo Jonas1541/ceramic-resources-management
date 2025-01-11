@@ -5,13 +5,21 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 public class BatchDTO {
 
     private Long id;
     private Instant createdAt;
     private Instant updatedAt;
 
+    @NotEmpty(message = "A lista de recursos não pode estar vazia.")
+    @Valid
     private List<BatchResourceUsageDTO> resourceUsages = new ArrayList<>();
+
+    @NotEmpty(message = "A lista de máquinas não pode estar vazia.")
+    @Valid
     private List<BatchMachineUsageDTO> machineUsages = new ArrayList<>();
 
     private double batchTotalWater;

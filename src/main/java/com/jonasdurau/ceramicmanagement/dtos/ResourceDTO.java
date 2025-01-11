@@ -20,7 +20,7 @@ public class ResourceDTO {
     @NotNull(message = "A categoria é obrigatória")
     private ResourceCategory category;
 
-    @DecimalMin(value = "0.0", message = "O valor não pode ser negativo")
+    @DecimalMin(value = "0.0", inclusive = false, message = "O valor deve ser maior que zero")
     private BigDecimal unitValue;
 
     public ResourceDTO() {

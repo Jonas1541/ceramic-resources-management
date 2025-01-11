@@ -1,5 +1,6 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
@@ -23,19 +24,11 @@ public class ResourceTransactionDTO {
 
     private Long resourceId;
 
-    private String cost;
+    private Long batchId;
+
+    private BigDecimal cost;
 
     public ResourceTransactionDTO() {
-    }
-
-    public ResourceTransactionDTO(Long id, Instant createdAt, Instant updatedAt, TransactionType type, double quantity, Long resourceId, String cost) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.type = type;
-        this.quantity = quantity;
-        this.resourceId = resourceId;
-        this.cost = cost;
     }
 
     public Long getId() {
@@ -86,11 +79,19 @@ public class ResourceTransactionDTO {
         this.resourceId = resourceId;
     }
 
-    public String getCost() {
+    public Long getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(Long batchId) {
+        this.batchId = batchId;
+    }
+
+    public BigDecimal getCost() {
         return cost;
     }
 
-    public void setCost(String cost) {
+    public void setCost(BigDecimal cost) {
         this.cost = cost;
     }
 }

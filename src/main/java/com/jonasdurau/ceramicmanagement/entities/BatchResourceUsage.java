@@ -29,6 +29,8 @@ public class BatchResourceUsage {
     @JoinColumn(name = "resource_id")
     private Resource resource;
 
+    private BigDecimal totalCostAtTime;
+
     public BatchResourceUsage() {
     }
 
@@ -99,6 +101,14 @@ public class BatchResourceUsage {
 
     public void setResource(Resource resource) {
         this.resource = resource;
+    }
+
+    public BigDecimal getTotalCostAtTime() {
+        return totalCostAtTime;
+    }
+
+    public void setTotalCostAtTime(BigDecimal totalCostAtTime) {
+        this.totalCostAtTime = totalCostAtTime;
     }
 
     @Override

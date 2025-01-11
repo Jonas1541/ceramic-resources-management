@@ -31,15 +31,17 @@ public class Batch {
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BatchMachineUsage> machineUsages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTransaction> resourceTransactions = new ArrayList<>();
+
+    private BigDecimal batchTotalWaterCostAtTime;
+    private BigDecimal resourceTotalCostAtTime;
+    private BigDecimal machinesEnergyConsumptionCostAtTime;
+    private BigDecimal batchFinalCostAtTime;
+
     public Batch() {
     }
-
-    public Batch(Long id, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
+    
     @PrePersist
     public void prePersist() {
         this.createdAt = Instant.now();
@@ -105,6 +107,42 @@ public class Batch {
 
     public List<BatchMachineUsage> getMachineUsages() {
         return machineUsages;
+    }
+
+    public List<ResourceTransaction> getResourceTransactions() {
+        return resourceTransactions;
+    }
+
+    public BigDecimal getBatchTotalWaterCostAtTime() {
+        return batchTotalWaterCostAtTime;
+    }
+
+    public void setBatchTotalWaterCostAtTime(BigDecimal batchTotalWaterCostAtTime) {
+        this.batchTotalWaterCostAtTime = batchTotalWaterCostAtTime;
+    }
+
+    public BigDecimal getResourceTotalCostAtTime() {
+        return resourceTotalCostAtTime;
+    }
+
+    public void setResourceTotalCostAtTime(BigDecimal resourceTotalCostAtTime) {
+        this.resourceTotalCostAtTime = resourceTotalCostAtTime;
+    }
+
+    public BigDecimal getMachinesEnergyConsumptionCostAtTime() {
+        return machinesEnergyConsumptionCostAtTime;
+    }
+
+    public void setMachinesEnergyConsumptionCostAtTime(BigDecimal machinesEnergyConsumptionCostAtTime) {
+        this.machinesEnergyConsumptionCostAtTime = machinesEnergyConsumptionCostAtTime;
+    }
+
+    public BigDecimal getBatchFinalCostAtTime() {
+        return batchFinalCostAtTime;
+    }
+
+    public void setBatchFinalCostAtTime(BigDecimal batchFinalCostAtTime) {
+        this.batchFinalCostAtTime = batchFinalCostAtTime;
     }
 
     @Override

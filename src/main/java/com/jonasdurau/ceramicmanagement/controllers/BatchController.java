@@ -17,6 +17,8 @@ import com.jonasdurau.ceramicmanagement.dtos.BatchDTO;
 import com.jonasdurau.ceramicmanagement.dtos.BatchListDTO;
 import com.jonasdurau.ceramicmanagement.services.BatchService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/batches")
 public class BatchController {
@@ -37,13 +39,13 @@ public class BatchController {
     }
 
     @PostMapping
-    public ResponseEntity<BatchDTO> create(@RequestBody BatchDTO dto) {
+    public ResponseEntity<BatchDTO> create(@Valid @RequestBody BatchDTO dto) {
         BatchDTO created = batchService.create(dto);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BatchDTO> update(@PathVariable Long id, @RequestBody BatchDTO dto) {
+    public ResponseEntity<BatchDTO> update(@PathVariable Long id, @Valid @RequestBody BatchDTO dto) {
         BatchDTO updated = batchService.update(id, dto);
         return ResponseEntity.ok(updated);
     }

@@ -1,8 +1,13 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
+import jakarta.validation.constraints.Min;
+
 public class BatchMachineUsageDTO {
     
+    @Min(value = 1, message = "O ID da máquina deve ser positivo.")
     private Long machineId;
+
+    @Min(value = 1, message = "O tempo de uso deve ser maior que 0.")
     private long usageTimeSeconds;
 
     private double energyConsumption; 
