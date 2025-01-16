@@ -3,9 +3,12 @@ package com.jonasdurau.ceramicmanagement.entities;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -14,49 +17,44 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "tb_resource_transaction")
-public class ResourceTransaction {
-    
+@Table(name = "tb_glaze_transaction")
+public class GlazeTransaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Instant createdAt;
-
     private Instant updatedAt;
+    private double quantity;
 
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    private double quantity;
-
     @ManyToOne(optional = false)
-    @JoinColumn(name = "resource_id")
-    private Resource resource;
+    @JoinColumn(name = "glaze_id")
+    private Glaze glaze;
 
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "batch_id", nullable = true)
-    private Batch batch;
+    private BigDecimal resourceTotalCostAtTime;
+    private BigDecimal machineEnergyConsumptionCostAtTime;
+    private BigDecimal glazeFinalCostAtTime;
 
-    @ManyToOne
-    @JoinColumn(name = "glaze_transaction_id", nullable = true)
-    private GlazeTransaction glazeTransaction;
+    @OneToMany(mappedBy = "glazeTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceTransaction> resourceTransactions = new ArrayList<>();
 
-    private BigDecimal costAtTime;
-
-    public ResourceTransaction() {
+    public GlazeTransaction() {
     }
 
     public BigDecimal getCost() {
-        return resource.getUnitValue()
-                       .multiply(BigDecimal.valueOf(quantity))
-                       .setScale(2, RoundingMode.HALF_UP);
-        }
+        return glaze.getUnitValue()
+                    .multiply(BigDecimal.valueOf(quantity))
+                    .setScale(2, RoundingMode.HALF_UP);
+    }
 
     @PrePersist
     public void prePersist() {
@@ -93,14 +91,6 @@ public class ResourceTransaction {
         this.updatedAt = updatedAt;
     }
 
-    public TransactionType getType() {
-        return type;
-    }
-
-    public void setType(TransactionType type) {
-        this.type = type;
-    }
-
     public double getQuantity() {
         return quantity;
     }
@@ -109,36 +99,48 @@ public class ResourceTransaction {
         this.quantity = quantity;
     }
 
-    public Resource getResource() {
-        return resource;
+    public TransactionType getType() {
+        return type;
     }
 
-    public void setResource(Resource resource) {
-        this.resource = resource;
+    public void setType(TransactionType type) {
+        this.type = type;
     }
 
-    public Batch getBatch() {
-        return batch;
+    public Glaze getGlaze() {
+        return glaze;
     }
 
-    public void setBatch(Batch batch) {
-        this.batch = batch;
+    public void setGlaze(Glaze glaze) {
+        this.glaze = glaze;
     }
 
-    public GlazeTransaction getGlazeTransaction() {
-        return glazeTransaction;
+    public BigDecimal getResourceTotalCostAtTime() {
+        return resourceTotalCostAtTime;
     }
 
-    public void setGlazeTransaction(GlazeTransaction glazeTransaction) {
-        this.glazeTransaction = glazeTransaction;
+    public void setResourceTotalCostAtTime(BigDecimal resourceTotalCostAtTime) {
+        this.resourceTotalCostAtTime = resourceTotalCostAtTime;
     }
 
-    public BigDecimal getCostAtTime() {
-        return costAtTime;
+    public BigDecimal getMachineEnergyConsumptionCostAtTime() {
+        return machineEnergyConsumptionCostAtTime;
     }
 
-    public void setCostAtTime(BigDecimal costAtTime) {
-        this.costAtTime = costAtTime;
+    public void setMachineEnergyConsumptionCostAtTime(BigDecimal machineEnergyConsumptionCostAtTime) {
+        this.machineEnergyConsumptionCostAtTime = machineEnergyConsumptionCostAtTime;
+    }
+
+    public BigDecimal getGlazeFinalCostAtTime() {
+        return glazeFinalCostAtTime;
+    }
+
+    public void setGlazeFinalCostAtTime(BigDecimal glazeFinalCostAtTime) {
+        this.glazeFinalCostAtTime = glazeFinalCostAtTime;
+    }
+
+    public List<ResourceTransaction> getResourceTransactions() {
+        return resourceTransactions;
     }
 
     @Override
@@ -157,7 +159,7 @@ public class ResourceTransaction {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ResourceTransaction other = (ResourceTransaction) obj;
+        GlazeTransaction other = (GlazeTransaction) obj;
         if (id == null) {
             if (other.id != null)
                 return false;

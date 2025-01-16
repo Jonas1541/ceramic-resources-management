@@ -10,7 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public class BatchResourceUsageDTO {
     
-    @NotNull(message = "O ID do produto não pode ser nulo.")
+    @NotNull(message = "O ID do recurso não pode ser nulo.")
     @Positive(message = "O ID do recurso deve ser positivo.")
     private Long resourceId;
 

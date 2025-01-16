@@ -1,6 +1,4 @@
--- ========================================
--- Tabela: tb_resource
--- ========================================
+-- 1) Tabela: tb_resource
 CREATE TABLE tb_resource (
     ID BIGINT NOT NULL AUTO_INCREMENT,
     NAME VARCHAR(255),
@@ -12,9 +10,7 @@ CREATE TABLE tb_resource (
 ALTER TABLE tb_resource 
     ADD CONSTRAINT UK_AUNVLVM32XB4E6590JC9OOOQ UNIQUE (NAME);
 
--- ========================================
--- Tabela: tb_batch
--- ========================================
+-- 2) Tabela: tb_batch
 CREATE TABLE tb_batch (
     ID BIGINT NOT NULL AUTO_INCREMENT,
     CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -26,26 +22,7 @@ CREATE TABLE tb_batch (
     PRIMARY KEY (ID)
 ) ENGINE=InnoDB;
 
--- ========================================
--- Tabela: tb_resource_transaction
--- ========================================
-CREATE TABLE tb_resource_transaction (
-    ID BIGINT NOT NULL AUTO_INCREMENT,
-    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    QUANTITY DOUBLE NOT NULL,
-    TYPE ENUM ('INCOMING','OUTGOING'),
-    RESOURCE_ID BIGINT NOT NULL,
-    BATCH_ID BIGINT NULL,
-    COST_AT_TIME DECIMAL(10,2) NOT NULL,
-    PRIMARY KEY (ID),
-    FOREIGN KEY (RESOURCE_ID) REFERENCES tb_resource (ID),
-    FOREIGN KEY (BATCH_ID) REFERENCES tb_batch (ID) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- ========================================
--- Tabela: tb_machine
--- ========================================
+-- 3) Tabela: tb_machine
 CREATE TABLE tb_machine (
     ID BIGINT NOT NULL AUTO_INCREMENT,
     NAME VARCHAR(255) NOT NULL UNIQUE,
@@ -53,9 +30,7 @@ CREATE TABLE tb_machine (
     PRIMARY KEY (ID)
 ) ENGINE=InnoDB;
 
--- ========================================
--- Tabela intermediária: tb_batch_resource_usage
--- ========================================
+-- 4) Tabela intermediária: tb_batch_resource_usage
 CREATE TABLE tb_batch_resource_usage (
     ID BIGINT NOT NULL AUTO_INCREMENT,
     INITIAL_QUANTITY DOUBLE NOT NULL,
@@ -71,9 +46,7 @@ CREATE TABLE tb_batch_resource_usage (
     FOREIGN KEY (RESOURCE_ID) REFERENCES tb_resource (ID)
 ) ENGINE=InnoDB;
 
--- ========================================
--- Tabela intermediária: tb_batch_machine_usage
--- ========================================
+-- 5) Tabela intermediária: tb_batch_machine_usage
 CREATE TABLE tb_batch_machine_usage (
     ID BIGINT NOT NULL AUTO_INCREMENT,
     USAGE_TIME BIGINT NOT NULL,
@@ -84,4 +57,86 @@ CREATE TABLE tb_batch_machine_usage (
     PRIMARY KEY (ID),
     FOREIGN KEY (BATCH_ID) REFERENCES tb_batch (ID),
     FOREIGN KEY (MACHINE_ID) REFERENCES tb_machine (ID)
+) ENGINE=InnoDB;
+
+-- 6) Tabela: tb_glaze
+CREATE TABLE tb_glaze (
+    ID BIGINT NOT NULL AUTO_INCREMENT,
+    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    COLOR VARCHAR(255) NOT NULL,
+    UNIT_VALUE DECIMAL(10,2) NOT NULL,
+    UNIT_COST DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (ID)
+) ENGINE=InnoDB;
+
+-- 7) Tabela intermediária: tb_glaze_resource_usage
+-- Relação com tb_glaze => ON DELETE CASCADE
+-- Relação com tb_resource => ON DELETE RESTRICT (p/ evitar deletar Resource em uso)
+CREATE TABLE tb_glaze_resource_usage (
+    ID BIGINT NOT NULL AUTO_INCREMENT,
+    QUANTITY DOUBLE NOT NULL,
+    GLAZE_ID BIGINT NOT NULL,
+    RESOURCE_ID BIGINT NOT NULL,
+    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (ID),
+    CONSTRAINT FK_GLAZE_RES_USAGE_GLZ 
+        FOREIGN KEY (GLAZE_ID) REFERENCES tb_glaze (ID) ON DELETE CASCADE,
+    CONSTRAINT FK_GLAZE_RES_USAGE_RESOURCE 
+        FOREIGN KEY (RESOURCE_ID) REFERENCES tb_resource (ID) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- 8) Tabela intermediária: tb_glaze_machine_usage
+-- Relação com tb_glaze => ON DELETE CASCADE
+-- Relação com tb_machine => ON DELETE RESTRICT
+CREATE TABLE tb_glaze_machine_usage (
+    ID BIGINT NOT NULL AUTO_INCREMENT,
+    USAGE_TIME BIGINT NOT NULL,
+    GLAZE_ID BIGINT NOT NULL,
+    MACHINE_ID BIGINT NOT NULL,
+    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (ID),
+    CONSTRAINT FK_GLAZE_MACH_USAGE_GLZ
+        FOREIGN KEY (GLAZE_ID) REFERENCES tb_glaze (ID) ON DELETE CASCADE,
+    CONSTRAINT FK_GLAZE_MACH_USAGE_MACH
+        FOREIGN KEY (MACHINE_ID) REFERENCES tb_machine (ID) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- 9) Tabela: tb_glaze_transaction
+-- Relação com tb_glaze => ON DELETE RESTRICT (não pode deletar Glaze se ainda tiver transações)
+CREATE TABLE tb_glaze_transaction (
+    ID BIGINT NOT NULL AUTO_INCREMENT,
+    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    QUANTITY DOUBLE NOT NULL,
+    TYPE ENUM('INCOMING','OUTGOING') NOT NULL,
+    GLAZE_ID BIGINT NOT NULL,
+    RESOURCE_TOTAL_COST_AT_TIME DECIMAL(10,2) NOT NULL,
+    MACHINE_ENERGY_CONSUMPTION_COST_AT_TIME DECIMAL(10,2) NOT NULL,
+    GLAZE_FINAL_COST_AT_TIME DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (ID),
+    CONSTRAINT FK_GLAZE_TRANSACTION_GLZ
+        FOREIGN KEY (GLAZE_ID) REFERENCES tb_glaze (ID) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- 10) Tabela: tb_resource_transaction
+-- Relação com tb_resource => ON DELETE RESTRICT ou outro
+-- Relação com tb_batch => ON DELETE CASCADE
+-- Relação com tb_glaze_transaction => ON DELETE CASCADE
+CREATE TABLE tb_resource_transaction (
+    ID BIGINT NOT NULL AUTO_INCREMENT,
+    CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UPDATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    QUANTITY DOUBLE NOT NULL,
+    TYPE ENUM ('INCOMING','OUTGOING'),
+    RESOURCE_ID BIGINT NOT NULL,
+    BATCH_ID BIGINT NULL,
+    GLAZE_TRANSACTION_ID BIGINT NULL,
+    COST_AT_TIME DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (ID),
+    FOREIGN KEY (RESOURCE_ID) REFERENCES tb_resource (ID),
+    FOREIGN KEY (BATCH_ID) REFERENCES tb_batch (ID) ON DELETE CASCADE,
+    FOREIGN KEY (GLAZE_TRANSACTION_ID) REFERENCES tb_glaze_transaction (ID) ON DELETE CASCADE
 ) ENGINE=InnoDB;

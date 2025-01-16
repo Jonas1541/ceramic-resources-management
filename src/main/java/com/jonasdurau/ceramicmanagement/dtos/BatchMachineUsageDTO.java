@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Positive;
 
 public class BatchMachineUsageDTO {
     
-    @NotNull(message = "O ID do produto não pode ser nulo.")
+    @NotNull(message = "O ID da máquina não pode ser nulo.")
     @Positive(message = "O ID da máquina deve ser positivo.")
     private Long machineId;
 
