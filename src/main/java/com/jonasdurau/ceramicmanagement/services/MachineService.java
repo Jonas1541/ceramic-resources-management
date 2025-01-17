@@ -12,6 +12,7 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.repositories.BatchMachineUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
@@ -22,6 +23,9 @@ public class MachineService {
 
     @Autowired
     private BatchMachineUsageRepository batchMachineUsageRepository;
+
+    @Autowired
+    private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
     @Autowired
     private GlazeService glazeService;
@@ -70,9 +74,13 @@ public class MachineService {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
         boolean hasBatchUsages = batchMachineUsageRepository.existsByMachineId(id);
+        boolean hasGlazeUsages = glazeMachineUsageRepository.existsByMachineId(id);
         if (hasBatchUsages) {
             throw new ResourceDeletionException("Não é possível deletar a máquina com id " + id + " pois ela tem bateladas associadas.");
-        }     
+        }
+        if (hasGlazeUsages) {
+            throw new ResourceDeletionException("Não é possível deletar a máquina com id " + id + " pois ela tem glasuras associadas.");
+        }
         machineRepository.delete(entity);
     }
 

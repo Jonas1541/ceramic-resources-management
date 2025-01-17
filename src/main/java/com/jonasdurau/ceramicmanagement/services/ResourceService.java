@@ -11,6 +11,7 @@ import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.BatchResourceUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
@@ -40,6 +41,9 @@ public class ResourceService {
 
     @Autowired
     private BatchResourceUsageRepository batchResourceUsageRepository;
+
+    @Autowired
+    private GlazeResourceUsageRepository glazeResourceUsageRepository;
 
     @Autowired
     private GlazeService glazeService;
@@ -102,11 +106,15 @@ public class ResourceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
         boolean hasTransactions = transactionRepository.existsByResourceId(id);
         boolean hasBatchUsages = batchResourceUsageRepository.existsByResourceId(id);
+        boolean hasGlazeUsages = glazeResourceUsageRepository.existsByResourceId(id);
         if (hasTransactions) {
             throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem transações associadas.");
         }
         if (hasBatchUsages) {
             throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem bateladas associadas.");
+        }
+        if (hasGlazeUsages) {
+            throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem glasuras associadas.");
         }
         resourceRepository.delete(entity);
     }
@@ -117,6 +125,8 @@ public class ResourceService {
         dto.setName(entity.getName());
         dto.setCategory(entity.getCategory());
         dto.setUnitValue(entity.getUnitValue());
+        dto.setCurrentQuantity(entity.getCurrentQuantity());
+        dto.setCurrentQuantityPrice(entity.getCurrentQuantityPrice());
         return dto;
     }
 

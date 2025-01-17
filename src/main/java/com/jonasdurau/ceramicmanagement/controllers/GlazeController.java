@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeService;
 
 import jakarta.validation.Valid;
@@ -26,8 +28,8 @@ public class GlazeController {
     private GlazeService glazeService;
 
     @GetMapping
-    public ResponseEntity<List<GlazeDTO>> findAll() {
-        List<GlazeDTO> list = glazeService.findAll();
+    public ResponseEntity<List<GlazeListDTO>> findAll() {
+        List<GlazeListDTO> list = glazeService.findAll();
         return ResponseEntity.ok(list);
     }
 
@@ -53,5 +55,11 @@ public class GlazeController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         glazeService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/yearly-report")
+    public ResponseEntity<List<YearReportDTO>> getYearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> report = glazeService.getYearlyReport(id);
+        return ResponseEntity.ok(report);
     }
 }

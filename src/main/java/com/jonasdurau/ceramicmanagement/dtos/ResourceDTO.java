@@ -24,14 +24,10 @@ public class ResourceDTO {
     @Positive(message = "O valor deve ser maior que zero")
     private BigDecimal unitValue;
 
-    public ResourceDTO() {
-    }
+    private double currentQuantity;
+    private BigDecimal currentQuantityPrice;
 
-    public ResourceDTO(Long id, String name, ResourceCategory category, BigDecimal unitValue) {
-        this.id = id;
-        this.name = name;
-        this.category = category;
-        this.unitValue = unitValue;
+    public ResourceDTO() {
     }
 
     public Long getId() {
@@ -64,5 +60,21 @@ public class ResourceDTO {
 
     public void setUnitValue(BigDecimal unitValue) {
         this.unitValue = unitValue;
+    }
+
+    public double getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(double currentQuantity) {
+        this.currentQuantity = currentQuantity;
+    }
+
+    public BigDecimal getCurrentQuantityPrice() {
+        return currentQuantityPrice;
+    }
+
+    public void setCurrentQuantityPrice(BigDecimal currentQuantityPrice) {
+        this.currentQuantityPrice = currentQuantityPrice;
     }
 }

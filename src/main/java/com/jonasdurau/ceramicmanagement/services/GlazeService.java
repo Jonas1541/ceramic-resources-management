@@ -3,8 +3,14 @@ package com.jonasdurau.ceramicmanagement.services;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,14 +23,19 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeMachineUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeResourceUsageDTO;
+import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
+import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
@@ -54,10 +65,10 @@ public class GlazeService {
     private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
     @Transactional(readOnly = true)
-    public List<GlazeDTO> findAll() {
+    public List<GlazeListDTO> findAll() {
         List<Glaze> entities = glazeRepository.findAll();
         return entities.stream()
-            .map(this::entityToDTO)
+            .map(this::glazeToListDTO)
             .collect(Collectors.toList());
     }
 
@@ -148,6 +159,83 @@ public class GlazeService {
         glazeRepository.delete(glaze);
     }
 
+    @Transactional(readOnly = true)
+    public List<YearReportDTO> getYearlyReport(Long glazeId) {
+        Glaze glaze = glazeRepository.findById(glazeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrada: " + glazeId));
+
+        // Carrega as transações associadas à Glaze
+        List<GlazeTransaction> txs = glaze.getTransactions();
+
+        // Passo 1: Agrupar por (year, month)
+        Map<Integer, Map<Month, List<GlazeTransaction>>> mapYearMonth = txs.stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getCreatedAt().atZone(ZoneId.systemDefault()).getYear(),
+                        Collectors.groupingBy(t -> t.getCreatedAt().atZone(ZoneId.systemDefault()).getMonth())));
+
+        List<YearReportDTO> yearReports = new ArrayList<>();
+
+        // Passo 2: Percorrer o map de ano e mês
+        for (Map.Entry<Integer, Map<Month, List<GlazeTransaction>>> yearEntry : mapYearMonth.entrySet()) {
+            int year = yearEntry.getKey();
+            Map<Month, List<GlazeTransaction>> mapMonth = yearEntry.getValue();
+
+            YearReportDTO yearReport = new YearReportDTO(year);
+
+            double totalIncomingQtyYear = 0.0;
+            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
+            double totalOutgoingQtyYear = 0.0;
+
+            // Se preferir só iterar nos meses existentes: mapMonth.keySet()
+            // Aqui vamos iterar todos os 12 meses e colocar zero pra meses sem transação
+            for (Month m : Month.values()) {
+                List<GlazeTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
+
+                double incomingQty = 0.0;
+                BigDecimal incomingCost = BigDecimal.ZERO;
+                double outgoingQty = 0.0;
+
+                // Somar as transações do mês
+                for (GlazeTransaction t : monthTx) {
+                    if (t.getType() == TransactionType.INCOMING) {
+                        incomingQty += t.getQuantity();
+                        // Usar t.getGlazeFinalCostAtTime() para custo total
+                        incomingCost = incomingCost.add(t.getGlazeFinalCostAtTime());
+                    } else {
+                        // OUTGOING
+                        outgoingQty += t.getQuantity();
+                    }
+                }
+
+                // Atualiza total anual
+                totalIncomingQtyYear += incomingQty;
+                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
+                totalOutgoingQtyYear += outgoingQty;
+
+                // Cria o MonthReportDTO
+                MonthReportDTO monthDto = new MonthReportDTO();
+                monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+                monthDto.setIncomingQty(incomingQty);
+                monthDto.setIncomingCost(incomingCost);
+                monthDto.setOutgoingQty(outgoingQty);
+
+                yearReport.getMonths().add(monthDto);
+            }
+
+            // Define os totais anuais no YearReportDTO
+            yearReport.setTotalIncomingQty(totalIncomingQtyYear);
+            yearReport.setTotalIncomingCost(totalIncomingCostYear);
+            yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
+
+            yearReports.add(yearReport);
+        }
+
+        // Ordenar por ano desc, se preferir
+        yearReports.sort((a, b) -> b.getYear() - a.getYear());
+
+        return yearReports;
+    }
+
     private GlazeDTO entityToDTO(Glaze entity) {
         GlazeDTO dto = new GlazeDTO();
         dto.setId(entity.getId());
@@ -156,6 +244,8 @@ public class GlazeService {
         dto.setColor(entity.getColor());
         dto.setUnitValue(entity.getUnitValue());
         dto.setUnitCost(entity.getUnitCost());
+        dto.setCurrentQuantity(entity.getCurrentQuantity());
+        dto.setCurrentQuantityPrice(entity.getCurrentQuantityPrice());
         List<GlazeResourceUsageDTO> usageDTOs = entity.getResourceUsages().stream()
             .map(usage -> {
                 GlazeResourceUsageDTO u = new GlazeResourceUsageDTO();
@@ -248,5 +338,20 @@ public class GlazeService {
             computeUnitCost(g);
             glazeRepository.save(g);
         }
+    }
+
+    private GlazeListDTO glazeToListDTO(Glaze entity) {
+        GlazeListDTO dto = new GlazeListDTO();
+        dto.setId(entity.getId());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setColor(entity.getColor());
+        dto.setUnitValue(entity.getUnitValue());
+        dto.setUnitCost(entity.getUnitCost());
+        double currentQty = entity.getCurrentQuantity();
+        BigDecimal currentQtyPrice = entity.getCurrentQuantityPrice();
+        dto.setCurrentQuantity(currentQty);
+        dto.setCurrentQuantityPrice(currentQtyPrice);
+        return dto;
     }
 }
