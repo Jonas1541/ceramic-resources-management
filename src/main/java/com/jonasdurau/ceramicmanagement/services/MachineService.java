@@ -23,6 +23,9 @@ public class MachineService {
     @Autowired
     private BatchMachineUsageRepository batchMachineUsageRepository;
 
+    @Autowired
+    private GlazeService glazeService;
+
     @Transactional(readOnly = true)
     public List<MachineDTO> findAll() {
         List<Machine> list = machineRepository.findAll();
@@ -58,6 +61,7 @@ public class MachineService {
         entity.setName(newName);
         entity.setPower(dto.getPower());
         entity = machineRepository.save(entity);
+        glazeService.recalculateGlazesByMachine(id);
         return entityToDTO(entity);
     }
 

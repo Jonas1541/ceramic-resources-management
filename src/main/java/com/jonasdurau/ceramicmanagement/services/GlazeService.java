@@ -25,7 +25,9 @@ import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
@@ -44,6 +46,12 @@ public class GlazeService {
 
     @Autowired
     private GlazeTransactionRepository transactionRepository;
+
+    @Autowired
+    private GlazeResourceUsageRepository glazeResourceUsageRepository;
+
+    @Autowired
+    private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
     @Transactional(readOnly = true)
     public List<GlazeDTO> findAll() {
@@ -214,5 +222,31 @@ public class GlazeService {
             total = total.add(cost);
         }
         return total.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Transactional
+    public void recalculateGlazesByResource(Long resourceId) {
+        List<GlazeResourceUsage> usages = glazeResourceUsageRepository.findByResourceId(resourceId);
+        List<Glaze> glazes = usages.stream()
+            .map(GlazeResourceUsage::getGlaze)
+            .distinct()
+            .collect(Collectors.toList());
+        for (Glaze glaze : glazes) {
+            computeUnitCost(glaze);
+            glazeRepository.save(glaze);
+        }
+    }
+
+    @Transactional
+    public void recalculateGlazesByMachine(Long machineId) {
+        List<GlazeMachineUsage> usages = glazeMachineUsageRepository.findByMachineId(machineId);
+        List<Glaze> glazes = usages.stream()
+                .map(GlazeMachineUsage::getGlaze)
+                .distinct()
+                .collect(Collectors.toList());
+        for (Glaze g : glazes) {
+            computeUnitCost(g);
+            glazeRepository.save(g);
+        }
     }
 }

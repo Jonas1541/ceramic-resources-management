@@ -38,7 +38,7 @@ public class GlazeTransactionService {
     public List<GlazeTransactionDTO> findAllByGlaze(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
-        glaze.getTransactions().size();
+        glaze.getTransactions().size(); // força carregamento se Lazy
         return glaze.getTransactions().stream()
             .map(this::entityToDTO)
             .collect(Collectors.toList());
@@ -55,6 +55,7 @@ public class GlazeTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Transactional
     public GlazeTransactionDTO create(Long glazeId, GlazeTransactionDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -69,7 +70,7 @@ public class GlazeTransactionService {
         entity.setMachineEnergyConsumptionCostAtTime(machineCost);
         entity.setGlazeFinalCostAtTime(finalCost);
         if (dto.getType() == TransactionType.INCOMING) {
-            createResourceTransactionsForGlaze(entity, glaze, dto.getQuantity());
+            createResourceTransactionsForGlazeTx(entity, glaze, dto.getQuantity());
         }
         entity = glazeTransactionRepository.save(entity);
         return entityToDTO(entity);
@@ -91,6 +92,10 @@ public class GlazeTransactionService {
         transaction.setResourceTotalCostAtTime(resourceCost);
         transaction.setMachineEnergyConsumptionCostAtTime(machineCost);
         transaction.setGlazeFinalCostAtTime(finalCost);
+        transaction.getResourceTransactions().clear();
+        if (dto.getType() == TransactionType.INCOMING) {
+            createResourceTransactionsForGlazeTx(transaction, glaze, dto.getQuantity());
+        }
         transaction = glazeTransactionRepository.save(transaction);
         return entityToDTO(transaction);
     }
@@ -103,49 +108,48 @@ public class GlazeTransactionService {
             .filter(t -> t.getId().equals(transactionId))
             .findFirst()
             .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
-
         glaze.getTransactions().remove(transaction);
         glazeTransactionRepository.delete(transaction);
     }
 
-    private void createResourceTransactionsForGlaze(GlazeTransaction glazeTx, Glaze glaze, double quantity) {
-        glaze.getResourceUsages().forEach(usage -> {
+    private void createResourceTransactionsForGlazeTx(GlazeTransaction transaction, Glaze glaze, double quantity) {
+        for (GlazeResourceUsage usage : glaze.getResourceUsages()) {
             double neededQty = usage.getQuantity() * quantity;
-            ResourceTransaction rt = new ResourceTransaction();
-            rt.setType(TransactionType.OUTGOING);
-            rt.setQuantity(neededQty);
-            rt.setResource(usage.getResource());
-            rt.setGlazeTransaction(glazeTx); // chave principal para cascade
-            BigDecimal cost = usage.getResource().getUnitValue()
-                    .multiply(BigDecimal.valueOf(neededQty))
-                    .setScale(2, RoundingMode.HALF_UP);
-            rt.setCostAtTime(cost);
-            glazeTx.getResourceTransactions().add(rt);
-        });
+            ResourceTransaction resourceTx = new ResourceTransaction();
+            resourceTx.setType(TransactionType.OUTGOING);
+            resourceTx.setQuantity(neededQty);
+            resourceTx.setResource(usage.getResource());
+            resourceTx.setGlazeTransaction(transaction);
+            BigDecimal costAtTime = usage.getResource().getUnitValue()
+                .multiply(BigDecimal.valueOf(neededQty))
+                .setScale(2, RoundingMode.HALF_UP);
+            resourceTx.setCostAtTime(costAtTime);
+            transaction.getResourceTransactions().add(resourceTx);
+        }
     }
 
     private BigDecimal computeResourceCostAtTime(Glaze glaze, double transactionQty) {
         BigDecimal total = BigDecimal.ZERO;
         for (GlazeResourceUsage usage : glaze.getResourceUsages()) {
-            double usageFor1kg = usage.getQuantity();  // quanto precisa para 1 kg
-            double usageScaled = usageFor1kg * transactionQty; 
-            BigDecimal resourceUnitValue = usage.getResource().getUnitValue();
-            BigDecimal subCost = resourceUnitValue.multiply(BigDecimal.valueOf(usageScaled));
-            total = total.add(subCost);
+            double usageScaled = usage.getQuantity() * transactionQty;
+            BigDecimal sub = usage.getResource().getUnitValue()
+                .multiply(BigDecimal.valueOf(usageScaled));
+            total = total.add(sub);
         }
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal computeMachineCostAtTime(Glaze glaze, double transactionQty) {
         BigDecimal total = BigDecimal.ZERO;
-        Resource electricity = resourceRepository.findByCategory(com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory.ELECTRICITY)
+        Resource electricity = resourceRepository.findByCategory(
+            com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory.ELECTRICITY)
             .orElseThrow(() -> new ResourceNotFoundException("Resource ELECTRICITY não cadastrado!"));
         for (GlazeMachineUsage mu : glaze.getMachineUsages()) {
-            double baseEnergy = mu.getEnergyConsumption(); // para 1 kg
+            double baseEnergy = mu.getEnergyConsumption(); // p/ 1 kg
             double scaledEnergy = baseEnergy * transactionQty;
             BigDecimal electricityRate = electricity.getUnitValue(); 
-            BigDecimal subCost = electricityRate.multiply(BigDecimal.valueOf(scaledEnergy));
-            total = total.add(subCost);
+            BigDecimal sub = electricityRate.multiply(BigDecimal.valueOf(scaledEnergy));
+            total = total.add(sub);
         }
         return total.setScale(2, RoundingMode.HALF_UP);
     }
@@ -164,4 +168,3 @@ public class GlazeTransactionService {
         return dto;
     }
 }
-

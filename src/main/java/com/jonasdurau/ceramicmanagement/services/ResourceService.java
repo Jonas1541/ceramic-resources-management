@@ -41,6 +41,9 @@ public class ResourceService {
     @Autowired
     private BatchResourceUsageRepository batchResourceUsageRepository;
 
+    @Autowired
+    private GlazeService glazeService;
+
     @Transactional(readOnly = true)
     public List<ResourceListDTO> findAll() {
         List<Resource> list = resourceRepository.findAll();
@@ -89,6 +92,7 @@ public class ResourceService {
         entity.setCategory(dto.getCategory());
         entity.setUnitValue(dto.getUnitValue());
         entity = resourceRepository.save(entity);
+        glazeService.recalculateGlazesByResource(id);
         return entityToDTO(entity);
     }
 
