@@ -87,6 +87,8 @@ public class MachineService {
     private MachineDTO entityToDTO(Machine entity) {
         MachineDTO dto = new MachineDTO();
         dto.setId(entity.getId());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setName(entity.getName());
         dto.setPower(entity.getPower());
         return dto;

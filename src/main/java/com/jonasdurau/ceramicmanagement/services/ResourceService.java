@@ -122,6 +122,8 @@ public class ResourceService {
     private ResourceDTO entityToDTO(Resource entity) {
         ResourceDTO dto = new ResourceDTO();
         dto.setId(entity.getId());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setName(entity.getName());
         dto.setCategory(entity.getCategory());
         dto.setUnitValue(entity.getUnitValue());

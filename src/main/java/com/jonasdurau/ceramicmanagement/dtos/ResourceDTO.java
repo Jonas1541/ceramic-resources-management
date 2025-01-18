@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 
@@ -12,6 +13,8 @@ import jakarta.validation.constraints.Size;
 public class ResourceDTO {
 
     private Long id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @NotBlank(message = "O nome é obrigatório")
     @Size(min = 2, max = 50, message = "O nome deve ter entre 2 e 50 caracteres")
@@ -36,6 +39,22 @@ public class ResourceDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getName() {

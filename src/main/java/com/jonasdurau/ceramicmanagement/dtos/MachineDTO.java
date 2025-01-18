@@ -1,11 +1,16 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
+import java.time.Instant;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 
 public class MachineDTO {
 
     private Long id;
+
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @NotBlank(message = "O nome é obrigatório")
     private String name;
@@ -16,18 +21,28 @@ public class MachineDTO {
     public MachineDTO() {
     }
 
-    public MachineDTO(Long id, String name, double power) {
-        this.id = id;
-        this.name = name;
-        this.power = power;
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getName() {
