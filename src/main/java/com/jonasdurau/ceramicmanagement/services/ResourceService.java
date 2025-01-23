@@ -63,7 +63,7 @@ public class ResourceService {
                             currentQty,
                             currentPrice);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)

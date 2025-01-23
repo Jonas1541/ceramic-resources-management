@@ -39,7 +39,7 @@ public class MachineService {
     @Transactional(readOnly = true)
     public MachineDTO findById(Long id) {
         Machine entity = machineRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
         return entityToDTO(entity);
     }
 
