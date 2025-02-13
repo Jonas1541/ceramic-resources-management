@@ -77,6 +77,24 @@ public class GlazeTransactionService {
     }
 
     @Transactional
+    public GlazeTransaction createEntity(Long glazeId, double quantity) {
+        Glaze glaze = glazeRepository.findById(glazeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
+        GlazeTransaction entity = new GlazeTransaction();
+        entity.setType(TransactionType.OUTGOING);
+        entity.setQuantity(quantity);
+        entity.setGlaze(glaze);
+        BigDecimal resourceCost = computeResourceCostAtTime(glaze, quantity);
+        BigDecimal machineCost = computeMachineCostAtTime(glaze, quantity);
+        BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
+        entity.setResourceTotalCostAtTime(resourceCost);
+        entity.setMachineEnergyConsumptionCostAtTime(machineCost);
+        entity.setGlazeFinalCostAtTime(finalCost);
+        entity = glazeTransactionRepository.save(entity);
+        return entity;
+    }
+
+    @Transactional
     public GlazeTransactionDTO update(Long glazeId, Long transactionId, GlazeTransactionDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));

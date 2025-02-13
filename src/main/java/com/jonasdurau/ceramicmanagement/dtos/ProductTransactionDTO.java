@@ -21,6 +21,10 @@ public class ProductTransactionDTO {
 
     private Long glazeTransactionId;
 
+    private Long bisqueFiringId;
+
+    private Long glazeFiringId;
+
     private BigDecimal profit;
 
     public ProductTransactionDTO() {
@@ -88,6 +92,22 @@ public class ProductTransactionDTO {
 
     public void setGlazeTransactionId(Long glazeTransactionId) {
         this.glazeTransactionId = glazeTransactionId;
+    }
+
+    public Long getBisqueFiringId() {
+        return bisqueFiringId;
+    }
+
+    public void setBisqueFiringId(Long bisqueFiringId) {
+        this.bisqueFiringId = bisqueFiringId;
+    }
+
+    public Long getGlazeFiringId() {
+        return glazeFiringId;
+    }
+
+    public void setGlazeFiringId(Long glazeFiringId) {
+        this.glazeFiringId = glazeFiringId;
     }
 
     public BigDecimal getProfit() {

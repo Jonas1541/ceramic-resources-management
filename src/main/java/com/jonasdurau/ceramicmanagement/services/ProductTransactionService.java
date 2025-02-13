@@ -36,6 +36,12 @@ public class ProductTransactionService {
     }
 
     @Transactional(readOnly = true)
+    public List<ProductTransactionDTO> findAllByState(ProductState state) {
+        List<ProductTransaction> list = transactionRepository.findByState(state);
+        return list.stream().map(this::entityToDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
     public ProductTransactionDTO findById(Long productId, Long transactionId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
@@ -65,6 +71,12 @@ public class ProductTransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
+        if(entity.getBisqueFiring() != null) {
+            throw new BusinessException("A transação do produto não pode ser deletada pois está em uma 1° queima.");
+        }
+        if(entity.getGlazeFiring() != null) {
+            throw new BusinessException("A transação do produto não pode ser deletada pois está em uma 2° queima.");
+        }
         transactionRepository.delete(entity);
     }
 
@@ -91,8 +103,12 @@ public class ProductTransactionService {
         dto.setProductId(entity.getProduct().getId());
         if (entity.getGlazeTransaction() != null) {
             dto.setGlazeTransactionId(entity.getGlazeTransaction().getId());
-        } else {
-            dto.setGlazeTransactionId(null);
+        }
+        if (entity.getBisqueFiring() != null) {
+            dto.setBisqueFiringId(entity.getBisqueFiring().getId());
+        }
+        if (entity.getGlazeFiring() != null) {
+            dto.setGlazeFiringId(entity.getGlazeFiring().getId());
         }
         dto.setProfit(entity.getProfit());
         return dto;

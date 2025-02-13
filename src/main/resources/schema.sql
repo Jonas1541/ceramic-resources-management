@@ -1,18 +1,13 @@
--- 1) Tabela: tb_resource
 CREATE TABLE tb_resource (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    name VARCHAR(255),
+    name VARCHAR(255) UNIQUE NOT NULL,
     unit_value DECIMAL(10,2) NOT NULL,
     category ENUM ('COMPONENT','ELECTRICITY','GAS','RAW_MATERIAL','RETAIL','SILICATE','WATER'),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE tb_resource 
-    ADD CONSTRAINT UK_AUNVLVM32XB4E6590JC9OOOQ UNIQUE (name);
-
--- 2) Tabela: tb_batch
 CREATE TABLE tb_batch (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -24,7 +19,6 @@ CREATE TABLE tb_batch (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
--- 3) Tabela: tb_machine
 CREATE TABLE tb_machine (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -34,7 +28,6 @@ CREATE TABLE tb_machine (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
--- 4) Tabela intermediária: tb_batch_resource_usage
 CREATE TABLE tb_batch_resource_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
     initial_quantity DOUBLE NOT NULL,
@@ -48,7 +41,6 @@ CREATE TABLE tb_batch_resource_usage (
     FOREIGN KEY (resource_id) REFERENCES tb_resource (id)
 ) ENGINE=InnoDB;
 
--- 5) Tabela intermediária: tb_batch_machine_usage
 CREATE TABLE tb_batch_machine_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
     usage_time BIGINT NOT NULL,
@@ -59,7 +51,6 @@ CREATE TABLE tb_batch_machine_usage (
     FOREIGN KEY (machine_id) REFERENCES tb_machine (id)
 ) ENGINE=InnoDB;
 
--- 6) Tabela: tb_glaze
 CREATE TABLE tb_glaze (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -70,9 +61,6 @@ CREATE TABLE tb_glaze (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
--- 7) Tabela intermediária: tb_glaze_resource_usage
--- Relação com tb_glaze => ON DELETE CASCADE
--- Relação com tb_resource => ON DELETE RESTRICT (p/ evitar deletar Resource em uso)
 CREATE TABLE tb_glaze_resource_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
     quantity DOUBLE NOT NULL,
@@ -85,9 +73,6 @@ CREATE TABLE tb_glaze_resource_usage (
         FOREIGN KEY (resource_id) REFERENCES tb_resource (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- 8) Tabela intermediária: tb_glaze_machine_usage
--- Relação com tb_glaze => ON DELETE CASCADE
--- Relação com tb_machine => ON DELETE RESTRICT
 CREATE TABLE tb_glaze_machine_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
     usage_time BIGINT NOT NULL,
@@ -100,8 +85,6 @@ CREATE TABLE tb_glaze_machine_usage (
         FOREIGN KEY (machine_id) REFERENCES tb_machine (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- 9) Tabela: tb_glaze_transaction
--- Relação com tb_glaze => ON DELETE RESTRICT (não pode deletar Glaze se ainda tiver transações)
 CREATE TABLE tb_glaze_transaction (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -117,10 +100,6 @@ CREATE TABLE tb_glaze_transaction (
         FOREIGN KEY (glaze_id) REFERENCES tb_glaze (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- 10) Tabela: tb_resource_transaction
--- Relação com tb_resource => ON DELETE RESTRICT ou outro
--- Relação com tb_batch => ON DELETE CASCADE
--- Relação com tb_glaze_transaction => ON DELETE CASCADE
 CREATE TABLE tb_resource_transaction (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -169,6 +148,41 @@ CREATE TABLE tb_product (
     FOREIGN KEY (product_line_id) REFERENCES tb_product_line (id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE tb_kiln (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    power DOUBLE NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_bisque_firing (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    temperature DOUBLE NOT NULL,
+    burn_time DOUBLE NOT NULL,
+    cooling_time DOUBLE NOT NULL,
+    kiln_id BIGINT NOT NULL,
+    cost_at_time DECIMAL(10,2),
+    PRIMARY KEY (id),
+    FOREIGN KEY (kiln_id) REFERENCES tb_kiln (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_glaze_firing (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    temperature DOUBLE NOT NULL,
+    burn_time DOUBLE NOT NULL,
+    cooling_time DOUBLE NOT NULL,
+    kiln_id BIGINT NOT NULL,
+    cost_at_time DECIMAL(10,2),
+    PRIMARY KEY (id),
+    FOREIGN KEY (kiln_id) REFERENCES tb_kiln (id)
+) ENGINE=InnoDB;
+
 CREATE TABLE tb_product_transaction (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -178,7 +192,11 @@ CREATE TABLE tb_product_transaction (
     outgoing_reason ENUM ('SOLD', 'DEFECT_DISPOSAL'),
     product_id BIGINT NOT NULL,
     glaze_transaction_id BIGINT,
+    bisque_firing_id BIGINT,
+    glaze_firing_id BIGINT,
     PRIMARY KEY (id),
     FOREIGN KEY (product_id) REFERENCES tb_product (id),
-    FOREIGN KEY (glaze_transaction_id) REFERENCES tb_glaze_transaction (id)
-) ENGINE=InnoDB
+    FOREIGN KEY (glaze_transaction_id) REFERENCES tb_glaze_transaction (id),
+    FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id),
+    FOREIGN KEY (glaze_firing_id) REFERENCES tb_glaze_firing (id)
+) ENGINE=InnoDB;

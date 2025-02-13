@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionDTO;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
+import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.services.ProductTransactionService;
 
 @RestController
@@ -27,6 +28,12 @@ public class ProductTransactionController {
     @GetMapping
     public ResponseEntity<List<ProductTransactionDTO>> findAllByProduct(@PathVariable Long productId) {
         List<ProductTransactionDTO> list = transactionService.findAllByProduct(productId);
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping(params = "state")
+    public ResponseEntity<List<ProductTransactionDTO>> findAllByState(@RequestParam ProductState state) {
+        List<ProductTransactionDTO> list = transactionService.findAllByState(state);
         return ResponseEntity.ok(list);
     }
 

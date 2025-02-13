@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
+import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 
 public interface ProductTransactionRepository extends JpaRepository<ProductTransaction, Long> {
 
@@ -15,4 +16,6 @@ public interface ProductTransactionRepository extends JpaRepository<ProductTrans
     List<ProductTransaction> findByProduct(Product product);
 
     Optional<ProductTransaction> findByIdAndProduct(Long id, Product product);
+
+    List<ProductTransaction> findByState(ProductState state);
 }

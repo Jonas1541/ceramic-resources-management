@@ -41,9 +41,17 @@ public class ProductTransaction {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToOne(optional = true, cascade = CascadeType.REMOVE)
+    @OneToOne(optional = true, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "glaze_transaction_id")
     private GlazeTransaction glazeTransaction;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "bisque_firing_id")
+    private BisqueFiring bisqueFiring;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "glaze_firing_id")
+    private GlazeFiring glazeFiring;
 
     public ProductTransaction() {
     }
@@ -131,6 +139,22 @@ public class ProductTransaction {
 
     public void setGlazeTransaction(GlazeTransaction glazeTransaction) {
         this.glazeTransaction = glazeTransaction;
+    }
+
+    public BisqueFiring getBisqueFiring() {
+        return bisqueFiring;
+    }
+
+    public void setBisqueFiring(BisqueFiring bisqueFiring) {
+        this.bisqueFiring = bisqueFiring;
+    }
+
+    public GlazeFiring getGlazeFiring() {
+        return glazeFiring;
+    }
+
+    public void setGlazeFiring(GlazeFiring glazeFiring) {
+        this.glazeFiring = glazeFiring;
     }
 
     @Override
