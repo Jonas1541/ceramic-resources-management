@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +29,7 @@ public class GlazeFiring {
     private double temperature;
     private double burnTime;
     private double coolingTime;
+    private double gasConsumption;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "kiln_id")
@@ -35,6 +37,9 @@ public class GlazeFiring {
 
     @OneToMany(mappedBy = "glazeFiring")
     private List<ProductTransaction> glosts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "glazeFiring", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FiringMachineUsage> machineUsages = new ArrayList<>();
 
     private BigDecimal costAtTime;
 
@@ -104,6 +109,14 @@ public class GlazeFiring {
         this.coolingTime = coolingTime;
     }
 
+    public double getGasConsumption() {
+        return gasConsumption;
+    }
+
+    public void setGasConsumption(double gasConsumption) {
+        this.gasConsumption = gasConsumption;
+    }
+
     public Kiln getKiln() {
         return kiln;
     }
@@ -114,6 +127,10 @@ public class GlazeFiring {
 
     public List<ProductTransaction> getGlosts() {
         return glosts;
+    }
+
+    public List<FiringMachineUsage> getMachineUsages() {
+        return machineUsages;
     }
 
     public BigDecimal getCostAtTime() {

@@ -24,11 +24,17 @@ public class GlazeFiringDTO {
     @Positive(message = "O tempo de resfriamento deve ser positivo")
     private double coolingTime;
 
+    @Positive(message = "O consumo de gás deve ser positivo")
+    private double gasConsumption;
+
     private long kilnId;
 
     @NotEmpty(message = "A queima deve ter produtos")
     @Valid
     private List<GlostDTO> glosts = new ArrayList<>();
+
+    @Valid
+    private List<FiringMachineUsageDTO> machineUsages = new ArrayList<>();
 
     private BigDecimal cost;
 
@@ -83,6 +89,14 @@ public class GlazeFiringDTO {
         this.coolingTime = coolingTime;
     }
 
+    public double getGasConsumption() {
+        return gasConsumption;
+    }
+
+    public void setGasConsumption(double gasConsumption) {
+        this.gasConsumption = gasConsumption;
+    }
+
     public long getKilnId() {
         return kilnId;
     }
@@ -93,6 +107,10 @@ public class GlazeFiringDTO {
 
     public List<GlostDTO> getGlosts() {
         return glosts;
+    }
+
+    public List<FiringMachineUsageDTO> getMachineUsages() {
+        return machineUsages;
     }
 
     public BigDecimal getCost() {

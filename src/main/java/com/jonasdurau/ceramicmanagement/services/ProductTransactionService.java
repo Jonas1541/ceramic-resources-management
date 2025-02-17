@@ -71,7 +71,7 @@ public class ProductTransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
-        if(entity.getBisqueFiring() != null) {
+        if(entity.getBisqueFiring() != null && entity.getGlazeFiring() == null) {
             throw new BusinessException("A transação do produto não pode ser deletada pois está em uma 1° queima.");
         }
         if(entity.getGlazeFiring() != null) {

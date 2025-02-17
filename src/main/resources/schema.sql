@@ -164,6 +164,7 @@ CREATE TABLE tb_bisque_firing (
     temperature DOUBLE NOT NULL,
     burn_time DOUBLE NOT NULL,
     cooling_time DOUBLE NOT NULL,
+    gas_consumption DOUBLE NOT NULL,
     kiln_id BIGINT NOT NULL,
     cost_at_time DECIMAL(10,2),
     PRIMARY KEY (id),
@@ -177,10 +178,25 @@ CREATE TABLE tb_glaze_firing (
     temperature DOUBLE NOT NULL,
     burn_time DOUBLE NOT NULL,
     cooling_time DOUBLE NOT NULL,
+    gas_consumption DOUBLE NOT NULL,
     kiln_id BIGINT NOT NULL,
     cost_at_time DECIMAL(10,2),
     PRIMARY KEY (id),
     FOREIGN KEY (kiln_id) REFERENCES tb_kiln (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_firing_machine_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    usage_time DOUBLE NOT NULL,
+    bisque_firing_id BIGINT,
+    glaze_firing_id BIGINT,
+    machine_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id),
+    FOREIGN KEY (glaze_firing_id) REFERENCES tb_glaze_firing (id),
+    FOREIGN KEY (machine_id) REFERENCES tb_machine (id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE tb_product_transaction (

@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
@@ -23,10 +24,16 @@ public class BisqueFiringDTO {
     @Positive(message = "O tempo de resfriamento deve ser positivo")
     private double coolingTime;
 
+    @Positive(message = "O consumo de gás deve ser positivo")
+    private double gasConsumption;
+
     private long kilnId;
 
     @NotEmpty(message = "A queima deve ter produtos")
     private List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits = new ArrayList<>();
+
+    @Valid
+    private List<FiringMachineUsageDTO> machineUsages = new ArrayList<>();
 
     private BigDecimal cost;
 
@@ -81,6 +88,14 @@ public class BisqueFiringDTO {
         this.coolingTime = coolingTime;
     }
 
+    public double getGasConsumption() {
+        return gasConsumption;
+    }
+
+    public void setGasConsumption(double gasConsumption) {
+        this.gasConsumption = gasConsumption;
+    }
+
     public long getKilnId() {
         return kilnId;
     }
@@ -91,6 +106,10 @@ public class BisqueFiringDTO {
 
     public List<Long> getBiscuits() {
         return biscuits;
+    }
+
+    public List<FiringMachineUsageDTO> getMachineUsages() {
+        return machineUsages;
     }
 
     public BigDecimal getCost() {
