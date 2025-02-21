@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionDTO;
 import com.jonasdurau.ceramicmanagement.entities.Product;
@@ -72,10 +73,10 @@ public class ProductTransactionService {
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
         if(entity.getBisqueFiring() != null && entity.getGlazeFiring() == null) {
-            throw new BusinessException("A transação do produto não pode ser deletada pois está em uma 1° queima.");
+            throw new ResourceDeletionException("A transação do produto não pode ser deletada pois está em uma 1° queima.");
         }
         if(entity.getGlazeFiring() != null) {
-            throw new BusinessException("A transação do produto não pode ser deletada pois está em uma 2° queima.");
+            throw new ResourceDeletionException("A transação do produto não pode ser deletada pois está em uma 2° queima.");
         }
         transactionRepository.delete(entity);
     }

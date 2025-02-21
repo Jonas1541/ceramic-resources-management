@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.KilnDTO;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
@@ -65,7 +65,7 @@ public class KilnService {
         boolean hasBisqueFiring = bisqueFiringRepository.existsByKilnId(id);
         boolean hasGlazeFiring = glazeFiringRepository.existsByKilnId(id);
         if(hasBisqueFiring || hasGlazeFiring) {
-            throw new BusinessException("O forno não pode ser deletado pois possui queimas associadas.");
+            throw new ResourceDeletionException("O forno não pode ser deletado pois possui queimas associadas.");
         }
         kilnRepository.delete(entity);
     }

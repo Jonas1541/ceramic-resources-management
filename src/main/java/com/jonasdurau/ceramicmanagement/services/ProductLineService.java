@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.ProductLineDTO;
 import com.jonasdurau.ceramicmanagement.entities.ProductLine;
@@ -66,7 +67,7 @@ public class ProductLineService {
                 .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. Id " + id));
         boolean hasProducts = productRepository.existsByLineId(id);
         if(hasProducts) {
-            throw new BusinessException("Não é possível deletar a linha de produtos de Id " + id + " pois ela tem produtos associados.");
+            throw new ResourceDeletionException("Não é possível deletar a linha de produtos de Id " + id + " pois ela tem produtos associados.");
         }
         productLineRepository.delete(entity);
     }

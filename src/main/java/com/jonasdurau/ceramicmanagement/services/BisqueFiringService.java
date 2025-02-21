@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringDTO;
 import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageDTO;
@@ -130,7 +130,7 @@ public class BisqueFiringService {
         List<ProductTransaction> toAdd = newList.stream().filter(biscuit -> !oldIds.contains(biscuit.getId())).collect(Collectors.toList());
         toRemove.forEach(biscuit -> {
             if(biscuit.getState() == ProductState.GLAZED) {
-                throw new BusinessException("A queima não pode ser apagada pois há um produto que já passou pela 2° queima. Id: " + biscuit.getId());
+                throw new ResourceDeletionException("A queima não pode ser apagada pois há um produto que já passou pela 2° queima. Id: " + biscuit.getId());
             }
             biscuit.setBisqueFiring(null);
             biscuit.setState(ProductState.GREENWARE);
@@ -177,7 +177,7 @@ public class BisqueFiringService {
                 entity.getBiscuits().size();
         entity.getBiscuits().forEach(biscuit -> {
             if (biscuit.getState() == ProductState.GLAZED) {
-                throw new BusinessException("A queima não pode ser apagada pois há um produto que já passou pela 2° queima. Id: "+ biscuit.getId());
+                throw new ResourceDeletionException("A queima não pode ser apagada pois há um produto que já passou pela 2° queima. Id: "+ biscuit.getId());
             }
             biscuit.setBisqueFiring(null);
             biscuit.setState(ProductState.GREENWARE);

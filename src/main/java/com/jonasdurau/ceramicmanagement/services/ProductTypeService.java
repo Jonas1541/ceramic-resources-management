@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.ProductTypeDTO;
 import com.jonasdurau.ceramicmanagement.entities.ProductType;
@@ -66,7 +67,7 @@ public class ProductTypeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. Id " + id));
         boolean hasProducts = productRepository.existsByTypeId(id);
         if(hasProducts) {
-            throw new BusinessException("Não é possível deletar o tipo de produto de Id " + id + " pois ele tem produtos associados.");
+            throw new ResourceDeletionException("Não é possível deletar o tipo de produto de Id " + id + " pois ele tem produtos associados.");
         }
         productTypeRepository.delete(entity);
     }
