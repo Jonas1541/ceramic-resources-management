@@ -216,3 +216,31 @@ CREATE TABLE tb_product_transaction (
     FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id),
     FOREIGN KEY (glaze_firing_id) REFERENCES tb_glaze_firing (id)
 ) ENGINE=InnoDB;
+
+CREATE TABLE tb_drying_room (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    gas_consumption_per_hour DOUBLE NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_drying_room_machine (
+    drying_room_id BIGINT NOT NULL,
+    machine_id BIGINT NOT NULL,
+    PRIMARY KEY (drying_room_id, machine_id),
+    FOREIGN KEY (drying_room_id) REFERENCES tb_drying_room(id) ON DELETE CASCADE,
+    FOREIGN KEY (machine_id) REFERENCES tb_machine(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_drying_session (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    hours DOUBLE NOT NULL,
+    cost_at_time DECIMAL(10,2) NOT NULL,
+    drying_room_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (drying_room_id) REFERENCES tb_drying_room(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
