@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -144,84 +145,53 @@ public class ResourceService {
     public List<YearReportDTO> getYearlyReport(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + resourceId));
-
-        // Carrega as transações associadas ao resource (ou use
-        // repository.findByResource(resource))
         List<ResourceTransaction> txs = resource.getTransactions();
-
-        // Passo 1: agrupar por (year, month)
+        ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, List<ResourceTransaction>>> mapYearMonth = txs.stream()
+                .map(t -> new AbstractMap.SimpleEntry<>(t, t.getCreatedAt().atZone(zone)))
                 .collect(Collectors.groupingBy(
-                        t -> t.getCreatedAt().atZone(ZoneId.systemDefault()).getYear(),
-                        Collectors.groupingBy(t -> t.getCreatedAt()
-                                .atZone(ZoneId.systemDefault())
-                                .getMonth())));
-
-        // Passo 2: percorrer mapYearMonth e montar YearReportDTO para cada ano
+                        entry -> entry.getValue().getYear(),
+                        Collectors.groupingBy(
+                                entry -> entry.getValue().getMonth(),
+                                Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
         List<YearReportDTO> yearReports = new ArrayList<>();
         for (Map.Entry<Integer, Map<Month, List<ResourceTransaction>>> yearEntry : mapYearMonth.entrySet()) {
             int year = yearEntry.getKey();
             Map<Month, List<ResourceTransaction>> mapMonth = yearEntry.getValue();
-
             YearReportDTO yearReport = new YearReportDTO(year);
-
             double totalIncomingQtyYear = 0.0;
             BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
             double totalOutgoingQtyYear = 0.0;
-
-            // Passo 2.1: percorrer os 12 meses (Month.values())
             for (Month m : Month.values()) {
-                // se quiser evitar meses “vazios”, você pode iterar só sobre mapMonth.keySet()
                 List<ResourceTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
-                if (monthTx.isEmpty()) {
-                    // se quiser pular meses sem transações, continue
-                    // ou criar MonthReportDTO com zero
-                }
-
                 double incomingQty = 0.0;
                 BigDecimal incomingCost = BigDecimal.ZERO;
                 double outgoingQty = 0.0;
-
-                // Soma as transações do mês
                 for (ResourceTransaction t : monthTx) {
                     if (t.getType() == TransactionType.INCOMING) {
                         incomingQty += t.getQuantity();
-                        // cost = unitValue * quantity (ou t.getCost() se for calculado)
                         BigDecimal cost = resource.getUnitValue().multiply(BigDecimal.valueOf(t.getQuantity()));
                         incomingCost = incomingCost.add(cost);
                     } else {
-                        // OUTGOING
                         outgoingQty += t.getQuantity();
                     }
                 }
-
-                // Atualiza total anual
                 totalIncomingQtyYear += incomingQty;
                 totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
                 totalOutgoingQtyYear += outgoingQty;
-
-                // Cria o MonthReportDTO
                 MonthReportDTO monthDto = new MonthReportDTO();
                 monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
                 monthDto.setIncomingQty(incomingQty);
                 monthDto.setIncomingCost(incomingCost);
                 monthDto.setOutgoingQty(outgoingQty);
-
                 yearReport.getMonths().add(monthDto);
             }
-
-            // Passo 2.2: define os totais anuais no YearReportDTO
             yearReport.setTotalIncomingQty(totalIncomingQtyYear);
             yearReport.setTotalIncomingCost(totalIncomingCostYear);
             yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
-
             yearReports.add(yearReport);
         }
-
-        // Você pode ordenar yearReports por ano decrescente se quiser
         yearReports.sort((a, b) -> b.getYear() - a.getYear());
-
         return yearReports;
     }
-
 }
