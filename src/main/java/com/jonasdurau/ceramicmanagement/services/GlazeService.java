@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -163,76 +164,54 @@ public class GlazeService {
     public List<YearReportDTO> getYearlyReport(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrada: " + glazeId));
-
-        // Carrega as transações associadas à Glaze
         List<GlazeTransaction> txs = glaze.getTransactions();
-
-        // Passo 1: Agrupar por (year, month)
+        ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, List<GlazeTransaction>>> mapYearMonth = txs.stream()
+                .map(t -> new AbstractMap.SimpleEntry<>(t, t.getCreatedAt().atZone(zone)))
                 .collect(Collectors.groupingBy(
-                        t -> t.getCreatedAt().atZone(ZoneId.systemDefault()).getYear(),
-                        Collectors.groupingBy(t -> t.getCreatedAt().atZone(ZoneId.systemDefault()).getMonth())));
-
+                        entry -> entry.getValue().getYear(),
+                        Collectors.groupingBy(
+                                entry -> entry.getValue().getMonth(),
+                                Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
         List<YearReportDTO> yearReports = new ArrayList<>();
-
-        // Passo 2: Percorrer o map de ano e mês
         for (Map.Entry<Integer, Map<Month, List<GlazeTransaction>>> yearEntry : mapYearMonth.entrySet()) {
             int year = yearEntry.getKey();
             Map<Month, List<GlazeTransaction>> mapMonth = yearEntry.getValue();
-
             YearReportDTO yearReport = new YearReportDTO(year);
-
             double totalIncomingQtyYear = 0.0;
-            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
             double totalOutgoingQtyYear = 0.0;
-
-            // Se preferir só iterar nos meses existentes: mapMonth.keySet()
-            // Aqui vamos iterar todos os 12 meses e colocar zero pra meses sem transação
+            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
+            BigDecimal totalOutgoingCostYear = BigDecimal.ZERO;
             for (Month m : Month.values()) {
                 List<GlazeTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
-
                 double incomingQty = 0.0;
-                BigDecimal incomingCost = BigDecimal.ZERO;
                 double outgoingQty = 0.0;
-
-                // Somar as transações do mês
+                BigDecimal incomingCost = BigDecimal.ZERO;
+                BigDecimal outgoingCost = BigDecimal.ZERO;
                 for (GlazeTransaction t : monthTx) {
                     if (t.getType() == TransactionType.INCOMING) {
                         incomingQty += t.getQuantity();
-                        // Usar t.getGlazeFinalCostAtTime() para custo total
-                        incomingCost = incomingCost.add(t.getGlazeFinalCostAtTime());
                     } else {
-                        // OUTGOING
                         outgoingQty += t.getQuantity();
                     }
                 }
-
-                // Atualiza total anual
                 totalIncomingQtyYear += incomingQty;
-                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
                 totalOutgoingQtyYear += outgoingQty;
-
-                // Cria o MonthReportDTO
                 MonthReportDTO monthDto = new MonthReportDTO();
                 monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
                 monthDto.setIncomingQty(incomingQty);
                 monthDto.setIncomingCost(incomingCost);
                 monthDto.setOutgoingQty(outgoingQty);
-
+                monthDto.setOutgoingCost(outgoingCost);
                 yearReport.getMonths().add(monthDto);
             }
-
-            // Define os totais anuais no YearReportDTO
             yearReport.setTotalIncomingQty(totalIncomingQtyYear);
             yearReport.setTotalIncomingCost(totalIncomingCostYear);
             yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
-
+            yearReport.setTotalOutgoingCost(totalOutgoingCostYear);
             yearReports.add(yearReport);
         }
-
-        // Ordenar por ano desc, se preferir
         yearReports.sort((a, b) -> b.getYear() - a.getYear());
-
         return yearReports;
     }
 

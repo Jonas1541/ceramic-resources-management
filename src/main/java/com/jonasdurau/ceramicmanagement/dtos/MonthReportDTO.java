@@ -8,15 +8,9 @@ public class MonthReportDTO {
     private double incomingQty;
     private BigDecimal incomingCost;
     private double outgoingQty;
+    private BigDecimal outgoingCost;
 
     public MonthReportDTO() {
-    }
-
-    public MonthReportDTO(String monthName, double incomingQty, BigDecimal incomingCost, double outgoingQty) {
-        this.monthName = monthName;
-        this.incomingQty = incomingQty;
-        this.incomingCost = incomingCost;
-        this.outgoingQty = outgoingQty;
     }
 
     public String getMonthName() {
@@ -49,5 +43,13 @@ public class MonthReportDTO {
 
     public void setOutgoingQty(double outgoingQty) {
         this.outgoingQty = outgoingQty;
+    }
+
+    public BigDecimal getOutgoingCost() {
+        return outgoingCost;
+    }
+
+    public void setOutgoingCost(BigDecimal outgoingCost) {
+        this.outgoingCost = outgoingCost;
     }
 }

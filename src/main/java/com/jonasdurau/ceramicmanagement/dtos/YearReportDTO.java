@@ -9,23 +9,16 @@ public class YearReportDTO {
     private int year;
     private List<MonthReportDTO> months = new ArrayList<>();
 
-    // Totais anuais
     private double totalIncomingQty;
     private BigDecimal totalIncomingCost;
     private double totalOutgoingQty;
+    private BigDecimal totalOutgoingCost;
 
     public YearReportDTO() {
     }
 
     public YearReportDTO(int year) {
         this.year = year;
-    }
-
-    public YearReportDTO(int year, double totalIncomingQty, BigDecimal totalIncomingCost, double totalOutgoingQty) {
-        this.year = year;
-        this.totalIncomingQty = totalIncomingQty;
-        this.totalIncomingCost = totalIncomingCost;
-        this.totalOutgoingQty = totalOutgoingQty;
     }
 
     public int getYear() {
@@ -62,5 +55,13 @@ public class YearReportDTO {
 
     public void setTotalOutgoingQty(double totalOutgoingQty) {
         this.totalOutgoingQty = totalOutgoingQty;
+    }
+
+    public BigDecimal getTotalOutgoingCost() {
+        return totalOutgoingCost;
+    }
+
+    public void setTotalOutgoingCost(BigDecimal totalOutgoingCost) {
+        this.totalOutgoingCost = totalOutgoingCost;
     }
 }
