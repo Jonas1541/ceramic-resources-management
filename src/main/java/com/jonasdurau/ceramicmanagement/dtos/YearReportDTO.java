@@ -12,7 +12,7 @@ public class YearReportDTO {
     private double totalIncomingQty;
     private BigDecimal totalIncomingCost;
     private double totalOutgoingQty;
-    private BigDecimal totalOutgoingCost;
+    private BigDecimal totalOutgoingProfit;
 
     public YearReportDTO() {
     }
@@ -57,11 +57,11 @@ public class YearReportDTO {
         this.totalOutgoingQty = totalOutgoingQty;
     }
 
-    public BigDecimal getTotalOutgoingCost() {
-        return totalOutgoingCost;
+    public BigDecimal getTotalOutgoingProfit() {
+        return totalOutgoingProfit;
     }
 
-    public void setTotalOutgoingCost(BigDecimal totalOutgoingCost) {
-        this.totalOutgoingCost = totalOutgoingCost;
+    public void setTotalOutgoingProfit(BigDecimal totalOutgoingProfit) {
+        this.totalOutgoingProfit = totalOutgoingProfit;
     }
 }

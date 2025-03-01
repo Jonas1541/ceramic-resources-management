@@ -8,7 +8,7 @@ public class MonthReportDTO {
     private double incomingQty;
     private BigDecimal incomingCost;
     private double outgoingQty;
-    private BigDecimal outgoingCost;
+    private BigDecimal outgoingProfit;
 
     public MonthReportDTO() {
     }
@@ -45,11 +45,11 @@ public class MonthReportDTO {
         this.outgoingQty = outgoingQty;
     }
 
-    public BigDecimal getOutgoingCost() {
-        return outgoingCost;
+    public BigDecimal getOutgoingProfit() {
+        return outgoingProfit;
     }
 
-    public void setOutgoingCost(BigDecimal outgoingCost) {
-        this.outgoingCost = outgoingCost;
+    public void setOutgoingProfit(BigDecimal outgoingProfit) {
+        this.outgoingProfit = outgoingProfit;
     }
 }

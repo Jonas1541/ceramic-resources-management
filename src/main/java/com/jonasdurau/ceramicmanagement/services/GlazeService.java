@@ -181,34 +181,36 @@ public class GlazeService {
             double totalIncomingQtyYear = 0.0;
             double totalOutgoingQtyYear = 0.0;
             BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
-            BigDecimal totalOutgoingCostYear = BigDecimal.ZERO;
+            BigDecimal totalOutgoingProfitYear = BigDecimal.ZERO;
             for (Month m : Month.values()) {
                 List<GlazeTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
                 double incomingQty = 0.0;
                 double outgoingQty = 0.0;
                 BigDecimal incomingCost = BigDecimal.ZERO;
-                BigDecimal outgoingCost = BigDecimal.ZERO;
+                BigDecimal outgoingProfit = BigDecimal.ZERO;
                 for (GlazeTransaction t : monthTx) {
                     if (t.getType() == TransactionType.INCOMING) {
                         incomingQty += t.getQuantity();
+                        incomingCost = incomingCost.add(t.getGlazeFinalCostAtTime());
                     } else {
                         outgoingQty += t.getQuantity();
                     }
                 }
                 totalIncomingQtyYear += incomingQty;
                 totalOutgoingQtyYear += outgoingQty;
+                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
                 MonthReportDTO monthDto = new MonthReportDTO();
                 monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
                 monthDto.setIncomingQty(incomingQty);
                 monthDto.setIncomingCost(incomingCost);
                 monthDto.setOutgoingQty(outgoingQty);
-                monthDto.setOutgoingCost(outgoingCost);
+                monthDto.setOutgoingProfit(outgoingProfit);
                 yearReport.getMonths().add(monthDto);
             }
             yearReport.setTotalIncomingQty(totalIncomingQtyYear);
             yearReport.setTotalIncomingCost(totalIncomingCostYear);
             yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
-            yearReport.setTotalOutgoingCost(totalOutgoingCostYear);
+            yearReport.setTotalOutgoingProfit(totalOutgoingProfitYear);
             yearReports.add(yearReport);
         }
         yearReports.sort((a, b) -> b.getYear() - a.getYear());

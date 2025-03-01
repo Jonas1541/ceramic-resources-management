@@ -162,13 +162,13 @@ public class ResourceService {
             double totalIncomingQtyYear = 0.0;
             BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
             double totalOutgoingQtyYear = 0.0;
-            BigDecimal totalOutgoingCostYear = BigDecimal.ZERO;
+            BigDecimal totalOutgoingProfitYear = BigDecimal.ZERO;
             for (Month m : Month.values()) {
                 List<ResourceTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
                 double incomingQty = 0.0;
                 BigDecimal incomingCost = BigDecimal.ZERO;
                 double outgoingQty = 0.0;
-                BigDecimal outgoingCost = BigDecimal.ZERO;
+                BigDecimal outgoingProfit = BigDecimal.ZERO;
                 for (ResourceTransaction t : monthTx) {
                     if (t.getType() == TransactionType.INCOMING) {
                         incomingQty += t.getQuantity();
@@ -186,13 +186,13 @@ public class ResourceService {
                 monthDto.setIncomingQty(incomingQty);
                 monthDto.setIncomingCost(incomingCost);
                 monthDto.setOutgoingQty(outgoingQty);
-                monthDto.setOutgoingCost(outgoingCost);
+                monthDto.setOutgoingProfit(outgoingProfit);
                 yearReport.getMonths().add(monthDto);
             }
             yearReport.setTotalIncomingQty(totalIncomingQtyYear);
             yearReport.setTotalIncomingCost(totalIncomingCostYear);
             yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
-            yearReport.setTotalOutgoingCost(totalOutgoingCostYear);
+            yearReport.setTotalOutgoingProfit(totalOutgoingProfitYear);
             yearReports.add(yearReport);
         }
         yearReports.sort((a, b) -> b.getYear() - a.getYear());
