@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.BatchDTO;
 import com.jonasdurau.ceramicmanagement.dtos.BatchListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.BatchService;
 
 import jakarta.validation.Valid;
@@ -54,6 +55,12 @@ public class BatchController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         batchService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/yearly-report")
+    public ResponseEntity<List<YearReportDTO>> getYearlyReport() {
+        List<YearReportDTO> report = batchService.getYearlyReport();
+        return ResponseEntity.ok(report);
     }
 }
 

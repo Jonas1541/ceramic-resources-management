@@ -3,8 +3,15 @@ package com.jonasdurau.ceramicmanagement.services;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +26,8 @@ import com.jonasdurau.ceramicmanagement.dtos.BatchDTO;
 import com.jonasdurau.ceramicmanagement.dtos.BatchListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.BatchMachineUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.BatchResourceUsageDTO;
+import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.Batch;
 import com.jonasdurau.ceramicmanagement.entities.BatchMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.BatchResourceUsage;
@@ -227,6 +236,60 @@ public class BatchService {
         Batch batch = batchRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
         batchRepository.delete(batch);
+    }
+
+    @Transactional(readOnly = true)
+    public List<YearReportDTO> getYearlyReport() {
+        List<Batch> batches = batchRepository.findAll();
+        ZoneId zone = ZoneId.systemDefault();
+        Map<Integer, Map<Month, List<Batch>>> mapYearMonth = batches.stream()
+                .map(b -> new AbstractMap.SimpleEntry<>(b, b.getCreatedAt().atZone(zone)))
+                .collect(Collectors.groupingBy(
+                        entry -> entry.getValue().getYear(),
+                        Collectors.groupingBy(
+                                entry -> entry.getValue().getMonth(),
+                                Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
+        List<YearReportDTO> yearReports = new ArrayList<>();
+        for (Map.Entry<Integer, Map<Month, List<Batch>>> yearEntry : mapYearMonth.entrySet()) {
+            int year = yearEntry.getKey();
+            Map<Month, List<Batch>> mapMonth = yearEntry.getValue();
+            YearReportDTO yearReport = new YearReportDTO(year);
+            double totalIncomingQtyYear = 0.0;
+            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
+            double totalOutgoingQtyYear = 0.0;
+            BigDecimal totalOutgoingProfitYear = BigDecimal.ZERO;
+            for (Month m : Month.values()) {
+                List<Batch> monthBatches = mapMonth.getOrDefault(m, Collections.emptyList());
+                double incomingQty = 0.0;
+                BigDecimal incomingCost = BigDecimal.ZERO;
+                double outgoingQty = 0.0;
+                BigDecimal outgoingProfit = BigDecimal.ZERO;
+                for (Batch batch : monthBatches) {
+                    incomingQty += batch.getResourceTotalQuantity();
+                    incomingCost = incomingCost
+                            .add(batch.getBatchFinalCostAtTime() != null ? batch.getBatchFinalCostAtTime()
+                                    : BigDecimal.ZERO);
+                }
+                totalIncomingQtyYear += incomingQty;
+                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
+                totalOutgoingQtyYear += outgoingQty;
+                totalOutgoingProfitYear = totalOutgoingProfitYear.add(outgoingProfit);
+                MonthReportDTO monthDto = new MonthReportDTO();
+                monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+                monthDto.setIncomingQty(incomingQty);
+                monthDto.setIncomingCost(incomingCost);
+                monthDto.setOutgoingQty(outgoingQty);
+                monthDto.setOutgoingProfit(outgoingProfit);
+                yearReport.getMonths().add(monthDto);
+            }
+            yearReport.setTotalIncomingQty(totalIncomingQtyYear);
+            yearReport.setTotalIncomingCost(totalIncomingCostYear);
+            yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
+            yearReport.setTotalOutgoingProfit(totalOutgoingProfitYear);
+            yearReports.add(yearReport);
+        }
+        yearReports.sort((a, b) -> b.getYear() - a.getYear());
+        return yearReports;
     }
 
     private BatchListDTO batchToListDTO(Batch entity) {
