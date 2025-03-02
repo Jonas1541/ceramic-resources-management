@@ -55,7 +55,7 @@ public class ProductTransactionController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{transactionId}")
+    @PutMapping(value = "/{transactionId}", params = "outgoingReason")
     public ResponseEntity<ProductTransactionDTO> outgoing(@PathVariable Long productId, @PathVariable Long transactionId, @RequestParam ProductOutgoingReason outgoingReason) {
         ProductTransactionDTO dto = transactionService.outgoing(productId, transactionId, outgoingReason);
         return ResponseEntity.ok(dto);

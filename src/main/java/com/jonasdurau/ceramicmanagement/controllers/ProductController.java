@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.ProductDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.ProductService;
 
 import jakarta.validation.Valid;
@@ -53,5 +54,11 @@ public class ProductController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/yearly-report")
+    public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> list = productService.yearlyReport(id);
+        return ResponseEntity.ok(list);
     }
 }

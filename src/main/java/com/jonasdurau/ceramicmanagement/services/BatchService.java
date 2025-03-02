@@ -239,7 +239,7 @@ public class BatchService {
     }
 
     @Transactional(readOnly = true)
-    public List<YearReportDTO> getYearlyReport() {
+    public List<YearReportDTO> yearlyReport() {
         List<Batch> batches = batchRepository.findAll();
         ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, List<Batch>>> mapYearMonth = batches.stream()

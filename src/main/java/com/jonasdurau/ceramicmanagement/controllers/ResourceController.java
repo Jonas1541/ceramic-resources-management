@@ -51,8 +51,8 @@ public class ResourceController {
     }
 
     @GetMapping("/{id}/yearly-report")
-    public ResponseEntity<List<YearReportDTO>> getYearlyReport(@PathVariable Long id) {
-        List<YearReportDTO> report = resourceService.getYearlyReport(id);
+    public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> report = resourceService.yearlyReport(id);
         return ResponseEntity.ok(report);
     }
 }

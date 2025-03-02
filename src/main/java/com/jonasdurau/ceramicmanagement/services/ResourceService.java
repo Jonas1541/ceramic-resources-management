@@ -142,7 +142,7 @@ public class ResourceService {
     }
 
     @Transactional
-    public List<YearReportDTO> getYearlyReport(Long resourceId) {
+    public List<YearReportDTO> yearlyReport(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + resourceId));
         List<ResourceTransaction> txs = resource.getTransactions();

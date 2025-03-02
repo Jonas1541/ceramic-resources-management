@@ -161,7 +161,7 @@ public class GlazeService {
     }
 
     @Transactional(readOnly = true)
-    public List<YearReportDTO> getYearlyReport(Long glazeId) {
+    public List<YearReportDTO> yearlyReport(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrada: " + glazeId));
         List<GlazeTransaction> txs = glaze.getTransactions();

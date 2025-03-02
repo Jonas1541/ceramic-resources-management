@@ -58,8 +58,8 @@ public class GlazeController {
     }
 
     @GetMapping("/{id}/yearly-report")
-    public ResponseEntity<List<YearReportDTO>> getYearlyReport(@PathVariable Long id) {
-        List<YearReportDTO> report = glazeService.getYearlyReport(id);
+    public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> report = glazeService.yearlyReport(id);
         return ResponseEntity.ok(report);
     }
 }

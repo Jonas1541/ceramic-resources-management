@@ -58,8 +58,8 @@ public class BatchController {
     }
 
     @GetMapping("/yearly-report")
-    public ResponseEntity<List<YearReportDTO>> getYearlyReport() {
-        List<YearReportDTO> report = batchService.getYearlyReport();
+    public ResponseEntity<List<YearReportDTO>> yearlyReport() {
+        List<YearReportDTO> report = batchService.yearlyReport();
         return ResponseEntity.ok(report);
     }
 }
