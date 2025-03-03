@@ -27,7 +27,7 @@ public class GlazeFiringDTO {
     @Positive(message = "O consumo de gás deve ser positivo")
     private double gasConsumption;
 
-    private long kilnId;
+    private KilnDTO kiln;
 
     @NotEmpty(message = "A queima deve ter produtos")
     @Valid
@@ -97,12 +97,12 @@ public class GlazeFiringDTO {
         this.gasConsumption = gasConsumption;
     }
 
-    public long getKilnId() {
-        return kilnId;
+    public KilnDTO getKiln() {
+        return kiln;
     }
 
-    public void setKilnId(long kilnId) {
-        this.kilnId = kilnId;
+    public void setKiln(KilnDTO kiln) {
+        this.kiln = kiln;
     }
 
     public List<GlostDTO> getGlosts() {

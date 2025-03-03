@@ -15,6 +15,7 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlostDTO;
+import com.jonasdurau.ceramicmanagement.dtos.KilnDTO;
 import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeFiring;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
@@ -82,7 +83,7 @@ public class GlazeFiringService {
         entity.setCoolingTime(dto.getCoolingTime());
         entity.setGasConsumption(dto.getGasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
-                .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + dto.getKilnId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
         entity = firingRepository.save(entity);
         for(GlostDTO glostDTO : dto.getGlosts()) {
@@ -209,7 +210,13 @@ public class GlazeFiringService {
         dto.setBurnTime(entity.getBurnTime());
         dto.setCoolingTime(entity.getCoolingTime());
         dto.setCoolingTime(entity.getGasConsumption());
-        dto.setKilnId(entity.getKiln().getId());
+        KilnDTO kilnDTO = new KilnDTO();
+        kilnDTO.setId(entity.getKiln().getId());
+        kilnDTO.setCreatedAt(entity.getKiln().getCreatedAt());
+        kilnDTO.setUpdatedAt(entity.getKiln().getUpdatedAt());
+        kilnDTO.setName(entity.getKiln().getName());
+        kilnDTO.setPower(entity.getKiln().getPower());
+        dto.setKiln(kilnDTO);
         entity.getGlosts().size();
         for(ProductTransaction glost : entity.getGlosts()) {
             GlostDTO glostDTO = new GlostDTO();

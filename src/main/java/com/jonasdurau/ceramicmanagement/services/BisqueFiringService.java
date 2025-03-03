@@ -15,6 +15,7 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionE
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringDTO;
 import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageDTO;
+import com.jonasdurau.ceramicmanagement.dtos.KilnDTO;
 import com.jonasdurau.ceramicmanagement.entities.BisqueFiring;
 import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
@@ -78,7 +79,7 @@ public class BisqueFiringService {
         entity.setCoolingTime(dto.getCoolingTime());
         entity.setGasConsumption(dto.getGasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
-                .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + dto.getKilnId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
         entity = firingRepository.save(entity);
         for(long biscuitId : dto.getBiscuits()) {
@@ -195,7 +196,13 @@ public class BisqueFiringService {
         dto.setBurnTime(entity.getBurnTime());
         dto.setCoolingTime(entity.getCoolingTime());
         dto.setGasConsumption(entity.getGasConsumption());
-        dto.setKilnId(entity.getKiln().getId());
+        KilnDTO kilnDTO = new KilnDTO();
+        kilnDTO.setId(entity.getKiln().getId());
+        kilnDTO.setCreatedAt(entity.getKiln().getCreatedAt());
+        kilnDTO.setUpdatedAt(entity.getKiln().getUpdatedAt());
+        kilnDTO.setName(entity.getKiln().getName());
+        kilnDTO.setPower(entity.getKiln().getPower());
+        dto.setKiln(kilnDTO);
         entity.getBiscuits().size();
         for(ProductTransaction biscuit : entity.getBiscuits()) {
             dto.getBiscuits().add(biscuit.getId());

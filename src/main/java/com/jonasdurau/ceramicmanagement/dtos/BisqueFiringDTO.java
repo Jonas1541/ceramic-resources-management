@@ -27,7 +27,7 @@ public class BisqueFiringDTO {
     @Positive(message = "O consumo de gás deve ser positivo")
     private double gasConsumption;
 
-    private long kilnId;
+    private KilnDTO kiln;
 
     @NotEmpty(message = "A queima deve ter produtos")
     private List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits = new ArrayList<>();
@@ -96,12 +96,12 @@ public class BisqueFiringDTO {
         this.gasConsumption = gasConsumption;
     }
 
-    public long getKilnId() {
-        return kilnId;
+    public KilnDTO getKiln() {
+        return kiln;
     }
 
-    public void setKilnId(long kilnId) {
-        this.kilnId = kilnId;
+    public void setKiln(KilnDTO kiln) {
+        this.kiln = kiln;
     }
 
     public List<Long> getBiscuits() {
