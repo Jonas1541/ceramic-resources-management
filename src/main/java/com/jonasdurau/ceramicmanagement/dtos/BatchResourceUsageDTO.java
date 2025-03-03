@@ -14,6 +14,8 @@ public class BatchResourceUsageDTO {
     @Positive(message = "O ID do recurso deve ser positivo.")
     private Long resourceId;
 
+    private String name;
+
     @PositiveOrZero(message = "A quantidade inicial não pode ser negativa.")
     private double initialQuantity;
 
@@ -31,22 +33,20 @@ public class BatchResourceUsageDTO {
     public BatchResourceUsageDTO() {
     }
 
-    public BatchResourceUsageDTO(Long resourceId, double initialQuantity, double umidity, double addedQuantity, double totalQuantity, double totalWater, BigDecimal totalCost) {
-        this.resourceId = resourceId;
-        this.initialQuantity = initialQuantity;
-        this.umidity = umidity;
-        this.addedQuantity = addedQuantity;
-        this.totalQuantity = totalQuantity;
-        this.totalWater = totalWater;
-        this.totalCost = totalCost;
-    }
-
     public Long getResourceId() {
         return resourceId;
     }
 
     public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public double getInitialQuantity() {

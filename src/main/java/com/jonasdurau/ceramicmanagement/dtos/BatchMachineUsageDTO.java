@@ -9,6 +9,8 @@ public class BatchMachineUsageDTO {
     @Positive(message = "O ID da máquina deve ser positivo.")
     private Long machineId;
 
+    private String name;
+
     @Positive(message = "O tempo de uso deve ser maior que 0.")
     private long usageTimeSeconds;
 
@@ -17,18 +19,20 @@ public class BatchMachineUsageDTO {
     public BatchMachineUsageDTO() {
     }
 
-    public BatchMachineUsageDTO(Long machineId, long usageTimeSeconds, double energyConsumption) {
-        this.machineId = machineId;
-        this.usageTimeSeconds = usageTimeSeconds;
-        this.energyConsumption = energyConsumption;
-    }
-
     public Long getMachineId() {
         return machineId;
     }
 
     public void setMachineId(Long machineId) {
         this.machineId = machineId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getUsageTimeSeconds() {

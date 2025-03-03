@@ -311,6 +311,7 @@ public class BatchService {
             .map(resourceUsage -> {
                 BatchResourceUsageDTO u = new BatchResourceUsageDTO();
                 u.setResourceId(resourceUsage.getResource().getId());
+                u.setName(resourceUsage.getResource().getName());
                 u.setInitialQuantity(resourceUsage.getInitialQuantity());
                 u.setUmidity(resourceUsage.getUmidity());
                 u.setAddedQuantity(resourceUsage.getAddedQuantity());
@@ -325,6 +326,7 @@ public class BatchService {
             .map(mu -> {
                 BatchMachineUsageDTO m = new BatchMachineUsageDTO();
                 m.setMachineId(mu.getMachine().getId());
+                m.setName(mu.getMachine().getName());
                 m.setUsageTimeSeconds(mu.getUsageTime().getSeconds());
                 m.setEnergyConsumption(mu.getEnergyConsumption());
                 return m;
