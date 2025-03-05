@@ -40,7 +40,7 @@ public class DryingSessionService {
 
     @Transactional(readOnly = true)
     public DryingSessionDTO findById(Long roomId, Long sessionId) {
-        if(!roomRepository.existsById(sessionId)) {
+        if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);
         }
         DryingSession session = sessionRepository.findById(sessionId)
