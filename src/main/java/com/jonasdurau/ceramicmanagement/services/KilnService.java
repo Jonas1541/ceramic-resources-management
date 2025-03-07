@@ -77,6 +77,10 @@ public class KilnService {
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setName(entity.getName());
         dto.setPower(entity.getPower());
+        dto.setTotalBisqueFirings(entity.getTotalBisqueFirings());
+        dto.setTotalBisqueFiringsCost(entity.getTotalBisqueFiringsCost());
+        dto.setTotalGlazeFirings(entity.getTotalGlazeFirings());
+        dto.setTotalGlazeFiringsCost(entity.getTotalGlazeFiringsCost());
         return dto;
     }
 }
