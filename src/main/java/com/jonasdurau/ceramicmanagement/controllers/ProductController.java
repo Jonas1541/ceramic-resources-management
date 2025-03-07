@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.ProductDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.ProductService;
 
@@ -27,26 +28,26 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> findAll() {
-        List<ProductDTO> list = productService.findAll();
+    public ResponseEntity<List<ProductResponseDTO>> findAll() {
+        List<ProductResponseDTO> list = productService.findAll();
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> findById(@PathVariable Long id) {
-        ProductDTO dto = productService.findById(id);
+    public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
+        ProductResponseDTO dto = productService.findById(id);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> create(@Valid @RequestBody ProductDTO dto) {
-        ProductDTO created = productService.create(dto);
+    public ResponseEntity<ProductResponseDTO> create(@Valid @RequestBody ProductRequestDTO dto) {
+        ProductResponseDTO created = productService.create(dto);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> update(@PathVariable Long id, @Valid @RequestBody ProductDTO dto) {
-        ProductDTO updated = productService.update(id, dto);
+    public ResponseEntity<ProductResponseDTO> update(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO dto) {
+        ProductResponseDTO updated = productService.update(id, dto);
         return ResponseEntity.ok(updated);
     }
 

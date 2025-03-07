@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeFiringService;
 
 import jakarta.validation.Valid;
@@ -26,26 +27,26 @@ public class GlazeFiringController {
     private GlazeFiringService firingService;
 
     @GetMapping
-    public ResponseEntity<List<GlazeFiringDTO>> findAllByKilnId(@PathVariable Long kilnId) {
-        List<GlazeFiringDTO> list = firingService.findAllByKilnId(kilnId);
+    public ResponseEntity<List<GlazeFiringResponseDTO>> findAllByKilnId(@PathVariable Long kilnId) {
+        List<GlazeFiringResponseDTO> list = firingService.findAllByKilnId(kilnId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{firingId}")
-    public ResponseEntity<GlazeFiringDTO> findById(@PathVariable Long kilnId, @PathVariable Long firingId) {
-        GlazeFiringDTO dto = firingService.findById(kilnId, firingId);
+    public ResponseEntity<GlazeFiringResponseDTO> findById(@PathVariable Long kilnId, @PathVariable Long firingId) {
+        GlazeFiringResponseDTO dto = firingService.findById(kilnId, firingId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<GlazeFiringDTO> create(@PathVariable Long kilnId, @Valid @RequestBody GlazeFiringDTO dto) {
-        GlazeFiringDTO created = firingService.create(kilnId, dto);
+    public ResponseEntity<GlazeFiringResponseDTO> create(@PathVariable Long kilnId, @Valid @RequestBody GlazeFiringRequestDTO dto) {
+        GlazeFiringResponseDTO created = firingService.create(kilnId, dto);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{firingId}")
-    public ResponseEntity<GlazeFiringDTO> update(@PathVariable Long kilnId, @PathVariable Long firingId, @Valid @RequestBody GlazeFiringDTO dto) {
-        GlazeFiringDTO updated = firingService.update(kilnId, firingId, dto);
+    public ResponseEntity<GlazeFiringResponseDTO> update(@PathVariable Long kilnId, @PathVariable Long firingId, @Valid @RequestBody GlazeFiringRequestDTO dto) {
+        GlazeFiringResponseDTO updated = firingService.update(kilnId, firingId, dto);
         return ResponseEntity.ok(updated);
     }
 

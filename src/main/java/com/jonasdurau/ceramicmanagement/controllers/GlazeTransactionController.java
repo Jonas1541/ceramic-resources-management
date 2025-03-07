@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeTransactionService;
 
 import jakarta.validation.Valid;
@@ -19,26 +20,26 @@ public class GlazeTransactionController {
     private GlazeTransactionService transactionService;
 
     @GetMapping
-    public ResponseEntity<List<GlazeTransactionDTO>> findAllByGlaze(@PathVariable Long glazeId) {
-        List<GlazeTransactionDTO> list = transactionService.findAllByGlaze(glazeId);
+    public ResponseEntity<List<GlazeTransactionResponseDTO>> findAllByGlaze(@PathVariable Long glazeId) {
+        List<GlazeTransactionResponseDTO> list = transactionService.findAllByGlaze(glazeId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<GlazeTransactionDTO> findById(@PathVariable Long glazeId, @PathVariable Long transactionId) {
-        GlazeTransactionDTO dto = transactionService.findById(glazeId, transactionId);
+    public ResponseEntity<GlazeTransactionResponseDTO> findById(@PathVariable Long glazeId, @PathVariable Long transactionId) {
+        GlazeTransactionResponseDTO dto = transactionService.findById(glazeId, transactionId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<GlazeTransactionDTO> create(@PathVariable Long glazeId, @Valid @RequestBody GlazeTransactionDTO dto) {
-        GlazeTransactionDTO created = transactionService.create(glazeId, dto);
+    public ResponseEntity<GlazeTransactionResponseDTO> create(@PathVariable Long glazeId, @Valid @RequestBody GlazeTransactionRequestDTO dto) {
+        GlazeTransactionResponseDTO created = transactionService.create(glazeId, dto);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{transactionId}")
-    public ResponseEntity<GlazeTransactionDTO> update(@PathVariable Long glazeId, @PathVariable Long transactionId, @Valid @RequestBody GlazeTransactionDTO dto) {
-        GlazeTransactionDTO updated = transactionService.update(glazeId, transactionId, dto);
+    public ResponseEntity<GlazeTransactionResponseDTO> update(@PathVariable Long glazeId, @PathVariable Long transactionId, @Valid @RequestBody GlazeTransactionRequestDTO dto) {
+        GlazeTransactionResponseDTO updated = transactionService.update(glazeId, transactionId, dto);
         return ResponseEntity.ok(updated);
     }
 

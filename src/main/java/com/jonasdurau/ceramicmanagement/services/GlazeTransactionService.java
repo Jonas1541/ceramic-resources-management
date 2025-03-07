@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
@@ -35,7 +36,7 @@ public class GlazeTransactionService {
     private ResourceRepository resourceRepository;
 
     @Transactional(readOnly = true)
-    public List<GlazeTransactionDTO> findAllByGlaze(Long glazeId) {
+    public List<GlazeTransactionResponseDTO> findAllByGlaze(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         glaze.getTransactions().size(); // força carregamento se Lazy
@@ -45,7 +46,7 @@ public class GlazeTransactionService {
     }
 
     @Transactional(readOnly = true)
-    public GlazeTransactionDTO findById(Long glazeId, Long transactionId) {
+    public GlazeTransactionResponseDTO findById(Long glazeId, Long transactionId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction transaction = glaze.getTransactions().stream()
@@ -56,7 +57,7 @@ public class GlazeTransactionService {
     }
 
     @Transactional
-    public GlazeTransactionDTO create(Long glazeId, GlazeTransactionDTO dto) {
+    public GlazeTransactionResponseDTO create(Long glazeId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction entity = new GlazeTransaction();
@@ -95,7 +96,7 @@ public class GlazeTransactionService {
     }
 
     @Transactional
-    public GlazeTransactionDTO update(Long glazeId, Long transactionId, GlazeTransactionDTO dto) {
+    public GlazeTransactionResponseDTO update(Long glazeId, Long transactionId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction transaction = glaze.getTransactions().stream()
@@ -172,14 +173,14 @@ public class GlazeTransactionService {
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    private GlazeTransactionDTO entityToDTO(GlazeTransaction entity) {
-        GlazeTransactionDTO dto = new GlazeTransactionDTO();
+    private GlazeTransactionResponseDTO entityToDTO(GlazeTransaction entity) {
+        GlazeTransactionResponseDTO dto = new GlazeTransactionResponseDTO();
         dto.setId(entity.getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setQuantity(entity.getQuantity());
         dto.setType(entity.getType());
-        dto.setGlazeId(entity.getGlaze().getId());
+        dto.setGlazeColor(entity.getGlaze().getColor());
         dto.setResourceTotalCostAtTime(entity.getResourceTotalCostAtTime());
         dto.setMachineEnergyConsumptionCostAtTime(entity.getMachineEnergyConsumptionCostAtTime());
         dto.setGlazeFinalCostAtTime(entity.getGlazeFinalCostAtTime());

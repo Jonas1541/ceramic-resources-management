@@ -5,39 +5,29 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
-
-public class BisqueFiringDTO {
+public class GlazeFiringResponseDTO {
     
     private Long id;
     private Instant createdAt;
     private Instant updatedAt;
 
-    @Positive(message = "A temperatura deve ser positiva")
     private double temperature;
 
-    @Positive(message = "O tempo de queima deve ser positivo")
     private double burnTime;
 
-    @Positive(message = "O tempo de resfriamento deve ser positivo")
     private double coolingTime;
 
-    @Positive(message = "O consumo de gás deve ser positivo")
     private double gasConsumption;
 
-    private KilnDTO kiln;
+    private String kilnName;
 
-    @NotEmpty(message = "A queima deve ter produtos")
-    private List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits = new ArrayList<>();
+    private List<GlostResponseDTO> glosts = new ArrayList<>();
 
-    @Valid
-    private List<FiringMachineUsageDTO> machineUsages = new ArrayList<>();
+    private List<FiringMachineUsageResponseDTO> machineUsages = new ArrayList<>();
 
     private BigDecimal cost;
 
-    public BisqueFiringDTO() {
+    public GlazeFiringResponseDTO() {
     }
 
     public Long getId() {
@@ -96,19 +86,19 @@ public class BisqueFiringDTO {
         this.gasConsumption = gasConsumption;
     }
 
-    public KilnDTO getKiln() {
-        return kiln;
+    public String getKilnName() {
+        return kilnName;
     }
 
-    public void setKiln(KilnDTO kiln) {
-        this.kiln = kiln;
+    public void setKilnName(String kilnName) {
+        this.kilnName = kilnName;
     }
 
-    public List<Long> getBiscuits() {
-        return biscuits;
+    public List<GlostResponseDTO> getGlosts() {
+        return glosts;
     }
 
-    public List<FiringMachineUsageDTO> getMachineUsages() {
+    public List<FiringMachineUsageResponseDTO> getMachineUsages() {
         return machineUsages;
     }
 

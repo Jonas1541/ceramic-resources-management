@@ -6,7 +6,7 @@ import java.time.Instant;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 
-public class ProductTransactionDTO {
+public class ProductTransactionResponseDTO {
     
     private Long id;
     private Instant createdAt;
@@ -17,17 +17,15 @@ public class ProductTransactionDTO {
 
     private ProductOutgoingReason outgoingReason;
 
-    private long productId;
+    private String productName;
 
-    private Long glazeTransactionId;
+    private String glazeColor;
 
-    private Long bisqueFiringId;
-
-    private Long glazeFiringId;
+    private double glazeQuantity;
 
     private BigDecimal profit;
 
-    public ProductTransactionDTO() {
+    public ProductTransactionResponseDTO() {
     }
 
     public Long getId() {
@@ -78,36 +76,28 @@ public class ProductTransactionDTO {
         this.outgoingReason = outgoingReason;
     }
 
-    public long getProductId() {
-        return productId;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProductId(long productId) {
-        this.productId = productId;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public Long getGlazeTransactionId() {
-        return glazeTransactionId;
+    public String getGlazeColor() {
+        return glazeColor;
     }
 
-    public void setGlazeTransactionId(Long glazeTransactionId) {
-        this.glazeTransactionId = glazeTransactionId;
+    public void setGlazeColor(String glazeColor) {
+        this.glazeColor = glazeColor;
     }
 
-    public Long getBisqueFiringId() {
-        return bisqueFiringId;
+    public double getGlazeQuantity() {
+        return glazeQuantity;
     }
 
-    public void setBisqueFiringId(Long bisqueFiringId) {
-        this.bisqueFiringId = bisqueFiringId;
-    }
-
-    public Long getGlazeFiringId() {
-        return glazeFiringId;
-    }
-
-    public void setGlazeFiringId(Long glazeFiringId) {
-        this.glazeFiringId = glazeFiringId;
+    public void setGlazeQuantity(double glazeQuantity) {
+        this.glazeQuantity = glazeQuantity;
     }
 
     public BigDecimal getProfit() {

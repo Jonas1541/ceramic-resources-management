@@ -5,28 +5,19 @@ import java.time.Instant;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-
-public class GlazeTransactionDTO {
+public class GlazeTransactionResponseDTO {
 
     private Long id;
     private Instant createdAt;
     private Instant updatedAt;
-
-    @Positive(message = "A quantidade deve ser positiva.")
     private double quantity;
-
-    @NotNull(message = "O tipo de transação é obrigatório.")
     private TransactionType type;
-
-    private Long glazeId;
-
+    private String glazeColor;
     private BigDecimal resourceTotalCostAtTime;
     private BigDecimal machineEnergyConsumptionCostAtTime;
     private BigDecimal glazeFinalCostAtTime;
 
-    public GlazeTransactionDTO() {
+    public GlazeTransactionResponseDTO() {
     }
 
     public Long getId() {
@@ -69,12 +60,12 @@ public class GlazeTransactionDTO {
         this.type = type;
     }
 
-    public Long getGlazeId() {
-        return glazeId;
+    public String getGlazeColor() {
+        return glazeColor;
     }
 
-    public void setGlazeId(Long glazeId) {
-        this.glazeId = glazeId;
+    public void setGlazeColor(String glazeColor) {
+        this.glazeColor = glazeColor;
     }
 
     public BigDecimal getResourceTotalCostAtTime() {

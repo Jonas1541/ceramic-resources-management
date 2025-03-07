@@ -19,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.ProductDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductLine;
@@ -46,20 +47,20 @@ public class ProductService {
     private ProductTransactionRepository transactionRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductDTO> findAll() {
+    public List<ProductResponseDTO> findAll() {
         List<Product> list = productRepository.findAll();
         return list.stream().map(this::entityToDTO).toList();
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id) {
+    public ProductResponseDTO findById(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
         return entityToDTO(entity);
     }
 
     @Transactional
-    public ProductDTO create(ProductDTO dto) {
+    public ProductResponseDTO create(ProductRequestDTO dto) {
         Product entity = new Product();
         entity.setName(dto.getName());
         entity.setPrice(dto.getPrice());
@@ -77,7 +78,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO update(Long id, ProductDTO dto) {
+    public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
         entity.setName(dto.getName());
@@ -161,8 +162,8 @@ public class ProductService {
         return yearReports;
     }
 
-    private ProductDTO entityToDTO(Product entity) {
-        ProductDTO dto = new ProductDTO();
+    private ProductResponseDTO entityToDTO(Product entity) {
+        ProductResponseDTO dto = new ProductResponseDTO();
         dto.setId(entity.getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
@@ -171,8 +172,8 @@ public class ProductService {
         dto.setHeight(entity.getHeight());
         dto.setLength(entity.getLength());
         dto.setWidth(entity.getWidth());
-        dto.setTypeId(entity.getType().getId());
-        dto.setLineId(entity.getLine().getId());
+        dto.setType(entity.getType().getName());
+        dto.setLine(entity.getLine().getName());
         dto.setProductStock(entity.getProductStock());
         return dto;
     }

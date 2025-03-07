@@ -3,41 +3,21 @@ package com.jonasdurau.ceramicmanagement.dtos;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-
-public class ProductDTO {
+public class ProductResponseDTO {
 
     private Long id;
     private Instant createdAt;
     private Instant updatedAt;
-
-    @NotBlank(message = "O nome é obrigatório")
     private String name;
-
-    @NotNull(message = "O preço é obrigatório")
-    @Positive(message = "O preço deve ser positivo")
     private BigDecimal price;
-
-    @Positive(message = "A altura deve ser positiva")
     private double height;
-
-    @Positive(message = "O comprimento deve ser positivo")
     private double length;
-
-    @Positive(message = "A largura deve ser positiva")
     private double width;
-
-    @Positive(message = "O tipo é obrigatório")
-    private long typeId;
-
-    @Positive(message = "A linha é obrigatória")
-    private long lineId;
-
+    private String type;
+    private String line;
     private int productStock;
 
-    public ProductDTO() {
+    public ProductResponseDTO() {
     }
 
     public Long getId() {
@@ -104,20 +84,20 @@ public class ProductDTO {
         this.width = width;
     }
 
-    public long getTypeId() {
-        return typeId;
+    public String getType() {
+        return type;
     }
 
-    public void setTypeId(long typeId) {
-        this.typeId = typeId;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public long getLineId() {
-        return lineId;
+    public String getLine() {
+        return line;
     }
 
-    public void setLineId(long lineId) {
-        this.lineId = lineId;
+    public void setLine(String line) {
+        this.line = line;
     }
 
     public int getProductStock() {

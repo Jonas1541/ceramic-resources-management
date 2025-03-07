@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.services.ProductTransactionService;
@@ -26,26 +26,26 @@ public class ProductTransactionController {
     private ProductTransactionService transactionService;
 
     @GetMapping
-    public ResponseEntity<List<ProductTransactionDTO>> findAllByProduct(@PathVariable Long productId) {
-        List<ProductTransactionDTO> list = transactionService.findAllByProduct(productId);
+    public ResponseEntity<List<ProductTransactionResponseDTO>> findAllByProduct(@PathVariable Long productId) {
+        List<ProductTransactionResponseDTO> list = transactionService.findAllByProduct(productId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping(params = "state")
-    public ResponseEntity<List<ProductTransactionDTO>> findAllByState(@RequestParam ProductState state) {
-        List<ProductTransactionDTO> list = transactionService.findAllByState(state);
+    public ResponseEntity<List<ProductTransactionResponseDTO>> findAllByState(@RequestParam ProductState state) {
+        List<ProductTransactionResponseDTO> list = transactionService.findAllByState(state);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<ProductTransactionDTO> findById(@PathVariable Long productId, @PathVariable Long transactionId) {
-        ProductTransactionDTO dto = transactionService.findById(productId, transactionId);
+    public ResponseEntity<ProductTransactionResponseDTO> findById(@PathVariable Long productId, @PathVariable Long transactionId) {
+        ProductTransactionResponseDTO dto = transactionService.findById(productId, transactionId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<List<ProductTransactionDTO>> create(@PathVariable Long productId, @RequestParam int quantity) {
-        List<ProductTransactionDTO> created = transactionService.create(productId, quantity);
+    public ResponseEntity<List<ProductTransactionResponseDTO>> create(@PathVariable Long productId, @RequestParam int quantity) {
+        List<ProductTransactionResponseDTO> created = transactionService.create(productId, quantity);
         return ResponseEntity.ok(created);
     }
 
@@ -56,8 +56,8 @@ public class ProductTransactionController {
     }
 
     @PutMapping(value = "/{transactionId}", params = "outgoingReason")
-    public ResponseEntity<ProductTransactionDTO> outgoing(@PathVariable Long productId, @PathVariable Long transactionId, @RequestParam ProductOutgoingReason outgoingReason) {
-        ProductTransactionDTO dto = transactionService.outgoing(productId, transactionId, outgoingReason);
+    public ResponseEntity<ProductTransactionResponseDTO> outgoing(@PathVariable Long productId, @PathVariable Long transactionId, @RequestParam ProductOutgoingReason outgoingReason) {
+        ProductTransactionResponseDTO dto = transactionService.outgoing(productId, transactionId, outgoingReason);
         return ResponseEntity.ok(dto);
     }
 }

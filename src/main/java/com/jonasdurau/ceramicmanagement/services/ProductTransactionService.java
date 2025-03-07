@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
@@ -29,7 +29,7 @@ public class ProductTransactionService {
     private ProductRepository productRepository;
 
     @Transactional(readOnly = true)
-    public List<ProductTransactionDTO> findAllByProduct(Long productId) {
+    public List<ProductTransactionResponseDTO> findAllByProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException("Produto não encontrado. Id: " + productId));
         List<ProductTransaction> list = transactionRepository.findByProduct(product);
@@ -37,13 +37,13 @@ public class ProductTransactionService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductTransactionDTO> findAllByState(ProductState state) {
+    public List<ProductTransactionResponseDTO> findAllByState(ProductState state) {
         List<ProductTransaction> list = transactionRepository.findByState(state);
         return list.stream().map(this::entityToDTO).toList();
     }
 
     @Transactional(readOnly = true)
-    public ProductTransactionDTO findById(Long productId, Long transactionId) {
+    public ProductTransactionResponseDTO findById(Long productId, Long transactionId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction transaction = transactionRepository.findByIdAndProduct(transactionId, product)
@@ -52,7 +52,7 @@ public class ProductTransactionService {
     }
 
     @Transactional
-    public List<ProductTransactionDTO> create(Long productId, int quantity) {
+    public List<ProductTransactionResponseDTO> create(Long productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         List<ProductTransaction> list = new ArrayList<>();
@@ -82,7 +82,7 @@ public class ProductTransactionService {
     }
 
     @Transactional
-    public ProductTransactionDTO outgoing(Long productId, Long transactionId, ProductOutgoingReason outgoingReason) {
+    public ProductTransactionResponseDTO outgoing(Long productId, Long transactionId, ProductOutgoingReason outgoingReason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
@@ -93,23 +93,18 @@ public class ProductTransactionService {
         return entityToDTO(entity);
     }
 
-    private ProductTransactionDTO entityToDTO(ProductTransaction entity) {
-        ProductTransactionDTO dto = new ProductTransactionDTO();
+    private ProductTransactionResponseDTO entityToDTO(ProductTransaction entity) {
+        ProductTransactionResponseDTO dto = new ProductTransactionResponseDTO();
         dto.setId(entity.getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setOutgoingAt(entity.getOutgoingAt());
         dto.setState(entity.getState());
         dto.setOutgoingReason(entity.getOutgoingReason());
-        dto.setProductId(entity.getProduct().getId());
+        dto.setProductName(entity.getProduct().getName());
         if (entity.getGlazeTransaction() != null) {
-            dto.setGlazeTransactionId(entity.getGlazeTransaction().getId());
-        }
-        if (entity.getBisqueFiring() != null) {
-            dto.setBisqueFiringId(entity.getBisqueFiring().getId());
-        }
-        if (entity.getGlazeFiring() != null) {
-            dto.setGlazeFiringId(entity.getGlazeFiring().getId());
+            dto.setGlazeColor(entity.getGlazeTransaction().getGlaze().getColor());
+            dto.setGlazeQuantity(entity.getGlazeTransaction().getQuantity());
         }
         dto.setProfit(entity.getProfit());
         return dto;

@@ -11,11 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringDTO;
-import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageDTO;
-import com.jonasdurau.ceramicmanagement.dtos.KilnDTO;
+import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.BisqueFiring;
 import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
@@ -53,7 +56,7 @@ public class BisqueFiringService {
     private FiringMachineUsageRepository machineUsageRepository;
 
     @Transactional(readOnly = true)
-    public List<BisqueFiringDTO> findAllByKilnId(Long kilnId) {
+    public List<BisqueFiringResponseDTO> findAllByKilnId(Long kilnId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
@@ -62,7 +65,7 @@ public class BisqueFiringService {
     }
 
     @Transactional(readOnly = true)
-    public BisqueFiringDTO findById(Long kilnId, Long firingId) {
+    public BisqueFiringResponseDTO findById(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
@@ -72,7 +75,7 @@ public class BisqueFiringService {
     }
 
     @Transactional
-    public BisqueFiringDTO create(Long kilnId, BisqueFiringDTO dto) {
+    public BisqueFiringResponseDTO create(Long kilnId, BisqueFiringRequestDTO dto) {
         BisqueFiring entity = new BisqueFiring();
         entity.setTemperature(dto.getTemperature());
         entity.setBurnTime(dto.getBurnTime());
@@ -85,12 +88,15 @@ public class BisqueFiringService {
         for(long biscuitId : dto.getBiscuits()) {
             ProductTransaction biscuit = productTransactionRepository.findById(biscuitId)
                     .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + biscuitId));
+            if(biscuit.getBisqueFiring() != null  && !biscuit.getBisqueFiring().getId().equals(entity.getId())) {
+                throw new BusinessException("Produto já passou por uma 1° queima. Id: " + biscuitId);
+            }
             biscuit.setBisqueFiring(entity);
             biscuit.setState(ProductState.BISCUIT);
             entity.getBiscuits().add(biscuit);
         }
         if(!dto.getMachineUsages().isEmpty()) {
-            for(FiringMachineUsageDTO muDTO : dto.getMachineUsages()) {
+            for(FiringMachineUsageRequestDTO muDTO : dto.getMachineUsages()) {
                 FiringMachineUsage mu = new FiringMachineUsage();
                 mu.setUsageTime(muDTO.getUsageTime());
                 mu.setBisqueFiring(entity);
@@ -107,7 +113,7 @@ public class BisqueFiringService {
     }
 
     @Transactional
-    public BisqueFiringDTO update(Long kilnId, Long firingId, BisqueFiringDTO dto) {
+    public BisqueFiringResponseDTO update(Long kilnId, Long firingId, BisqueFiringRequestDTO dto) {
         if (!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
@@ -139,6 +145,9 @@ public class BisqueFiringService {
         });
         entity.getBiscuits().removeAll(toRemove);
         toAdd.forEach(biscuit -> {
+            if(biscuit.getBisqueFiring() != null && !biscuit.getBisqueFiring().getId().equals(entity.getId())) {
+                throw new BusinessException("Produto já passou por uma 1° queima. Id: " + biscuit.getId());
+            }
             biscuit.setBisqueFiring(entity);
             biscuit.setState(ProductState.BISCUIT);
             productTransactionRepository.save(biscuit);
@@ -187,8 +196,8 @@ public class BisqueFiringService {
         firingRepository.delete(entity);
     }
 
-    private BisqueFiringDTO entityToDTO(BisqueFiring entity) {
-        BisqueFiringDTO dto = new BisqueFiringDTO();
+    private BisqueFiringResponseDTO entityToDTO(BisqueFiring entity) {
+        BisqueFiringResponseDTO dto = new BisqueFiringResponseDTO();
         dto.setId(entity.getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
@@ -196,26 +205,35 @@ public class BisqueFiringService {
         dto.setBurnTime(entity.getBurnTime());
         dto.setCoolingTime(entity.getCoolingTime());
         dto.setGasConsumption(entity.getGasConsumption());
-        KilnDTO kilnDTO = new KilnDTO();
-        kilnDTO.setId(entity.getKiln().getId());
-        kilnDTO.setCreatedAt(entity.getKiln().getCreatedAt());
-        kilnDTO.setUpdatedAt(entity.getKiln().getUpdatedAt());
-        kilnDTO.setName(entity.getKiln().getName());
-        kilnDTO.setPower(entity.getKiln().getPower());
-        dto.setKiln(kilnDTO);
+        dto.setKilnName(entity.getKiln().getName());
         entity.getBiscuits().size();
         for(ProductTransaction biscuit : entity.getBiscuits()) {
-            dto.getBiscuits().add(biscuit.getId());
+            ProductTransactionResponseDTO biscuitDTO = new ProductTransactionResponseDTO();
+            biscuitDTO.setId(biscuit.getId());
+            biscuitDTO.setCreatedAt(biscuit.getCreatedAt());
+            biscuitDTO.setUpdatedAt(biscuit.getUpdatedAt());
+            biscuitDTO.setOutgoingAt(biscuit.getOutgoingAt());
+            biscuitDTO.setState(biscuit.getState());
+            biscuitDTO.setOutgoingReason(biscuit.getOutgoingReason());
+            biscuitDTO.setProductName(biscuit.getProduct().getName());
+            if (biscuit.getGlazeTransaction() != null && biscuit.getGlazeTransaction().getGlaze() != null) {
+                biscuitDTO.setGlazeColor(biscuit.getGlazeTransaction().getGlaze().getColor());
+                biscuitDTO.setGlazeQuantity(biscuit.getGlazeTransaction().getQuantity());
+            } else {
+                biscuitDTO.setGlazeColor("sem glasura");
+                biscuitDTO.setGlazeQuantity(0);
+            }
+            biscuitDTO.setProfit(biscuit.getProfit());
+            dto.getBiscuits().add(biscuitDTO);
         }
         if(!entity.getMachineUsages().isEmpty()) {
             for(FiringMachineUsage mu : entity.getMachineUsages()) {
-                FiringMachineUsageDTO muDTO = new FiringMachineUsageDTO();
+                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO();
                 muDTO.setId(mu.getId());
                 muDTO.setCreatedAt(mu.getCreatedAt());
                 muDTO.setUpdatedAt(mu.getUpdatedAt());
                 muDTO.setUsageTime(mu.getUsageTime());
-                muDTO.setBisqueFiringId(mu.getBisqueFiring().getId());
-                muDTO.setMachineId(mu.getMachine().getId());
+                muDTO.setMachineName(mu.getMachine().getName());
                 dto.getMachineUsages().add(muDTO);
             }
         }

@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringDTO;
+import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.BisqueFiringService;
 
 import jakarta.validation.Valid;
@@ -26,26 +27,26 @@ public class BisqueFiringController {
     private BisqueFiringService firingService;
 
     @GetMapping
-    public ResponseEntity<List<BisqueFiringDTO>> findAllByKilnId(@PathVariable Long kilnId) {
-        List<BisqueFiringDTO> list = firingService.findAllByKilnId(kilnId);
+    public ResponseEntity<List<BisqueFiringResponseDTO>> findAllByKilnId(@PathVariable Long kilnId) {
+        List<BisqueFiringResponseDTO> list = firingService.findAllByKilnId(kilnId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{firingId}")
-    public ResponseEntity<BisqueFiringDTO> findById(@PathVariable Long kilnId, @PathVariable Long firingId) {
-        BisqueFiringDTO dto = firingService.findById(kilnId, firingId);
+    public ResponseEntity<BisqueFiringResponseDTO> findById(@PathVariable Long kilnId, @PathVariable Long firingId) {
+        BisqueFiringResponseDTO dto = firingService.findById(kilnId, firingId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<BisqueFiringDTO> create(@PathVariable Long kilnId, @Valid @RequestBody BisqueFiringDTO dto) {
-        BisqueFiringDTO created = firingService.create(kilnId, dto);
+    public ResponseEntity<BisqueFiringResponseDTO> create(@PathVariable Long kilnId, @Valid @RequestBody BisqueFiringRequestDTO dto) {
+        BisqueFiringResponseDTO created = firingService.create(kilnId, dto);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{firingId}")
-    public ResponseEntity<BisqueFiringDTO> update(@PathVariable Long kilnId, @PathVariable Long firingId, @Valid @RequestBody BisqueFiringDTO dto) {
-        BisqueFiringDTO updated = firingService.update(kilnId, firingId, dto);
+    public ResponseEntity<BisqueFiringResponseDTO> update(@PathVariable Long kilnId, @PathVariable Long firingId, @Valid @RequestBody BisqueFiringRequestDTO dto) {
+        BisqueFiringResponseDTO updated = firingService.update(kilnId, firingId, dto);
         return ResponseEntity.ok(updated);
     }
 
