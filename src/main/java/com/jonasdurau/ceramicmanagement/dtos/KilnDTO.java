@@ -1,6 +1,5 @@
 package com.jonasdurau.ceramicmanagement.dtos;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 import jakarta.validation.constraints.NotBlank;
@@ -17,11 +16,6 @@ public class KilnDTO {
 
     @Positive(message = "A potência deve ser positiva.")
     private double power;
-
-    private int totalBisqueFirings;
-    private BigDecimal totalBisqueFiringsCost;
-    private int totalGlazeFirings;
-    private BigDecimal totalGlazeFiringsCost;
 
     public KilnDTO() {
     }
@@ -64,37 +58,5 @@ public class KilnDTO {
 
     public void setPower(double power) {
         this.power = power;
-    }
-
-    public int getTotalBisqueFirings() {
-        return totalBisqueFirings;
-    }
-
-    public void setTotalBisqueFirings(int totalBisqueFirings) {
-        this.totalBisqueFirings = totalBisqueFirings;
-    }
-
-    public BigDecimal getTotalBisqueFiringsCost() {
-        return totalBisqueFiringsCost;
-    }
-
-    public void setTotalBisqueFiringsCost(BigDecimal totalBisqueFiringsCost) {
-        this.totalBisqueFiringsCost = totalBisqueFiringsCost;
-    }
-
-    public int getTotalGlazeFirings() {
-        return totalGlazeFirings;
-    }
-
-    public void setTotalGlazeFirings(int totalGlazeFirings) {
-        this.totalGlazeFirings = totalGlazeFirings;
-    }
-
-    public BigDecimal getTotalGlazeFiringsCost() {
-        return totalGlazeFiringsCost;
-    }
-
-    public void setTotalGlazeFiringsCost(BigDecimal totalGlazeFiringsCost) {
-        this.totalGlazeFiringsCost = totalGlazeFiringsCost;
     }
 }

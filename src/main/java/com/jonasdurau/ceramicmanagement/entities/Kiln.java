@@ -1,6 +1,5 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,22 +32,6 @@ public class Kiln {
     private List<GlazeFiring> glazeFirings = new ArrayList<>();
 
     public Kiln() {
-    }
-
-    public int getTotalBisqueFirings() {
-        return bisqueFirings.size();
-    }
-
-    public int getTotalGlazeFirings() {
-        return glazeFirings.size();
-    }
-
-    public BigDecimal getTotalBisqueFiringsCost() {
-        return bisqueFirings.stream().map(BisqueFiring::getCostAtTime).reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    public BigDecimal getTotalGlazeFiringsCost() {
-        return glazeFirings.stream().map(GlazeFiring::getCostAtTime).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @PrePersist
