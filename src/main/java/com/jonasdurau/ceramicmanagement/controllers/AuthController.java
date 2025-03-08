@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
 import com.jonasdurau.ceramicmanagement.dtos.LoginDTO;
+import com.jonasdurau.ceramicmanagement.dtos.TokenResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.AuthService;
 
 import jakarta.validation.Valid;
@@ -17,8 +18,8 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginDTO dto) {
-        String token = authService.login(dto.getEmail(), dto.getPassword());
-        return ResponseEntity.ok(token);
+    public ResponseEntity<TokenResponseDTO> login(@Valid @RequestBody LoginDTO dto) {
+        TokenResponseDTO tokenDTO = authService.login(dto.getEmail(), dto.getPassword());
+        return ResponseEntity.ok(tokenDTO);
     }
 }
