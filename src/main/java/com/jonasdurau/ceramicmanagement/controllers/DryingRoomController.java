@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.DryingRoomResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.DryingRoomService;
 
 import jakarta.validation.Valid;
@@ -55,5 +56,11 @@ public class DryingRoomController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/yearly-report")
+    public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
+        List<YearReportDTO> report = service.yearlyReport(id);
+        return ResponseEntity.ok(report);
     }
 }

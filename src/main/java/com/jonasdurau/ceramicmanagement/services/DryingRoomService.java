@@ -1,7 +1,15 @@
 package com.jonasdurau.ceramicmanagement.services;
 
+import java.math.BigDecimal;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,7 +23,10 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.DryingRoomResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
+import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.DryingRoom;
+import com.jonasdurau.ceramicmanagement.entities.DryingSession;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.repositories.DryingRoomRepository;
 import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
@@ -99,6 +110,52 @@ public class DryingRoomService {
             throw new ResourceDeletionException("A estufa não pode ser deletada pois ela possui usos registrados.");
         }
         dryingRoomRepository.delete(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<YearReportDTO> yearlyReport(Long dryingRoomId) {
+        DryingRoom dryingRoom = dryingRoomRepository.findById(dryingRoomId)
+                .orElseThrow(() -> new ResourceNotFoundException("DryingRoom not found: " + dryingRoomId));
+        List<DryingSession> sessions = dryingRoom.getSessions();
+        ZoneId zone = ZoneId.systemDefault();
+        Map<Integer, Map<Month, List<DryingSession>>> mapYearMonth = sessions.stream()
+                .map(s -> new AbstractMap.SimpleEntry<>(s, s.getCreatedAt().atZone(zone)))
+                .collect(Collectors.groupingBy(
+                        entry -> entry.getValue().getYear(),
+                        Collectors.groupingBy(
+                                entry -> entry.getValue().getMonth(),
+                                Collectors.mapping(Map.Entry::getKey, Collectors.toList()))));
+        List<YearReportDTO> yearReports = new ArrayList<>();
+        for (Map.Entry<Integer, Map<Month, List<DryingSession>>> yearEntry : mapYearMonth.entrySet()) {
+            int year = yearEntry.getKey();
+            Map<Month, List<DryingSession>> monthMap = yearEntry.getValue();
+            YearReportDTO yearReport = new YearReportDTO(year);
+            double totalIncomingQtyYear = 0.0;
+            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
+            for (Month m : Month.values()) {
+                List<DryingSession> monthSessions = monthMap.getOrDefault(m, Collections.emptyList());
+                double incomingQty = monthSessions.size();
+                BigDecimal incomingCost = monthSessions.stream()
+                        .map(session -> session.getCostAtTime() != null ? session.getCostAtTime() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                totalIncomingQtyYear += incomingQty;
+                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
+                MonthReportDTO monthDto = new MonthReportDTO();
+                monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+                monthDto.setIncomingQty(incomingQty);
+                monthDto.setIncomingCost(incomingCost);
+                monthDto.setOutgoingQty(0.0);
+                monthDto.setOutgoingProfit(BigDecimal.ZERO);
+                yearReport.getMonths().add(monthDto);
+            }
+            yearReport.setTotalIncomingQty(totalIncomingQtyYear);
+            yearReport.setTotalIncomingCost(totalIncomingCostYear);
+            yearReport.setTotalOutgoingQty(0.0);
+            yearReport.setTotalOutgoingProfit(BigDecimal.ZERO);
+            yearReports.add(yearReport);
+        }
+        yearReports.sort((a, b) -> b.getYear() - a.getYear());
+        return yearReports;
     }
 
     private DryingRoomResponseDTO entityToDTO(DryingRoom entity) {
