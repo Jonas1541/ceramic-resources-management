@@ -61,6 +61,7 @@ public class ResourceService {
                             r.getId(),
                             r.getName(),
                             r.getCategory().name(),
+                            r.getUnitValue(),
                             currentQty,
                             currentPrice);
                 })

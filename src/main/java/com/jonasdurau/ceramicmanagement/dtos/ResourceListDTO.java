@@ -7,16 +7,18 @@ public class ResourceListDTO {
     private Long id;
     private String name;
     private String category;
+    private BigDecimal unitValue;
     private double currentQuantity;
     private BigDecimal currentQuantityPrice;
 
     public ResourceListDTO() {
     }
 
-    public ResourceListDTO(Long id, String name, String category, double currentQuantity, BigDecimal currentQuantityPrice) {
+    public ResourceListDTO(Long id, String name, String category, BigDecimal unitValue, double currentQuantity, BigDecimal currentQuantityPrice) {
         this.id = id;
         this.name = name;
         this.category = category;
+        this.unitValue = unitValue;
         this.currentQuantity = currentQuantity;
         this.currentQuantityPrice = currentQuantityPrice;
     }
@@ -43,6 +45,14 @@ public class ResourceListDTO {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public BigDecimal getUnitValue() {
+        return unitValue;
+    }
+
+    public void setUnitValue(BigDecimal unitValue) {
+        this.unitValue = unitValue;
     }
 
     public double getCurrentQuantity() {
