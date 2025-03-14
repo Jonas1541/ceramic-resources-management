@@ -10,7 +10,7 @@ public class GlazeMachineUsageDTO {
     private long machineId;
 
     @Positive(message = "O tempo de uso deve ser maior que 0.")
-    private long usageTimeSeconds;
+    private double usageTime;
 
     public GlazeMachineUsageDTO() {
     }
@@ -23,11 +23,11 @@ public class GlazeMachineUsageDTO {
         this.machineId = machineId;
     }
 
-    public long getUsageTimeSeconds() {
-        return usageTimeSeconds;
+    public double getUsageTime() {
+        return usageTime;
     }
 
-    public void setUsageTimeSeconds(long usageTimeSeconds) {
-        this.usageTimeSeconds = usageTimeSeconds;
+    public void setUsageTime(double usageTime) {
+        this.usageTime = usageTime;
     }
 }

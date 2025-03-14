@@ -1,7 +1,5 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
-import java.time.Duration;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,7 +16,7 @@ public class GlazeMachineUsage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Duration usageTime;
+    private double usageTime;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "glaze_id")
@@ -33,9 +31,7 @@ public class GlazeMachineUsage {
 
     public double getEnergyConsumption() {
         double power = machine.getPower() * 0.74;
-        double seconds = usageTime.getSeconds();
-        double hours = seconds / 3600.0;
-        return power * hours;
+        return power * usageTime;
     }
 
     public Long getId() {
@@ -46,11 +42,11 @@ public class GlazeMachineUsage {
         this.id = id;
     }
 
-    public Duration getUsageTime() {
+    public double getUsageTime() {
         return usageTime;
     }
 
-    public void setUsageTime(Duration usageTime) {
+    public void setUsageTime(double usageTime) {
         this.usageTime = usageTime;
     }
 

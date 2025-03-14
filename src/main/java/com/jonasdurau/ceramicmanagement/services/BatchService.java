@@ -2,7 +2,6 @@ package com.jonasdurau.ceramicmanagement.services;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
@@ -103,7 +102,7 @@ public class BatchService {
             BatchMachineUsage mu = new BatchMachineUsage();
             mu.setBatch(batch);
             mu.setMachine(machine);
-            mu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+            mu.setUsageTime(muDTO.getUsageTime());
             batch.getMachineUsages().add(mu);
         }
         BigDecimal batchTotalWaterCost = computeBatchWaterCost(batch).setScale(2, RoundingMode.HALF_UP);
@@ -195,7 +194,7 @@ public class BatchService {
             Long machineId = muDTO.getMachineId();
             BatchMachineUsage existingMu = existingMachineUsagesMap.get(machineId);
             if (existingMu != null) {
-                existingMu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+                existingMu.setUsageTime(muDTO.getUsageTime());
                 updatedMachineIds.add(machineId);
             } else {
                 Machine machine = machineRepository.findById(machineId)
@@ -204,7 +203,7 @@ public class BatchService {
                 BatchMachineUsage newMu = new BatchMachineUsage();
                 newMu.setBatch(batch);
                 newMu.setMachine(machine);
-                newMu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+                newMu.setUsageTime(muDTO.getUsageTime());
                 batch.getMachineUsages().add(newMu);
                 updatedMachineIds.add(machineId);
             }
@@ -327,7 +326,7 @@ public class BatchService {
                 BatchMachineUsageDTO m = new BatchMachineUsageDTO();
                 m.setMachineId(mu.getMachine().getId());
                 m.setName(mu.getMachine().getName());
-                m.setUsageTimeSeconds(mu.getUsageTime().getSeconds());
+                m.setUsageTime(mu.getUsageTime());
                 m.setEnergyConsumption(mu.getEnergyConsumption());
                 return m;
             })

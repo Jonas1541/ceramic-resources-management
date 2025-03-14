@@ -2,7 +2,6 @@ package com.jonasdurau.ceramicmanagement.services;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Duration;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
@@ -122,7 +121,7 @@ public class GlazeService {
         for (GlazeMachineUsageDTO muDTO : dto.getMachineUsages()) {
             GlazeMachineUsage existingMu = existingMachineUsages.get(muDTO.getMachineId());
             if (existingMu != null) {
-                existingMu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+                existingMu.setUsageTime(muDTO.getUsageTime());
                 updatedMachineIds.add(muDTO.getMachineId());
             } else {
                 Machine machine = machineRepository.findById(muDTO.getMachineId())
@@ -130,7 +129,7 @@ public class GlazeService {
                 GlazeMachineUsage newMu = new GlazeMachineUsage();
                 newMu.setGlaze(glaze);
                 newMu.setMachine(machine);
-                newMu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+                newMu.setUsageTime(muDTO.getUsageTime());
                 glaze.getMachineUsages().add(newMu);
                 updatedMachineIds.add(muDTO.getMachineId());
             }
@@ -240,7 +239,7 @@ public class GlazeService {
             .map(mu -> {
                 GlazeMachineUsageDTO m = new GlazeMachineUsageDTO();
                 m.setMachineId(mu.getMachine().getId());
-                m.setUsageTimeSeconds(mu.getUsageTime().getSeconds());
+                m.setUsageTime(mu.getUsageTime());
                 return m;
             })
             .collect(Collectors.toList());
@@ -266,7 +265,7 @@ public class GlazeService {
             GlazeMachineUsage mu = new GlazeMachineUsage();
             mu.setGlaze(entity);
             mu.setMachine(machine);
-            mu.setUsageTime(Duration.ofSeconds(muDTO.getUsageTimeSeconds()));
+            mu.setUsageTime(muDTO.getUsageTime());
             entity.getMachineUsages().add(mu);
         }
     }

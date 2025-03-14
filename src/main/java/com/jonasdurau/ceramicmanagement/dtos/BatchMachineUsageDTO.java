@@ -12,7 +12,7 @@ public class BatchMachineUsageDTO {
     private String name;
 
     @Positive(message = "O tempo de uso deve ser maior que 0.")
-    private long usageTimeSeconds;
+    private double usageTime;
 
     private double energyConsumption; 
 
@@ -35,12 +35,12 @@ public class BatchMachineUsageDTO {
         this.name = name;
     }
 
-    public long getUsageTimeSeconds() {
-        return usageTimeSeconds;
+    public double getUsageTime() {
+        return usageTime;
     }
 
-    public void setUsageTimeSeconds(long usageTimeSeconds) {
-        this.usageTimeSeconds = usageTimeSeconds;
+    public void setUsageTime(double usageTime) {
+        this.usageTime = usageTime;
     }
 
     public double getEnergyConsumption() {

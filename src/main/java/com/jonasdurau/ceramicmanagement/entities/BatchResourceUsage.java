@@ -34,15 +34,6 @@ public class BatchResourceUsage {
     public BatchResourceUsage() {
     }
 
-    public BatchResourceUsage(Long id, double initialQuantity, double umidity, double addedQuantity, Batch batch, Resource resource) {
-        this.id = id;
-        this.initialQuantity = initialQuantity;
-        this.umidity = umidity;
-        this.addedQuantity = addedQuantity;
-        this.batch = batch;
-        this.resource = resource;
-    }
-
     public double getTotalQuantity() {
         return initialQuantity + addedQuantity;
     }
