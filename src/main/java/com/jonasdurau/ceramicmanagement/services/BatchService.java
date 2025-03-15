@@ -347,6 +347,7 @@ public class BatchService {
         Resource water = resourceRepository.findByCategory(ResourceCategory.WATER)
             .orElseThrow(() -> new BusinessException("Resource WATER não cadastrada!"));
         return water.getUnitValue()
+            .divide(BigDecimal.valueOf(1000), 10, RoundingMode.HALF_UP)
             .multiply(BigDecimal.valueOf(totalWaterLiters))
             .setScale(2, RoundingMode.HALF_UP);
     }
