@@ -230,6 +230,7 @@ public class GlazeService {
             .map(usage -> {
                 GlazeResourceUsageDTO u = new GlazeResourceUsageDTO();
                 u.setResourceId(usage.getResource().getId());
+                u.setResourceName(usage.getResource().getName());
                 u.setQuantity(usage.getQuantity());
                 return u;
             })
@@ -239,6 +240,7 @@ public class GlazeService {
             .map(mu -> {
                 GlazeMachineUsageDTO m = new GlazeMachineUsageDTO();
                 m.setMachineId(mu.getMachine().getId());
+                m.setMachineName(mu.getMachine().getName());
                 m.setUsageTime(mu.getUsageTime());
                 return m;
             })

@@ -22,7 +22,7 @@ public class ResourceTransactionDTO {
     @Positive(message = "A quantidade deve ser positiva")
     private double quantity;
 
-    private Long resourceId;
+    private String resourceName;
 
     private Long batchId;
 
@@ -71,12 +71,12 @@ public class ResourceTransactionDTO {
         this.quantity = quantity;
     }
 
-    public Long getResourceId() {
-        return resourceId;
+    public String getResourceName() {
+        return resourceName;
     }
 
-    public void setResourceId(Long resourceId) {
-        this.resourceId = resourceId;
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 
     public Long getBatchId() {

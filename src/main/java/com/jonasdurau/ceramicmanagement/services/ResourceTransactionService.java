@@ -103,7 +103,7 @@ public class ResourceTransactionService {
         dto.setUpdatedAt(entity.getUpdatedAt());
         dto.setType(entity.getType());
         dto.setQuantity(entity.getQuantity());
-        dto.setResourceId(entity.getResource().getId());
+        dto.setResourceName(entity.getResource().getName());
         if (entity.getBatch() != null) {
             dto.setBatchId(entity.getBatch().getId());
         } else {

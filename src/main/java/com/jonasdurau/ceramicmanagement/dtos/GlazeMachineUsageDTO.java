@@ -9,6 +9,8 @@ public class GlazeMachineUsageDTO {
     @Positive(message = "O ID da máquina deve ser positivo.")
     private long machineId;
 
+    private String machineName;
+
     @Positive(message = "O tempo de uso deve ser maior que 0.")
     private double usageTime;
 
@@ -21,6 +23,14 @@ public class GlazeMachineUsageDTO {
 
     public void setMachineId(long machineId) {
         this.machineId = machineId;
+    }
+
+    public String getMachineName() {
+        return machineName;
+    }
+
+    public void setMachineName(String machineName) {
+        this.machineName = machineName;
     }
 
     public double getUsageTime() {

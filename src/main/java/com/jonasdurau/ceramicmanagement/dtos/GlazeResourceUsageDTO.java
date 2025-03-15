@@ -9,6 +9,8 @@ public class GlazeResourceUsageDTO {
     @Positive(message = "O ID do recurso deve ser positivo.")
     private Long resourceId;
 
+    private String resourceName;
+
     @Positive(message = "A quantidade deve ser positiva.")
     private double quantity;
 
@@ -21,6 +23,14 @@ public class GlazeResourceUsageDTO {
 
     public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 
     public double getQuantity() {
