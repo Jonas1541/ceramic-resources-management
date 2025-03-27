@@ -1,8 +1,8 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
 import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
-import com.jonasdurau.ceramicmanagement.dtos.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.services.ResourceService;
 
 import jakarta.validation.Valid;

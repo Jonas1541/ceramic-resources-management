@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.BatchDTO;
-import com.jonasdurau.ceramicmanagement.dtos.BatchListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.BatchListDTO;
 import com.jonasdurau.ceramicmanagement.services.BatchService;
 
 import jakarta.validation.Valid;

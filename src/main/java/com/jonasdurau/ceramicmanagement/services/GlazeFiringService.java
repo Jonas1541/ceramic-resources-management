@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.FiringMachineUsageResponseDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringResponseDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlostRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlostResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.FiringMachineUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlostRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.FiringMachineUsageResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlostResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeFiring;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;

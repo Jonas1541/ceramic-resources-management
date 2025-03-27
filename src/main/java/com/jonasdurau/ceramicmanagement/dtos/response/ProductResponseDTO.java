@@ -1,4 +1,4 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;

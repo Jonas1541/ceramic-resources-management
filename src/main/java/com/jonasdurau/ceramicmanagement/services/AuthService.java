@@ -8,7 +8,7 @@ import com.jonasdurau.ceramicmanagement.config.TenantContext;
 import com.jonasdurau.ceramicmanagement.config.TokenService;
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidCredentialsException;
-import com.jonasdurau.ceramicmanagement.dtos.TokenResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.TokenResponseDTO;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 
 @Service

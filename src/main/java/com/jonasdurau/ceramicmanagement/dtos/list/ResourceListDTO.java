@@ -1,4 +1,4 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.list;
 
 import java.math.BigDecimal;
 

@@ -1,7 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
 import com.jonasdurau.ceramicmanagement.dtos.LoginDTO;
-import com.jonasdurau.ceramicmanagement.dtos.TokenResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.TokenResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.AuthService;
 
 import jakarta.validation.Valid;

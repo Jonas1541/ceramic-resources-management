@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;

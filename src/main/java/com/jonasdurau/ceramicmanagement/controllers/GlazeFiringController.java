@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeFiringResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeFiringService;
 
 import jakarta.validation.Valid;

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;

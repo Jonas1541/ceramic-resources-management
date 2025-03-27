@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.BisqueFiringResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.BisqueFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.BisqueFiringService;
 
 import jakarta.validation.Valid;

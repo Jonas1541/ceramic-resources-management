@@ -23,11 +23,11 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeMachineUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.GlazeResourceUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;

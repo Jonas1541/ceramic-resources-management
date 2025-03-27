@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.ProductTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.services.ProductTransactionService;

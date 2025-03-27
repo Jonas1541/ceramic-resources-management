@@ -1,4 +1,4 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.request;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
-public class BisqueFiringRequestDTO {
+public class GlazeFiringRequestDTO {
 
     @Positive(message = "A temperatura deve ser positiva")
     private double temperature;
@@ -22,12 +22,13 @@ public class BisqueFiringRequestDTO {
     private double gasConsumption;
 
     @NotEmpty(message = "A queima deve ter produtos")
-    private List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits = new ArrayList<>();
+    @Valid
+    private List<GlostRequestDTO> glosts = new ArrayList<>();
 
     @Valid
     private List<FiringMachineUsageRequestDTO> machineUsages = new ArrayList<>();
 
-    public BisqueFiringRequestDTO() {
+    public GlazeFiringRequestDTO() {
     }
 
     public double getTemperature() {
@@ -46,8 +47,8 @@ public class BisqueFiringRequestDTO {
         return gasConsumption;
     }
 
-    public List<Long> getBiscuits() {
-        return biscuits;
+    public List<GlostRequestDTO> getGlosts() {
+        return glosts;
     }
 
     public List<FiringMachineUsageRequestDTO> getMachineUsages() {

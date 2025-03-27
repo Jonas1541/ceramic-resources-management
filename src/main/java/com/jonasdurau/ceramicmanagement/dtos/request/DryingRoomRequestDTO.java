@@ -1,22 +1,27 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.request;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DryingRoomResponseDTO {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
+public class DryingRoomRequestDTO {
     
     private Long id;
     private Instant createdAt;
     private Instant updatedAt;
 
+    @NotBlank(message = "O nome é obrigatório")
     private String name;
 
+    @Positive(message = "O consumo de gás por hora deve ser positivo")
     private double gasConsumptionPerHour;
 
-    private List<MachineDTO> machines = new ArrayList<>();
+    private List<@Positive(message = "O id das máquinas devem ser positivos") Long> machines = new ArrayList<>();
 
-    public DryingRoomResponseDTO() {
+    public DryingRoomRequestDTO() {
     }
 
     public Long getId() {
@@ -59,11 +64,11 @@ public class DryingRoomResponseDTO {
         this.gasConsumptionPerHour = gasConsumptionPerHour;
     }
 
-    public List<MachineDTO> getMachines() {
+    public List<Long> getMachines() {
         return machines;
     }
 
-    public void setMachines(List<MachineDTO> machines) {
+    public void setMachines(List<Long> machines) {
         this.machines = machines;
     }
 }

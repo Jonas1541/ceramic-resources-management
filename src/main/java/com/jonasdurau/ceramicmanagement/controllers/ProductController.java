@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.ProductRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ProductRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.ProductService;
 
 import jakarta.validation.Valid;

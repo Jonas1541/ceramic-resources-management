@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeService;
 
 import jakarta.validation.Valid;

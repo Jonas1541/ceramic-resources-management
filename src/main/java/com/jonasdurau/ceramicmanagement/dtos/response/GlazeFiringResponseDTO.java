@@ -1,11 +1,11 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BisqueFiringResponseDTO {
+public class GlazeFiringResponseDTO {
     
     private Long id;
     private Instant createdAt;
@@ -21,13 +21,13 @@ public class BisqueFiringResponseDTO {
 
     private String kilnName;
 
-    private List<ProductTransactionResponseDTO> biscuits = new ArrayList<>();
+    private List<GlostResponseDTO> glosts = new ArrayList<>();
 
     private List<FiringMachineUsageResponseDTO> machineUsages = new ArrayList<>();
 
     private BigDecimal cost;
 
-    public BisqueFiringResponseDTO() {
+    public GlazeFiringResponseDTO() {
     }
 
     public Long getId() {
@@ -94,8 +94,8 @@ public class BisqueFiringResponseDTO {
         this.kilnName = kilnName;
     }
 
-    public List<ProductTransactionResponseDTO> getBiscuits() {
-        return biscuits;
+    public List<GlostResponseDTO> getGlosts() {
+        return glosts;
     }
 
     public List<FiringMachineUsageResponseDTO> getMachineUsages() {

@@ -1,4 +1,4 @@
-package com.jonasdurau.ceramicmanagement.dtos;
+package com.jonasdurau.ceramicmanagement.dtos.request;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 

@@ -1,7 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeTransactionService;
 
 import jakarta.validation.Valid;
