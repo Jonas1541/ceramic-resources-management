@@ -23,6 +23,7 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.DryingRoomListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.DryingRoomResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.DryingRoom;
@@ -45,9 +46,17 @@ public class DryingRoomService {
     private DryingSessionRepository dryingSessionRepository;
 
     @Transactional(readOnly = true)
-    public List<DryingRoomResponseDTO> findAll() {
+    public List<DryingRoomListDTO> findAll() {
         List<DryingRoom> list = dryingRoomRepository.findAll();
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(
+            room -> new DryingRoomListDTO(
+                room.getId(),
+                room.getCreatedAt(),
+                room.getUpdatedAt(),
+                room.getName(),
+                room.getGasConsumptionPerHour()
+            ))
+            .toList();
     }
 
     @Transactional(readOnly = true)

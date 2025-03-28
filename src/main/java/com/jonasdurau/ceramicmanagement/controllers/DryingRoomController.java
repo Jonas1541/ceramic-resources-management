@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.dtos.list.DryingRoomListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.DryingRoomResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.DryingRoomService;
@@ -29,8 +30,8 @@ public class DryingRoomController {
     private DryingRoomService service;
 
     @GetMapping
-    public ResponseEntity<List<DryingRoomResponseDTO>> findAll() {
-        List<DryingRoomResponseDTO> list = service.findAll();
+    public ResponseEntity<List<DryingRoomListDTO>> findAll() {
+        List<DryingRoomListDTO> list = service.findAll();
         return ResponseEntity.ok(list);
     }
 

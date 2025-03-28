@@ -59,8 +59,15 @@ public class BatchService {
     public List<BatchListDTO> findAll() {
         List<Batch> list = batchRepository.findAll();
         return list.stream()
-            .map(this::batchToListDTO)
-            .collect(Collectors.toList());
+                .map(batch -> {
+                    BigDecimal finalCost = batch.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP);
+                    return new BatchListDTO(
+                            batch.getId(),
+                            batch.getCreatedAt(),
+                            batch.getUpdatedAt(),
+                            finalCost);
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -289,16 +296,6 @@ public class BatchService {
         }
         yearReports.sort((a, b) -> b.getYear() - a.getYear());
         return yearReports;
-    }
-
-    private BatchListDTO batchToListDTO(Batch entity) {
-        entity.getResourceUsages().size();
-        entity.getMachineUsages().size();
-        entity.getResourceTransactions().size();
-
-        BigDecimal finalCost = entity.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP);
-
-        return new BatchListDTO(entity.getId(), entity.getCreatedAt(), entity.getUpdatedAt(), finalCost);
     }
 
     private BatchDTO batchToDTO(Batch entity) {

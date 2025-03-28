@@ -68,7 +68,16 @@ public class GlazeService {
     public List<GlazeListDTO> findAll() {
         List<Glaze> entities = glazeRepository.findAll();
         return entities.stream()
-            .map(this::glazeToListDTO)
+            .map(glaze -> new GlazeListDTO(
+                glaze.getId(),
+                glaze.getCreatedAt(),
+                glaze.getUpdatedAt(),
+                glaze.getColor(),
+                glaze.getUnitValue(),
+                glaze.getUnitCost(),
+                glaze.getCurrentQuantity(),
+                glaze.getCurrentQuantityPrice()
+            ))
             .collect(Collectors.toList());
     }
 
@@ -320,20 +329,5 @@ public class GlazeService {
             computeUnitCost(g);
             glazeRepository.save(g);
         }
-    }
-
-    private GlazeListDTO glazeToListDTO(Glaze entity) {
-        GlazeListDTO dto = new GlazeListDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setColor(entity.getColor());
-        dto.setUnitValue(entity.getUnitValue());
-        dto.setUnitCost(entity.getUnitCost());
-        double currentQty = entity.getCurrentQuantity();
-        BigDecimal currentQtyPrice = entity.getCurrentQuantityPrice();
-        dto.setCurrentQuantity(currentQty);
-        dto.setCurrentQuantityPrice(currentQtyPrice);
-        return dto;
     }
 }
