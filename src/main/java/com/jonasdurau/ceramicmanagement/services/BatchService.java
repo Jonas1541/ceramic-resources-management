@@ -59,15 +59,13 @@ public class BatchService {
     public List<BatchListDTO> findAll() {
         List<Batch> list = batchRepository.findAll();
         return list.stream()
-                .map(batch -> {
-                    BigDecimal finalCost = batch.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP);
-                    return new BatchListDTO(
-                            batch.getId(),
-                            batch.getCreatedAt(),
-                            batch.getUpdatedAt(),
-                            finalCost);
-                })
-                .collect(Collectors.toList());
+            .map(batch -> new BatchListDTO(
+                batch.getId(),
+                batch.getCreatedAt(),
+                batch.getUpdatedAt(),
+                batch.getBatchFinalCostAtTime()
+            ))
+            .toList();
     }
 
     @Transactional(readOnly = true)

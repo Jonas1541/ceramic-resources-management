@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
+import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BisqueFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.FiringMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
@@ -56,12 +57,24 @@ public class BisqueFiringService {
     private FiringMachineUsageRepository machineUsageRepository;
 
     @Transactional(readOnly = true)
-    public List<BisqueFiringResponseDTO> findAllByKilnId(Long kilnId) {
-        if(!kilnRepository.existsById(kilnId)) {
+    public List<FiringListDTO> findAllByKilnId(Long kilnId) {
+        if (!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
         List<BisqueFiring> list = firingRepository.findByKilnId(kilnId);
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream()
+            .map(firing -> new FiringListDTO(
+                firing.getId(),
+                firing.getCreatedAt(),
+                firing.getUpdatedAt(),
+                firing.getTemperature(),
+                firing.getBurnTime(),
+                firing.getCoolingTime(),
+                firing.getGasConsumption(),
+                firing.getKiln().getName(),
+                firing.getCostAtTime()
+            ))
+            .toList();
     }
 
     @Transactional(readOnly = true)

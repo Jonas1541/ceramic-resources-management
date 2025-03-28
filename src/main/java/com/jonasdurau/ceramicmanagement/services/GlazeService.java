@@ -78,7 +78,7 @@ public class GlazeService {
                 glaze.getCurrentQuantity(),
                 glaze.getCurrentQuantityPrice()
             ))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional(readOnly = true)

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeFiringService;
@@ -27,8 +28,8 @@ public class GlazeFiringController {
     private GlazeFiringService firingService;
 
     @GetMapping
-    public ResponseEntity<List<GlazeFiringResponseDTO>> findAllByKilnId(@PathVariable Long kilnId) {
-        List<GlazeFiringResponseDTO> list = firingService.findAllByKilnId(kilnId);
+    public ResponseEntity<List<FiringListDTO>> findAllByKilnId(@PathVariable Long kilnId) {
+        List<FiringListDTO> list = firingService.findAllByKilnId(kilnId);
         return ResponseEntity.ok(list);
     }
 
