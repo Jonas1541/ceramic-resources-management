@@ -39,7 +39,6 @@ public class GlazeTransactionService {
     public List<GlazeTransactionResponseDTO> findAllByGlaze(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
-        glaze.getTransactions().size(); // força carregamento se Lazy
         return glaze.getTransactions().stream()
             .map(this::entityToDTO)
             .collect(Collectors.toList());

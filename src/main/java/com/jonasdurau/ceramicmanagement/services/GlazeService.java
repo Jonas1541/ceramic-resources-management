@@ -85,9 +85,6 @@ public class GlazeService {
     public GlazeDTO findById(Long id) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
-        glaze.getResourceUsages().size();
-        glaze.getMachineUsages().size();
-        glaze.getTransactions().size();
         return entityToDTO(glaze);
     }
 

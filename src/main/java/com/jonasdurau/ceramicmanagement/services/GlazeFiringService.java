@@ -179,7 +179,6 @@ public class GlazeFiringService {
         List<ProductTransaction> toAdd = newList.stream().filter(glost -> !oldIds.contains(glost.getId())).collect(Collectors.toList());
         toAdd.forEach(glost -> productTransactionRepository.save(glost));
         entity.getGlosts().addAll(toAdd);
-        entity.getMachineUsages().size();
         List<FiringMachineUsage> oldListmu = new ArrayList<>(entity.getMachineUsages());
         List<FiringMachineUsage> newListmu = dto.getMachineUsages().stream()
                 .map(muDTO -> {
@@ -210,7 +209,6 @@ public class GlazeFiringService {
         }
         GlazeFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-        entity.getGlosts().size();
         entity.getGlosts().forEach(glost -> {
             glost.setGlazeFiring(null);
             glost.setState(ProductState.BISCUIT);
@@ -230,7 +228,6 @@ public class GlazeFiringService {
         dto.setCoolingTime(entity.getCoolingTime());
         dto.setCoolingTime(entity.getGasConsumption());
         dto.setKilnName(entity.getKiln().getName());
-        entity.getGlosts().size();
         for(ProductTransaction glost : entity.getGlosts()) {
             GlostResponseDTO glostDTO = new GlostResponseDTO();
             glostDTO.setProductName(glost.getProduct().getName());

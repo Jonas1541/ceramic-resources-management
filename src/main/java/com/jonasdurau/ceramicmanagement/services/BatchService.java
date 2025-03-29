@@ -72,9 +72,6 @@ public class BatchService {
     public BatchDTO findById(Long id) {
         Batch batch = batchRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
-        batch.getResourceUsages().size();
-        batch.getMachineUsages().size();
-        batch.getResourceTransactions().size();
         return batchToDTO(batch);
     }
 

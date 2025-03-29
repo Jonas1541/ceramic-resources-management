@@ -136,7 +136,6 @@ public class BisqueFiringService {
         entity.setBurnTime(dto.getBurnTime());
         entity.setCoolingTime(dto.getCoolingTime());
         entity.setGasConsumption(dto.getGasConsumption());
-        entity.getBiscuits().size();
         List<ProductTransaction> oldList = new ArrayList<>(entity.getBiscuits());
         List<ProductTransaction> newList = dto.getBiscuits().stream()
                 .map(id -> {
@@ -166,7 +165,6 @@ public class BisqueFiringService {
             productTransactionRepository.save(biscuit);
         });
         entity.getBiscuits().addAll(toAdd);
-        entity.getMachineUsages().size();
         List<FiringMachineUsage> oldListmu = new ArrayList<>(entity.getMachineUsages());
         List<FiringMachineUsage> newListmu = dto.getMachineUsages().stream()
                 .map(muDTO -> {
@@ -197,7 +195,6 @@ public class BisqueFiringService {
         }
         BisqueFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-                entity.getBiscuits().size();
         entity.getBiscuits().forEach(biscuit -> {
             if (biscuit.getState() == ProductState.GLAZED) {
                 throw new ResourceDeletionException("A queima não pode ser apagada pois há um produto que já passou pela 2° queima. Id: "+ biscuit.getId());
@@ -219,7 +216,6 @@ public class BisqueFiringService {
         dto.setCoolingTime(entity.getCoolingTime());
         dto.setGasConsumption(entity.getGasConsumption());
         dto.setKilnName(entity.getKiln().getName());
-        entity.getBiscuits().size();
         for(ProductTransaction biscuit : entity.getBiscuits()) {
             ProductTransactionResponseDTO biscuitDTO = new ProductTransactionResponseDTO();
             biscuitDTO.setId(biscuit.getId());

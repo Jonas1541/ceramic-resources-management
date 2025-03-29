@@ -34,7 +34,6 @@ public class DryingSessionService {
     public List<DryingSessionDTO> findAllByRoom(Long roomId) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
-        room.getSessions().size();
         return room.getSessions().stream().map(this::entityToDTO).toList();
     }
 
