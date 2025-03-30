@@ -9,6 +9,7 @@ import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
+import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.BatchResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
@@ -80,7 +81,13 @@ public class ResourceService {
         if (resourceRepository.existsByName(dto.getName())) {
             throw new BusinessException("O nome '" + dto.getName() + "' já existe.");
         }
-        Resource entity = dtoToEntity(dto);
+        if (isUniqueCategory(dto.getCategory()) && resourceRepository.existsByCategory(dto.getCategory())) {
+            throw new BusinessException("Já existe um recurso com a categoria " + dto.getCategory());
+        }
+        Resource entity = new Resource();
+        entity.setName(dto.getName());
+        entity.setCategory(dto.getCategory());
+        entity.setUnitValue(dto.getUnitValue());
         entity = resourceRepository.save(entity);
         return entityToDTO(entity);
     }
@@ -89,6 +96,9 @@ public class ResourceService {
     public ResourceDTO update(Long id, ResourceDTO dto) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
+        if (isUniqueCategory(dto.getCategory()) && resourceRepository.existsByCategoryAndIdNot(dto.getCategory(), id)) {
+            throw new BusinessException("Já existe outro recurso com a categoria " + dto.getCategory());
+        }
         String newName = dto.getName();
         String oldName = entity.getName();
         if (!oldName.equals(newName) && resourceRepository.existsByName(newName)) {
@@ -132,14 +142,6 @@ public class ResourceService {
         dto.setCurrentQuantity(entity.getCurrentQuantity());
         dto.setCurrentQuantityPrice(entity.getCurrentQuantityPrice());
         return dto;
-    }
-
-    private Resource dtoToEntity(ResourceDTO dto) {
-        Resource entity = new Resource();
-        entity.setName(dto.getName());
-        entity.setCategory(dto.getCategory());
-        entity.setUnitValue(dto.getUnitValue());
-        return entity;
     }
 
     @Transactional
@@ -198,5 +200,9 @@ public class ResourceService {
         }
         yearReports.sort((a, b) -> b.getYear() - a.getYear());
         return yearReports;
+    }
+
+    private boolean isUniqueCategory(ResourceCategory category) {
+        return category == ResourceCategory.ELECTRICITY || category == ResourceCategory.WATER || category == ResourceCategory.GAS;
     }
 }
