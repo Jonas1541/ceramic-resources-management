@@ -34,7 +34,7 @@ import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
-public class DryingRoomService {
+public class DryingRoomService implements IndependentCrudService<DryingRoomListDTO, DryingRoomRequestDTO, DryingRoomResponseDTO, Long> {
     
     @Autowired
     private DryingRoomRepository dryingRoomRepository;
@@ -45,6 +45,7 @@ public class DryingRoomService {
     @Autowired
     private DryingSessionRepository dryingSessionRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<DryingRoomListDTO> findAll() {
         List<DryingRoom> list = dryingRoomRepository.findAll();
@@ -59,6 +60,7 @@ public class DryingRoomService {
             .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public DryingRoomResponseDTO findById(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)
@@ -66,6 +68,7 @@ public class DryingRoomService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public DryingRoomResponseDTO create(DryingRoomRequestDTO dto) {
         DryingRoom entity = new DryingRoom();
@@ -83,6 +86,7 @@ public class DryingRoomService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public DryingRoomResponseDTO update(Long id, DryingRoomRequestDTO dto) {
         DryingRoom entity = dryingRoomRepository.findById(id)
@@ -110,6 +114,7 @@ public class DryingRoomService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)

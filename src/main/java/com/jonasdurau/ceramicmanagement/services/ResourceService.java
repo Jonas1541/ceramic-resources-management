@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class ResourceService {
+public class ResourceService  implements IndependentCrudService<ResourceListDTO, ResourceDTO, ResourceDTO, Long>{
 
     @Autowired
     private ResourceRepository resourceRepository;
@@ -50,6 +50,7 @@ public class ResourceService {
     @Autowired
     private GlazeService glazeService;
 
+    @Override
     @Transactional(readOnly = true)
     public List<ResourceListDTO> findAll() {
         List<Resource> list = resourceRepository.findAll();
@@ -69,6 +70,7 @@ public class ResourceService {
                 .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ResourceDTO findById(Long id) {
         Resource entity = resourceRepository.findById(id)
@@ -76,6 +78,7 @@ public class ResourceService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public ResourceDTO create(ResourceDTO dto) {
         if (resourceRepository.existsByName(dto.getName())) {
@@ -92,6 +95,7 @@ public class ResourceService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public ResourceDTO update(Long id, ResourceDTO dto) {
         Resource entity = resourceRepository.findById(id)
@@ -112,6 +116,7 @@ public class ResourceService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         Resource entity = resourceRepository.findById(id)

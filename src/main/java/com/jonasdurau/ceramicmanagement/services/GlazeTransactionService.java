@@ -24,7 +24,7 @@ import com.jonasdurau.ceramicmanagement.repositories.GlazeTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class GlazeTransactionService {
+public class GlazeTransactionService implements DependentCrudService<GlazeTransactionResponseDTO, GlazeTransactionRequestDTO, GlazeTransactionResponseDTO, Long> {
 
     @Autowired
     private GlazeTransactionRepository glazeTransactionRepository;
@@ -35,8 +35,9 @@ public class GlazeTransactionService {
     @Autowired
     private ResourceRepository resourceRepository;
 
+    @Override
     @Transactional(readOnly = true)
-    public List<GlazeTransactionResponseDTO> findAllByGlaze(Long glazeId) {
+    public List<GlazeTransactionResponseDTO> findAllByParentId(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         return glaze.getTransactions().stream()
@@ -44,6 +45,7 @@ public class GlazeTransactionService {
             .collect(Collectors.toList());
     }
 
+    @Override
     @Transactional(readOnly = true)
     public GlazeTransactionResponseDTO findById(Long glazeId, Long transactionId) {
         Glaze glaze = glazeRepository.findById(glazeId)
@@ -55,6 +57,7 @@ public class GlazeTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Override
     @Transactional
     public GlazeTransactionResponseDTO create(Long glazeId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
@@ -94,6 +97,7 @@ public class GlazeTransactionService {
         return entity;
     }
 
+    @Override
     @Transactional
     public GlazeTransactionResponseDTO update(Long glazeId, Long transactionId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
@@ -118,6 +122,7 @@ public class GlazeTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Override
     @Transactional
     public void delete(Long glazeId, Long transactionId) {
         Glaze glaze = glazeRepository.findById(glazeId)

@@ -41,7 +41,7 @@ import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
 @Service
-public class BatchService {
+public class BatchService implements IndependentCrudService<BatchListDTO, BatchDTO, BatchDTO, Long> {
 
     @Autowired
     private BatchRepository batchRepository;
@@ -55,6 +55,7 @@ public class BatchService {
     @Autowired
     private ResourceTransactionRepository resourceTransactionRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<BatchListDTO> findAll() {
         List<Batch> list = batchRepository.findAll();
@@ -68,6 +69,7 @@ public class BatchService {
             .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public BatchDTO findById(Long id) {
         Batch batch = batchRepository.findById(id)
@@ -75,6 +77,7 @@ public class BatchService {
         return batchToDTO(batch);
     }
 
+    @Override
     @Transactional
     public BatchDTO create(BatchDTO dto) {
         Batch batch = new Batch();
@@ -123,6 +126,7 @@ public class BatchService {
         return batchToDTO(batch);
     }
 
+    @Override
     @Transactional
     public BatchDTO update(Long id, BatchDTO dto) {
         Batch batch = batchRepository.findById(id)
@@ -232,6 +236,7 @@ public class BatchService {
         return batchToDTO(batch);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         Batch batch = batchRepository.findById(id)

@@ -29,7 +29,7 @@ import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
 
 @Service
-public class KilnService {
+public class KilnService implements IndependentCrudService<KilnDTO, KilnDTO, KilnDTO, Long>{
     
     @Autowired
     private KilnRepository kilnRepository;
@@ -40,12 +40,14 @@ public class KilnService {
     @Autowired
     private GlazeFiringRepository glazeFiringRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<KilnDTO> findAll() {
         List<Kiln> list = kilnRepository.findAll();
         return list.stream().map(this::entityToDTO).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public KilnDTO findById(Long id) {
         Kiln entity = kilnRepository.findById(id)
@@ -53,6 +55,7 @@ public class KilnService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public KilnDTO create(KilnDTO dto) {
         Kiln entity = new Kiln();
@@ -62,6 +65,7 @@ public class KilnService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public KilnDTO update(Long id, KilnDTO dto) {
         Kiln entity = kilnRepository.findById(id)
@@ -72,6 +76,7 @@ public class KilnService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         Kiln entity = kilnRepository.findById(id)

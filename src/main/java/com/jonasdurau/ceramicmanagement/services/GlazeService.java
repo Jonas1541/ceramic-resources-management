@@ -44,7 +44,7 @@ import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class GlazeService {
+public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeDTO, GlazeDTO, Long> {
 
     @Autowired
     private GlazeRepository glazeRepository;
@@ -64,6 +64,7 @@ public class GlazeService {
     @Autowired
     private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<GlazeListDTO> findAll() {
         List<Glaze> entities = glazeRepository.findAll();
@@ -81,6 +82,7 @@ public class GlazeService {
             .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public GlazeDTO findById(Long id) {
         Glaze glaze = glazeRepository.findById(id)
@@ -88,6 +90,7 @@ public class GlazeService {
         return entityToDTO(glaze);
     }
 
+    @Override
     @Transactional
     public GlazeDTO create(GlazeDTO dto) {
         Glaze glaze = new Glaze();
@@ -97,6 +100,7 @@ public class GlazeService {
         return entityToDTO(glaze);
     }
 
+    @Override
     @Transactional
     public GlazeDTO update(Long id, GlazeDTO dto) {
         Glaze glaze = glazeRepository.findById(id)
@@ -153,6 +157,7 @@ public class GlazeService {
         return entityToDTO(glaze);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         Glaze glaze = glazeRepository.findById(id)

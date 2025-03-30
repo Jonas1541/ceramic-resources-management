@@ -15,7 +15,7 @@ import com.jonasdurau.ceramicmanagement.repositories.ProductTypeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
 
 @Service
-public class ProductTypeService {
+public class ProductTypeService implements IndependentCrudService<ProductTypeDTO, ProductTypeDTO, ProductTypeDTO, Long> {
     
     @Autowired
     private ProductTypeRepository productTypeRepository;
@@ -23,12 +23,14 @@ public class ProductTypeService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<ProductTypeDTO> findAll() {
         List<ProductType> list = productTypeRepository.findAll();
         return list.stream().map(this::entityToDTO).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ProductTypeDTO findById(Long id) {
         ProductType entity = productTypeRepository.findById(id)
@@ -36,6 +38,7 @@ public class ProductTypeService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public ProductTypeDTO create(ProductTypeDTO dto) {
         if(productTypeRepository.existsByName(dto.getName())) {
@@ -47,6 +50,7 @@ public class ProductTypeService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public ProductTypeDTO update(Long id, ProductTypeDTO dto) {
         ProductType entity = productTypeRepository.findById(id)
@@ -61,6 +65,7 @@ public class ProductTypeService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         ProductType entity = productTypeRepository.findById(id)

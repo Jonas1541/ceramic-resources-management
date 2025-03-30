@@ -36,7 +36,7 @@ import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepositor
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class BisqueFiringService {
+public class BisqueFiringService implements DependentCrudService<FiringListDTO, BisqueFiringRequestDTO, BisqueFiringResponseDTO, Long> {
     
     @Autowired
     private BisqueFiringRepository firingRepository;
@@ -56,8 +56,9 @@ public class BisqueFiringService {
     @Autowired
     private FiringMachineUsageRepository machineUsageRepository;
 
+    @Override
     @Transactional(readOnly = true)
-    public List<FiringListDTO> findAllByKilnId(Long kilnId) {
+    public List<FiringListDTO> findAllByParentId(Long kilnId) {
         if (!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
@@ -77,6 +78,7 @@ public class BisqueFiringService {
             .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public BisqueFiringResponseDTO findById(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {
@@ -87,6 +89,7 @@ public class BisqueFiringService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public BisqueFiringResponseDTO create(Long kilnId, BisqueFiringRequestDTO dto) {
         BisqueFiring entity = new BisqueFiring();
@@ -125,6 +128,7 @@ public class BisqueFiringService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public BisqueFiringResponseDTO update(Long kilnId, Long firingId, BisqueFiringRequestDTO dto) {
         if (!kilnRepository.existsById(kilnId)) {
@@ -188,6 +192,7 @@ public class BisqueFiringService {
         return entityToDTO(updatedEntity);
     }
 
+    @Override
     @Transactional
     public void delete(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {

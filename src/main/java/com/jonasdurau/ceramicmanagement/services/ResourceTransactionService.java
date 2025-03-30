@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ResourceTransactionService {
+public class ResourceTransactionService implements DependentCrudService<ResourceTransactionDTO, ResourceTransactionDTO,  ResourceTransactionDTO, Long> {
 
     @Autowired
     private ResourceTransactionRepository transactionRepository;
@@ -30,14 +30,16 @@ public class ResourceTransactionService {
     @Autowired
     private BatchRepository batchRepository;
 
+    @Override
     @Transactional(readOnly = true)
-    public List<ResourceTransactionDTO> findAllByResource(Long resourceId) {
+    public List<ResourceTransactionDTO> findAllByParentId(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         List<ResourceTransaction> transactions = transactionRepository.findByResource(resource);
         return transactions.stream().map(this::entityToDTO).collect(Collectors.toList());
     }
 
+    @Override
     @Transactional(readOnly = true)
     public ResourceTransactionDTO findById(Long resourceId, Long transactionId) {
         Resource resource = resourceRepository.findById(resourceId)
@@ -47,6 +49,7 @@ public class ResourceTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Override
     @Transactional
     public ResourceTransactionDTO create(Long resourceId, ResourceTransactionDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
@@ -66,6 +69,7 @@ public class ResourceTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Override
     @Transactional
     public ResourceTransactionDTO update(Long resourceId, Long transactionId, ResourceTransactionDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
@@ -87,6 +91,7 @@ public class ResourceTransactionService {
         return entityToDTO(transaction);
     }
 
+    @Override
     @Transactional
     public void delete(Long resourceId, Long transactionId) {
         Resource resource = resourceRepository.findById(resourceId)

@@ -5,54 +5,21 @@ import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.services.ResourceService;
 
-import jakarta.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/resources")
-public class ResourceController {
-
-    @Autowired
-    private ResourceService resourceService;
-
-    @GetMapping
-    public ResponseEntity<List<ResourceListDTO>> findAll() {
-        List<ResourceListDTO> list = resourceService.findAll();
-        return ResponseEntity.ok(list);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ResourceDTO> findById(@PathVariable Long id) {
-        ResourceDTO dto = resourceService.findById(id);
-        return ResponseEntity.ok(dto);
-    }
-
-    @PostMapping
-    public ResponseEntity<ResourceDTO> create(@Valid @RequestBody ResourceDTO dto) {
-        ResourceDTO created = resourceService.create(dto);
-        return ResponseEntity.ok(created);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ResourceDTO> update(@PathVariable Long id, @Valid @RequestBody ResourceDTO dto) {
-        ResourceDTO updated = resourceService.update(id, dto);
-        return ResponseEntity.ok(updated);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        resourceService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+public class ResourceController extends IndependentController<ResourceListDTO, ResourceDTO, ResourceDTO, Long, ResourceService> {
 
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
-        List<YearReportDTO> report = resourceService.yearlyReport(id);
+        List<YearReportDTO> report = service.yearlyReport(id);
         return ResponseEntity.ok(report);
     }
 }

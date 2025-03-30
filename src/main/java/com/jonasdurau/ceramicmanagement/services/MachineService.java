@@ -17,7 +17,7 @@ import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
-public class MachineService {
+public class MachineService implements IndependentCrudService<MachineDTO, MachineDTO, MachineDTO, Long>{
     
     @Autowired
     private MachineRepository machineRepository;
@@ -34,12 +34,14 @@ public class MachineService {
     @Autowired
     private GlazeService glazeService;
 
+    @Override
     @Transactional(readOnly = true)
     public List<MachineDTO> findAll() {
         List<Machine> list = machineRepository.findAll();
         return list.stream().map(this::entityToDTO).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public MachineDTO findById(Long id) {
         Machine entity = machineRepository.findById(id)
@@ -47,6 +49,7 @@ public class MachineService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public MachineDTO create(MachineDTO dto) {
         if(machineRepository.existsByName(dto.getName())) {
@@ -57,6 +60,7 @@ public class MachineService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public MachineDTO update(Long id, MachineDTO dto) {
         Machine entity = machineRepository.findById(id)
@@ -73,6 +77,7 @@ public class MachineService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         Machine entity = machineRepository.findById(id)

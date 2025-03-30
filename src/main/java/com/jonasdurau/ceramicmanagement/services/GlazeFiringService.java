@@ -36,7 +36,7 @@ import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepositor
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class GlazeFiringService {
+public class GlazeFiringService implements DependentCrudService<FiringListDTO, GlazeFiringRequestDTO, GlazeFiringResponseDTO, Long> {
     
     @Autowired
     private GlazeFiringRepository firingRepository;
@@ -59,8 +59,9 @@ public class GlazeFiringService {
     @Autowired
     private FiringMachineUsageRepository machineUsageRepository;
 
+    @Override
     @Transactional(readOnly = true)
-    public List<FiringListDTO> findAllByKilnId(Long kilnId) {
+    public List<FiringListDTO> findAllByParentId(Long kilnId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
         }
@@ -79,6 +80,7 @@ public class GlazeFiringService {
             )).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public GlazeFiringResponseDTO findById(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {
@@ -89,6 +91,7 @@ public class GlazeFiringService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public GlazeFiringResponseDTO create(Long kilnId, GlazeFiringRequestDTO dto) {
         GlazeFiring entity = new GlazeFiring();
@@ -134,6 +137,7 @@ public class GlazeFiringService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public GlazeFiringResponseDTO update(Long kilnId, Long firingId, GlazeFiringRequestDTO dto) {
         if (!kilnRepository.existsById(kilnId)) {
@@ -202,6 +206,7 @@ public class GlazeFiringService {
         return entityToDTO(updatedEntity);
     }
     
+    @Override
     @Transactional
     public void delete(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {

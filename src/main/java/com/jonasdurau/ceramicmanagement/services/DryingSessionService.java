@@ -19,7 +19,7 @@ import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class DryingSessionService {
+public class DryingSessionService implements DependentCrudService<DryingSessionDTO, DryingSessionDTO, DryingSessionDTO, Long>{
     
     @Autowired
     private DryingSessionRepository sessionRepository;
@@ -30,13 +30,15 @@ public class DryingSessionService {
     @Autowired
     private ResourceRepository resourceRepository;
 
+    @Override
     @Transactional(readOnly = true)
-    public List<DryingSessionDTO> findAllByRoom(Long roomId) {
+    public List<DryingSessionDTO> findAllByParentId(Long roomId) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
         return room.getSessions().stream().map(this::entityToDTO).toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public DryingSessionDTO findById(Long roomId, Long sessionId) {
         if(!roomRepository.existsById(roomId)) {
@@ -47,6 +49,7 @@ public class DryingSessionService {
         return entityToDTO(session);
     }
 
+    @Override
     @Transactional
     public DryingSessionDTO create(Long roomId, DryingSessionDTO dto) {
         DryingRoom room = roomRepository.findById(roomId)
@@ -59,6 +62,7 @@ public class DryingSessionService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public DryingSessionDTO update(Long roomId, Long sessionId, DryingSessionDTO dto) {
         if(!roomRepository.existsById(roomId)) {
@@ -72,6 +76,7 @@ public class DryingSessionService {
         return entityToDTO(entity);
     }
 
+    @Override
     @Transactional
     public void delete(Long roomId, Long sessionId) {
         if(!roomRepository.existsById(roomId)) {
