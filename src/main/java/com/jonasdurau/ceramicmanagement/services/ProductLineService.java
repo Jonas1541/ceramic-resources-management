@@ -9,13 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.ProductLineDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ProductLineRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ProductLineResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.ProductLine;
 import com.jonasdurau.ceramicmanagement.repositories.ProductLineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
 
 @Service
-public class ProductLineService implements IndependentCrudService<ProductLineDTO, ProductLineDTO, ProductLineDTO, Long> {
+public class ProductLineService implements IndependentCrudService<ProductLineResponseDTO, ProductLineRequestDTO, ProductLineResponseDTO, Long> {
     
     @Autowired
     private ProductLineRepository productLineRepository;
@@ -25,44 +26,44 @@ public class ProductLineService implements IndependentCrudService<ProductLineDTO
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductLineDTO> findAll() {
+    public List<ProductLineResponseDTO> findAll() {
         List<ProductLine> list = productLineRepository.findAll();
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ProductLineDTO findById(Long id) {
+    public ProductLineResponseDTO findById(Long id) {
         ProductLine entity = productLineRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. Id: " + id));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ProductLineDTO create(ProductLineDTO dto) {
-        if(productLineRepository.existsByName(dto.getName())) {
-            throw new BusinessException("O nome " + dto.getName() + " já existe.");
+    public ProductLineResponseDTO create(ProductLineRequestDTO dto) {
+        if(productLineRepository.existsByName(dto.name())) {
+            throw new BusinessException("O nome " + dto.name() + " já existe.");
         }
         ProductLine entity = new ProductLine();
-        entity.setName(dto.getName());
+        entity.setName(dto.name());
         entity = productLineRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ProductLineDTO update(Long id, ProductLineDTO dto) {
+    public ProductLineResponseDTO update(Long id, ProductLineRequestDTO dto) {
         ProductLine entity = productLineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. id: " + id));
         String oldName = entity.getName();
-        String newName = dto.getName();
+        String newName = dto.name();
         if(!newName.equals(oldName) && productLineRepository.existsByName(newName)) {
             throw new BusinessException("O nome " + newName + " já existe.");
         }
         entity.setName(newName);
         entity = productLineRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -77,13 +78,14 @@ public class ProductLineService implements IndependentCrudService<ProductLineDTO
         productLineRepository.delete(entity);
     }
 
-    private ProductLineDTO entityToDTO(ProductLine entity) {
-        ProductLineDTO dto = new ProductLineDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setProductQuantity(entity.getProductQuantity());
+    private ProductLineResponseDTO entityToResponseDTO(ProductLine entity) {
+        ProductLineResponseDTO dto = new ProductLineResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getProductQuantity()
+        );
         return dto;
     }
 }
