@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.DryingSessionDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.DryingSessionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.DryingSessionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.DryingRoom;
 import com.jonasdurau.ceramicmanagement.entities.DryingSession;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
@@ -19,7 +20,7 @@ import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class DryingSessionService implements DependentCrudService<DryingSessionDTO, DryingSessionDTO, DryingSessionDTO, Long>{
+public class DryingSessionService implements DependentCrudService<DryingSessionResponseDTO, DryingSessionRequestDTO, DryingSessionResponseDTO, Long>{
     
     @Autowired
     private DryingSessionRepository sessionRepository;
@@ -32,48 +33,48 @@ public class DryingSessionService implements DependentCrudService<DryingSessionD
 
     @Override
     @Transactional(readOnly = true)
-    public List<DryingSessionDTO> findAllByParentId(Long roomId) {
+    public List<DryingSessionResponseDTO> findAllByParentId(Long roomId) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
-        return room.getSessions().stream().map(this::entityToDTO).toList();
+        return room.getSessions().stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DryingSessionDTO findById(Long roomId, Long sessionId) {
+    public DryingSessionResponseDTO findById(Long roomId, Long sessionId) {
         if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);
         }
         DryingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada. Id: " + sessionId));
-        return entityToDTO(session);
+        return entityToResponseDTO(session);
     }
 
     @Override
     @Transactional
-    public DryingSessionDTO create(Long roomId, DryingSessionDTO dto) {
+    public DryingSessionResponseDTO create(Long roomId, DryingSessionRequestDTO dto) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
         DryingSession entity = new DryingSession();
-        entity.setHours(dto.getHours());
+        entity.setHours(dto.hours());
         entity.setDryingRoom(room);
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = sessionRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public DryingSessionDTO update(Long roomId, Long sessionId, DryingSessionDTO dto) {
+    public DryingSessionResponseDTO update(Long roomId, Long sessionId, DryingSessionRequestDTO dto) {
         if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);
         }
         DryingSession entity = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada. Id: " + sessionId));
-        entity.setHours(dto.getHours());
+        entity.setHours(dto.hours());
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = sessionRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -87,13 +88,14 @@ public class DryingSessionService implements DependentCrudService<DryingSessionD
         sessionRepository.delete(entity);
     }
 
-    private DryingSessionDTO entityToDTO(DryingSession entity) {
-        DryingSessionDTO dto = new DryingSessionDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setHours(entity.getHours());
-        dto.setCostAtTime(entity.getCostAtTime());
+    private DryingSessionResponseDTO entityToResponseDTO(DryingSession entity) {
+        DryingSessionResponseDTO dto = new DryingSessionResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getHours(),
+            entity.getCostAtTime()
+        );
         return dto;
     }
 
