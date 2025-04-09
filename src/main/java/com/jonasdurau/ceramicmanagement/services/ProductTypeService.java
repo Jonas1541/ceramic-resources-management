@@ -9,13 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.ProductTypeDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ProductTypeRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ProductTypeResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.ProductType;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTypeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
 
 @Service
-public class ProductTypeService implements IndependentCrudService<ProductTypeDTO, ProductTypeDTO, ProductTypeDTO, Long> {
+public class ProductTypeService implements IndependentCrudService<ProductTypeResponseDTO, ProductTypeRequestDTO, ProductTypeResponseDTO, Long> {
     
     @Autowired
     private ProductTypeRepository productTypeRepository;
@@ -25,44 +26,44 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeDTO
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductTypeDTO> findAll() {
+    public List<ProductTypeResponseDTO> findAll() {
         List<ProductType> list = productTypeRepository.findAll();
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ProductTypeDTO findById(Long id) {
+    public ProductTypeResponseDTO findById(Long id) {
         ProductType entity = productTypeRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. Id: " + id));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ProductTypeDTO create(ProductTypeDTO dto) {
-        if(productTypeRepository.existsByName(dto.getName())) {
-            throw new BusinessException("O nome " + dto.getName() + " já existe.");
+    public ProductTypeResponseDTO create(ProductTypeRequestDTO dto) {
+        if(productTypeRepository.existsByName(dto.name())) {
+            throw new BusinessException("O nome " + dto.name() + " já existe.");
         }
         ProductType entity = new ProductType();
-        entity.setName(dto.getName());
+        entity.setName(dto.name());
         entity = productTypeRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ProductTypeDTO update(Long id, ProductTypeDTO dto) {
+    public ProductTypeResponseDTO update(Long id, ProductTypeRequestDTO dto) {
         ProductType entity = productTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. id: " + id));
         String oldName = entity.getName();
-        String newName = dto.getName();
+        String newName = dto.name();
         if(!newName.equals(oldName) && productTypeRepository.existsByName(newName)) {
             throw new BusinessException("O nome " + newName + " já existe.");
         }
         entity.setName(newName);
         entity = productTypeRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -77,13 +78,14 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeDTO
         productTypeRepository.delete(entity);
     }
 
-    private ProductTypeDTO entityToDTO(ProductType entity) {
-        ProductTypeDTO dto = new ProductTypeDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setProductQuantity(entity.getProductQuantity());
+    private ProductTypeResponseDTO entityToResponseDTO(ProductType entity) {
+        ProductTypeResponseDTO dto = new ProductTypeResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getProductQuantity()
+        );
         return dto;
     }
 }
