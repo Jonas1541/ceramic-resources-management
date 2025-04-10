@@ -1,7 +1,8 @@
 package com.jonasdurau.ceramicmanagement.services;
 
 import com.jonasdurau.ceramicmanagement.config.DynamicDataSource;
-import com.jonasdurau.ceramicmanagement.dtos.CompanyDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.CompanyRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.CompanyResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
@@ -29,37 +30,27 @@ public class CompanyService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private DataSource dataSource; // Usaremos para verificar o DynamicDataSource
+    private DataSource dataSource;
 
-    public Company registerCompany(CompanyDTO dto) throws IOException {
-
-        // 1. Verificar duplicidade de email ou CNPJ
-        if (companyRepository.existsByEmail(dto.getEmail())) {
+    public CompanyResponseDTO registerCompany(CompanyRequestDTO dto) throws IOException {
+        if (companyRepository.existsByEmail(dto.email())) {
             throw new BusinessException("Este email já está cadastrado.");
         }
-        if (companyRepository.existsByCnpj(dto.getCnpj())) {
+        if (companyRepository.existsByCnpj(dto.cnpj())) {
             throw new BusinessException("Este CNPJ já está cadastrado.");
         }
-
-        // 2. Gerar databaseName e checar se já existe no DynamicDataSource
-        String databaseName = "company_" + dto.getName().toLowerCase().replace(" ", "_");
-
+        String databaseName = "company_" + dto.name().toLowerCase().replace(" ", "_");
         if (!(dataSource instanceof DynamicDataSource)) {
             throw new IllegalStateException("DataSource não é DynamicDataSource!");
         }
         DynamicDataSource dynamicDataSource = (DynamicDataSource) dataSource;
-
-        // Mapa atual de tenants
         Map<Object, DataSource> tenants = (Map<Object, DataSource>) dynamicDataSource.getResolvedDataSources();
         if (tenants.containsKey(databaseName)) {
             throw new BusinessException("Já existe um tenant registrado com o nome " + databaseName);
         }
-
-        // 3. Criar o banco de dados fisicamente
         try {
             databaseService.createDatabase(databaseName);
         } catch (DataAccessException e) {
-            // Se deu erro, pode ser 'database exists' ou outra coisa
             throw new BusinessException("Erro ao criar o banco de dados: " + e.getMostSpecificCause().getMessage(), e);
         }
 
@@ -76,16 +67,29 @@ public class CompanyService {
 
         // 6. Salvar a empresa no banco principal
         Company company = new Company();
-        company.setName(dto.getName());
-        company.setEmail(dto.getEmail());
-        company.setCnpj(dto.getCnpj());
-        company.setPassword(passwordEncoder.encode(dto.getPassword()));
+        company.setName(dto.name());
+        company.setEmail(dto.email());
+        company.setCnpj(dto.cnpj());
+        company.setPassword(passwordEncoder.encode(dto.password()));
         company.setDatabaseUrl(databaseUrl);
         company.setDatabasePort(3306);
         company.setDatabaseName(databaseName);
         company.setCreatedAt(Instant.now());
         company.setUpdatedAt(Instant.now());
 
-        return companyRepository.save(company);
+        companyRepository.save(company);
+        return entityToResponseDTO(company);
+    }
+
+    private CompanyResponseDTO entityToResponseDTO(Company entity) {
+        return new CompanyResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getEmail(),
+            entity.getCnpj(),
+            entity.getPassword()
+        );
     }
 }

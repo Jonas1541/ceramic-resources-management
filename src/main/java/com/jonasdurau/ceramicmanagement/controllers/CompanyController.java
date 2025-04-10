@@ -1,7 +1,7 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
-import com.jonasdurau.ceramicmanagement.dtos.CompanyDTO;
-import com.jonasdurau.ceramicmanagement.entities.Company;
+import com.jonasdurau.ceramicmanagement.dtos.request.CompanyRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.CompanyResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.CompanyService;
 
 import jakarta.validation.Valid;
@@ -20,8 +20,8 @@ public class CompanyController {
     private CompanyService companyService;
 
     @PostMapping
-    public ResponseEntity<Company> registerCompany(@Valid @RequestBody CompanyDTO dto) throws IOException {
-        Company company = companyService.registerCompany(dto);
+    public ResponseEntity<CompanyResponseDTO> registerCompany(@Valid @RequestBody CompanyRequestDTO dto) throws IOException {
+        CompanyResponseDTO company = companyService.registerCompany(dto);
         return ResponseEntity.ok(company);
     }
 }
