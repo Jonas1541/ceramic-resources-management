@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.MachineRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.repositories.BatchMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.DryingRoomRepository;
@@ -17,7 +18,7 @@ import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
-public class MachineService implements IndependentCrudService<MachineDTO, MachineDTO, MachineDTO, Long>{
+public class MachineService implements IndependentCrudService<MachineResponseDTO, MachineRequestDTO, MachineResponseDTO, Long>{
     
     @Autowired
     private MachineRepository machineRepository;
@@ -36,45 +37,47 @@ public class MachineService implements IndependentCrudService<MachineDTO, Machin
 
     @Override
     @Transactional(readOnly = true)
-    public List<MachineDTO> findAll() {
+    public List<MachineResponseDTO> findAll() {
         List<Machine> list = machineRepository.findAll();
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MachineDTO findById(Long id) {
+    public MachineResponseDTO findById(Long id) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public MachineDTO create(MachineDTO dto) {
-        if(machineRepository.existsByName(dto.getName())) {
-            throw new BusinessException("O nome '" + dto.getName() + "' já existe.");
+    public MachineResponseDTO create(MachineRequestDTO dto) {
+        if(machineRepository.existsByName(dto.name())) {
+            throw new BusinessException("O nome '" + dto.name() + "' já existe.");
         }
-        Machine entity = dtoToEntity(dto);
+        Machine entity = new Machine();
+        entity.setName(dto.name());
+        entity.setPower(dto.power());
         entity = machineRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public MachineDTO update(Long id, MachineDTO dto) {
+    public MachineResponseDTO update(Long id, MachineRequestDTO dto) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
-        String newName = dto.getName();
+        String newName = dto.name();
         String oldName = entity.getName();
         if (!oldName.equals(newName) && machineRepository.existsByName(newName)) {
             throw new BusinessException("O nome '" + newName + "' já existe.");
         }
         entity.setName(newName);
-        entity.setPower(dto.getPower());
+        entity.setPower(dto.power());
         entity = machineRepository.save(entity);
         glazeService.recalculateGlazesByMachine(id);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -97,20 +100,13 @@ public class MachineService implements IndependentCrudService<MachineDTO, Machin
         machineRepository.delete(entity);
     }
 
-    private MachineDTO entityToDTO(Machine entity) {
-        MachineDTO dto = new MachineDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setPower(entity.getPower());
-        return dto;
-    }
-
-    private Machine dtoToEntity(MachineDTO dto) {
-        Machine entity = new Machine();
-        entity.setName(dto.getName());
-        entity.setPower(dto.getPower());
-        return entity;
+    private MachineResponseDTO entityToResponseDTO(Machine entity) {
+        return new MachineResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getPower()
+        );
     }
 }

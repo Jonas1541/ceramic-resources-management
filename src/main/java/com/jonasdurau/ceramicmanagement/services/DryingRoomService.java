@@ -20,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.MachineDTO;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.DryingRoomListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.DryingRoomResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.DryingRoom;
 import com.jonasdurau.ceramicmanagement.entities.DryingSession;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
@@ -65,25 +65,25 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     public DryingRoomResponseDTO findById(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
     public DryingRoomResponseDTO create(DryingRoomRequestDTO dto) {
         DryingRoom entity = new DryingRoom();
-        if(dryingRoomRepository.existsByName(dto.getName())) {
+        if(dryingRoomRepository.existsByName(dto.name())) {
             throw new BusinessException("Esse nome já existe.");
         }
-        entity.setName(dto.getName());
-        entity.setGasConsumptionPerHour(dto.getGasConsumptionPerHour());
-        for(Long id : dto.getMachines()) {
+        entity.setName(dto.name());
+        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
+        for(Long id : dto.machines()) {
             Machine machine = machineRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
             entity.getMachines().add(machine);
         }
         entity = dryingRoomRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -92,14 +92,14 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
         String oldName = entity.getName();
-        String newName = dto.getName();
+        String newName = dto.name();
         if(!oldName.equals(newName) && dryingRoomRepository.existsByName(newName)) {
             throw new BusinessException("Esse nome já existe.");
         }
         entity.setName(newName);
-        entity.setGasConsumptionPerHour(dto.getGasConsumptionPerHour());
+        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
         List<Machine> oldList = new ArrayList<>(entity.getMachines());
-        List<Machine> newList = dto.getMachines().stream().map(machineId -> {
+        List<Machine> newList = dto.machines().stream().map(machineId -> {
             Machine machine = machineRepository.findById(machineId)
                     .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
             return machine;
@@ -111,7 +111,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
         entity.getMachines().removeAll(toRemove);
         entity.getMachines().addAll(toAdd);
         entity = dryingRoomRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -172,22 +172,25 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
         return yearReports;
     }
 
-    private DryingRoomResponseDTO entityToDTO(DryingRoom entity) {
-        DryingRoomResponseDTO dto = new DryingRoomResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setGasConsumptionPerHour(entity.getGasConsumptionPerHour());
+    private DryingRoomResponseDTO entityToResponseDTO(DryingRoom entity) {
+        List<MachineResponseDTO> machineDTOs = new ArrayList<>();
         for(Machine machine : entity.getMachines()) {
-            MachineDTO machineDTO = new MachineDTO();
-            machineDTO.setId(machine.getId());
-            machineDTO.setCreatedAt(machine.getCreatedAt());
-            machineDTO.setUpdatedAt(machine.getUpdatedAt());
-            machineDTO.setName(machine.getName());
-            machineDTO.setPower(machine.getPower());
-            dto.getMachines().add(machineDTO);
+            MachineResponseDTO machineDTO = new MachineResponseDTO(
+                machine.getId(),
+                machine.getCreatedAt(),
+                machine.getUpdatedAt(),
+                machine.getName(),
+                machine.getPower()
+            );
+            machineDTOs.add(machineDTO);
         }
-        return dto;
+        return new DryingRoomResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getGasConsumptionPerHour(),
+            machineDTOs
+        );
     }
 }
