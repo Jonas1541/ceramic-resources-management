@@ -86,22 +86,22 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         }
         BisqueFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
     public BisqueFiringResponseDTO create(Long kilnId, BisqueFiringRequestDTO dto) {
         BisqueFiring entity = new BisqueFiring();
-        entity.setTemperature(dto.getTemperature());
-        entity.setBurnTime(dto.getBurnTime());
-        entity.setCoolingTime(dto.getCoolingTime());
-        entity.setGasConsumption(dto.getGasConsumption());
+        entity.setTemperature(dto.temperature());
+        entity.setBurnTime(dto.burnTime());
+        entity.setCoolingTime(dto.coolingTime());
+        entity.setGasConsumption(dto.gasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
         entity = firingRepository.save(entity);
-        for(long biscuitId : dto.getBiscuits()) {
+        for(long biscuitId : dto.biscuits()) {
             ProductTransaction biscuit = productTransactionRepository.findById(biscuitId)
                     .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + biscuitId));
             if(biscuit.getBisqueFiring() != null  && !biscuit.getBisqueFiring().getId().equals(entity.getId())) {
@@ -111,13 +111,13 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
             biscuit.setState(ProductState.BISCUIT);
             entity.getBiscuits().add(biscuit);
         }
-        if(!dto.getMachineUsages().isEmpty()) {
-            for(FiringMachineUsageRequestDTO muDTO : dto.getMachineUsages()) {
+        if(!dto.machineUsages().isEmpty()) {
+            for(FiringMachineUsageRequestDTO muDTO : dto.machineUsages()) {
                 FiringMachineUsage mu = new FiringMachineUsage();
-                mu.setUsageTime(muDTO.getUsageTime());
+                mu.setUsageTime(muDTO.usageTime());
                 mu.setBisqueFiring(entity);
-                Machine machine = machineRepository.findById(muDTO.getMachineId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + muDTO.getMachineId()));
+                Machine machine = machineRepository.findById(muDTO.machineId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + muDTO.machineId()));
                 mu.setMachine(machine);
                 mu = machineUsageRepository.save(mu);
                 entity.getMachineUsages().add(mu);
@@ -125,7 +125,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         }
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = firingRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -136,12 +136,12 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         }
         BisqueFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-        entity.setTemperature(dto.getTemperature());
-        entity.setBurnTime(dto.getBurnTime());
-        entity.setCoolingTime(dto.getCoolingTime());
-        entity.setGasConsumption(dto.getGasConsumption());
+        entity.setTemperature(dto.temperature());
+        entity.setBurnTime(dto.burnTime());
+        entity.setCoolingTime(dto.coolingTime());
+        entity.setGasConsumption(dto.gasConsumption());
         List<ProductTransaction> oldList = new ArrayList<>(entity.getBiscuits());
-        List<ProductTransaction> newList = dto.getBiscuits().stream()
+        List<ProductTransaction> newList = dto.biscuits().stream()
                 .map(id -> {
                     ProductTransaction biscuit = productTransactionRepository.findById(id)
                             .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + id));
@@ -170,14 +170,14 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         });
         entity.getBiscuits().addAll(toAdd);
         List<FiringMachineUsage> oldListmu = new ArrayList<>(entity.getMachineUsages());
-        List<FiringMachineUsage> newListmu = dto.getMachineUsages().stream()
+        List<FiringMachineUsage> newListmu = dto.machineUsages().stream()
                 .map(muDTO -> {
                     FiringMachineUsage mu = new FiringMachineUsage();
-                    mu.setUsageTime(muDTO.getUsageTime());
+                    mu.setUsageTime(muDTO.usageTime());
                     mu.setBisqueFiring(entity);
-                    Machine machine = machineRepository.findById(muDTO.getMachineId())
+                    Machine machine = machineRepository.findById(muDTO.machineId())
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Máquina não encontrada. Id: " + muDTO.getMachineId()));
+                                    "Máquina não encontrada. Id: " + muDTO.machineId()));
                     mu.setMachine(machine);
                     return mu;
                 }).collect(Collectors.toList());
@@ -189,7 +189,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         entity.getMachineUsages().addAll(toAddmu);
         entity.setCostAtTime(calculateCostAtTime(entity));
         BisqueFiring updatedEntity = firingRepository.save(entity);
-        return entityToDTO(updatedEntity);
+        return entityToResponseDTO(updatedEntity);
     }
 
     @Override
@@ -211,47 +211,56 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         firingRepository.delete(entity);
     }
 
-    private BisqueFiringResponseDTO entityToDTO(BisqueFiring entity) {
-        BisqueFiringResponseDTO dto = new BisqueFiringResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setTemperature(entity.getTemperature());
-        dto.setBurnTime(entity.getBurnTime());
-        dto.setCoolingTime(entity.getCoolingTime());
-        dto.setGasConsumption(entity.getGasConsumption());
-        dto.setKilnName(entity.getKiln().getName());
+    private BisqueFiringResponseDTO entityToResponseDTO(BisqueFiring entity) {
+        List<ProductTransactionResponseDTO> biscuitDTOs = new ArrayList<>();
         for(ProductTransaction biscuit : entity.getBiscuits()) {
-            ProductTransactionResponseDTO biscuitDTO = new ProductTransactionResponseDTO();
-            biscuitDTO.setId(biscuit.getId());
-            biscuitDTO.setCreatedAt(biscuit.getCreatedAt());
-            biscuitDTO.setUpdatedAt(biscuit.getUpdatedAt());
-            biscuitDTO.setOutgoingAt(biscuit.getOutgoingAt());
-            biscuitDTO.setState(biscuit.getState());
-            biscuitDTO.setOutgoingReason(biscuit.getOutgoingReason());
-            biscuitDTO.setProductName(biscuit.getProduct().getName());
+            String productName = biscuit.getProduct().getName();
+            String glazeColor = "sem glasura";
+            double glazeQuantity = 0;
             if (biscuit.getGlazeTransaction() != null && biscuit.getGlazeTransaction().getGlaze() != null) {
-                biscuitDTO.setGlazeColor(biscuit.getGlazeTransaction().getGlaze().getColor());
-                biscuitDTO.setGlazeQuantity(biscuit.getGlazeTransaction().getQuantity());
-            } else {
-                biscuitDTO.setGlazeColor("sem glasura");
-                biscuitDTO.setGlazeQuantity(0);
+                glazeColor = biscuit.getGlazeTransaction().getGlaze().getColor();
+                glazeQuantity = biscuit.getGlazeTransaction().getQuantity();
             }
-            biscuitDTO.setProfit(biscuit.getProfit());
-            dto.getBiscuits().add(biscuitDTO);
+            ProductTransactionResponseDTO biscuitDTO = new ProductTransactionResponseDTO(
+                biscuit.getId(),
+                biscuit.getCreatedAt(),
+                biscuit.getUpdatedAt(),
+                biscuit.getOutgoingAt(),
+                biscuit.getState(),
+                biscuit.getOutgoingReason(),
+                productName,
+                glazeColor,
+                glazeQuantity,
+                biscuit.getProfit()
+            );
+            biscuitDTOs.add(biscuitDTO);
         }
+        List<FiringMachineUsageResponseDTO> machineUsageDTOs = new ArrayList<>();
         if(!entity.getMachineUsages().isEmpty()) {
             for(FiringMachineUsage mu : entity.getMachineUsages()) {
-                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO();
-                muDTO.setId(mu.getId());
-                muDTO.setCreatedAt(mu.getCreatedAt());
-                muDTO.setUpdatedAt(mu.getUpdatedAt());
-                muDTO.setUsageTime(mu.getUsageTime());
-                muDTO.setMachineName(mu.getMachine().getName());
-                dto.getMachineUsages().add(muDTO);
+                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO(
+                    mu.getId(),
+                    mu.getCreatedAt(),
+                    mu.getUpdatedAt(),
+                    mu.getUsageTime(),
+                    mu.getMachine().getName()
+                );
+                machineUsageDTOs.add(muDTO);
             }
         }
-        dto.setCost(calculateCostAtTime(entity));
+        BisqueFiringResponseDTO dto = new BisqueFiringResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getTemperature(),
+            entity.getBurnTime(),
+            entity.getCoolingTime(),
+            entity.getGasConsumption(),
+            entity.getKiln().getName(),
+            biscuitDTOs,
+            machineUsageDTOs,
+            calculateCostAtTime(entity)
+        );
         return dto;
     }
 

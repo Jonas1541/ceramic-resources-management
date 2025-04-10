@@ -7,51 +7,24 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
-public class GlazeFiringRequestDTO {
-
+public record GlazeFiringRequestDTO(
     @Positive(message = "A temperatura deve ser positiva")
-    private double temperature;
-
+    double temperature,
     @Positive(message = "O tempo de queima deve ser positivo")
-    private double burnTime;
-
+    double burnTime,
     @Positive(message = "O tempo de resfriamento deve ser positivo")
-    private double coolingTime;
-
+    double coolingTime,
     @Positive(message = "O consumo de gás deve ser positivo")
-    private double gasConsumption;
-
+    double gasConsumption,
     @NotEmpty(message = "A queima deve ter produtos")
     @Valid
-    private List<GlostRequestDTO> glosts = new ArrayList<>();
-
+    List<GlostRequestDTO> glosts,
     @Valid
-    private List<FiringMachineUsageRequestDTO> machineUsages = new ArrayList<>();
-
-    public GlazeFiringRequestDTO() {
-    }
-
-    public double getTemperature() {
-        return temperature;
-    }
-
-    public double getBurnTime() {
-        return burnTime;
-    }
-
-    public double getCoolingTime() {
-        return coolingTime;
-    }
-
-    public double getGasConsumption() {
-        return gasConsumption;
-    }
-
-    public List<GlostRequestDTO> getGlosts() {
-        return glosts;
-    }
-
-    public List<FiringMachineUsageRequestDTO> getMachineUsages() {
-        return machineUsages;
+    List<FiringMachineUsageRequestDTO> machineUsages
+) {
+    public GlazeFiringRequestDTO {
+        if (machineUsages == null) {
+            machineUsages = new ArrayList<>();
+        }
     }
 }

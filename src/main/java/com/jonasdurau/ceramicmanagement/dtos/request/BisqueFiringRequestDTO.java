@@ -7,50 +7,23 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 
-public class BisqueFiringRequestDTO {
-
+public record BisqueFiringRequestDTO(
     @Positive(message = "A temperatura deve ser positiva")
-    private double temperature;
-
+    double temperature,
     @Positive(message = "O tempo de queima deve ser positivo")
-    private double burnTime;
-
+    double burnTime,
     @Positive(message = "O tempo de resfriamento deve ser positivo")
-    private double coolingTime;
-
+    double coolingTime,
     @Positive(message = "O consumo de gás deve ser positivo")
-    private double gasConsumption;
-
+    double gasConsumption,
     @NotEmpty(message = "A queima deve ter produtos")
-    private List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits = new ArrayList<>();
-
+    List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits,
     @Valid
-    private List<FiringMachineUsageRequestDTO> machineUsages = new ArrayList<>();
-
-    public BisqueFiringRequestDTO() {
-    }
-
-    public double getTemperature() {
-        return temperature;
-    }
-
-    public double getBurnTime() {
-        return burnTime;
-    }
-
-    public double getCoolingTime() {
-        return coolingTime;
-    }
-
-    public double getGasConsumption() {
-        return gasConsumption;
-    }
-
-    public List<Long> getBiscuits() {
-        return biscuits;
-    }
-
-    public List<FiringMachineUsageRequestDTO> getMachineUsages() {
-        return machineUsages;
+    List<FiringMachineUsageRequestDTO> machineUsages
+) {
+    public BisqueFiringRequestDTO {
+        if (machineUsages == null) {
+            machineUsages = new ArrayList<>();
+        }
     }
 }

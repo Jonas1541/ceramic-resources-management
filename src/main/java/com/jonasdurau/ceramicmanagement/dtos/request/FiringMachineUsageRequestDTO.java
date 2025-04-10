@@ -2,22 +2,9 @@ package com.jonasdurau.ceramicmanagement.dtos.request;
 
 import jakarta.validation.constraints.Positive;
 
-public class FiringMachineUsageRequestDTO {
-
+public record FiringMachineUsageRequestDTO(
     @Positive(message = "O tempo de uso da máquina deve ser positivo.")
-    private Double usageTime;
-
+    Double usageTime,
     @Positive(message = "O Id da máquina deve ser positivo.")
-    private long machineId;
-
-    public FiringMachineUsageRequestDTO() {
-    }
-
-    public Double getUsageTime() {
-        return usageTime;
-    }
-
-    public long getMachineId() {
-        return machineId;
-    }
-}
+    long machineId
+) {}

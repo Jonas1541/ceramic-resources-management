@@ -88,22 +88,22 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         }
         GlazeFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
     public GlazeFiringResponseDTO create(Long kilnId, GlazeFiringRequestDTO dto) {
         GlazeFiring entity = new GlazeFiring();
-        entity.setTemperature(dto.getTemperature());
-        entity.setBurnTime(dto.getBurnTime());
-        entity.setCoolingTime(dto.getCoolingTime());
-        entity.setGasConsumption(dto.getGasConsumption());
+        entity.setTemperature(dto.temperature());
+        entity.setBurnTime(dto.burnTime());
+        entity.setCoolingTime(dto.coolingTime());
+        entity.setGasConsumption(dto.gasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
         entity = firingRepository.save(entity);
-        for(GlostRequestDTO glostDTO : dto.getGlosts()) {
+        for(GlostRequestDTO glostDTO : dto.glosts()) {
             ProductTransaction glost = productTransactionRepository.findById(glostDTO.getProductTransactionId())
                     .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.getProductTransactionId()));
             if(glost.getGlazeFiring() != null  && !glost.getGlazeFiring().getId().equals(entity.getId())) {
@@ -120,13 +120,13 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             }
             entity.getGlosts().add(glost);
         }
-        if (!dto.getMachineUsages().isEmpty()) {
-            for (FiringMachineUsageRequestDTO muDTO : dto.getMachineUsages()) {
+        if (!dto.machineUsages().isEmpty()) {
+            for (FiringMachineUsageRequestDTO muDTO : dto.machineUsages()) {
                 FiringMachineUsage mu = new FiringMachineUsage();
-                mu.setUsageTime(muDTO.getUsageTime());
+                mu.setUsageTime(muDTO.usageTime());
                 mu.setGlazeFiring(entity);
-                Machine machine = machineRepository.findById(muDTO.getMachineId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + muDTO.getMachineId()));
+                Machine machine = machineRepository.findById(muDTO.machineId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + muDTO.machineId()));
                 mu.setMachine(machine);
                 mu = machineUsageRepository.save(mu);
                 entity.getMachineUsages().add(mu);
@@ -134,7 +134,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         }
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = firingRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -145,12 +145,12 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         }
         GlazeFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
-        entity.setTemperature(dto.getTemperature());
-        entity.setBurnTime(dto.getBurnTime());
-        entity.setCoolingTime(dto.getCoolingTime());
-        entity.setGasConsumption(dto.getGasConsumption());
+        entity.setTemperature(dto.temperature());
+        entity.setBurnTime(dto.burnTime());
+        entity.setCoolingTime(dto.coolingTime());
+        entity.setGasConsumption(dto.gasConsumption());
         List<ProductTransaction> oldList = new ArrayList<>(entity.getGlosts());
-        List<ProductTransaction> newList = dto.getGlosts().stream()
+        List<ProductTransaction> newList = dto.glosts().stream()
                 .map(glostDTO -> {
                     ProductTransaction glost = productTransactionRepository.findById(glostDTO.getProductTransactionId())
                             .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.getProductTransactionId()));
@@ -184,14 +184,14 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         toAdd.forEach(glost -> productTransactionRepository.save(glost));
         entity.getGlosts().addAll(toAdd);
         List<FiringMachineUsage> oldListmu = new ArrayList<>(entity.getMachineUsages());
-        List<FiringMachineUsage> newListmu = dto.getMachineUsages().stream()
+        List<FiringMachineUsage> newListmu = dto.machineUsages().stream()
                 .map(muDTO -> {
                     FiringMachineUsage mu = new FiringMachineUsage();
-                    mu.setUsageTime(muDTO.getUsageTime());
+                    mu.setUsageTime(muDTO.usageTime());
                     mu.setGlazeFiring(entity);
-                    Machine machine = machineRepository.findById(muDTO.getMachineId())
+                    Machine machine = machineRepository.findById(muDTO.machineId())
                             .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Máquina não encontrada. Id: " + muDTO.getMachineId()));
+                                    "Máquina não encontrada. Id: " + muDTO.machineId()));
                     mu.setMachine(machine);
                     return mu;
                 }).collect(Collectors.toList());
@@ -203,7 +203,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         entity.getMachineUsages().addAll(toAddmu);
         entity.setCostAtTime(calculateCostAtTime(entity));
         GlazeFiring updatedEntity = firingRepository.save(entity);
-        return entityToDTO(updatedEntity);
+        return entityToResponseDTO(updatedEntity);
     }
     
     @Override
@@ -223,16 +223,8 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         firingRepository.delete(entity);
     }
 
-    private GlazeFiringResponseDTO entityToDTO(GlazeFiring entity) {
-        GlazeFiringResponseDTO dto = new GlazeFiringResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setTemperature(entity.getTemperature());
-        dto.setBurnTime(entity.getBurnTime());
-        dto.setCoolingTime(entity.getCoolingTime());
-        dto.setCoolingTime(entity.getGasConsumption());
-        dto.setKilnName(entity.getKiln().getName());
+    private GlazeFiringResponseDTO entityToResponseDTO(GlazeFiring entity) {
+        List<GlostResponseDTO> glostDTOs = new ArrayList<>();
         for(ProductTransaction glost : entity.getGlosts()) {
             GlostResponseDTO glostDTO = new GlostResponseDTO();
             glostDTO.setProductName(glost.getProduct().getName());
@@ -244,21 +236,34 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 glostDTO.setGlazeColor("sem glasura");
                 glostDTO.setQuantity(0.0);
             }
-            dto.getGlosts().add(glostDTO);
+            glostDTOs.add(glostDTO);
         }
+        List<FiringMachineUsageResponseDTO> machineUsageDTOs = new ArrayList<>();
         if (!entity.getMachineUsages().isEmpty()) {
             for (FiringMachineUsage mu : entity.getMachineUsages()) {
-                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO();
-                muDTO.setId(mu.getId());
-                muDTO.setCreatedAt(mu.getCreatedAt());
-                muDTO.setUpdatedAt(mu.getUpdatedAt());
-                muDTO.setUsageTime(mu.getUsageTime());
-                muDTO.setMachineName(mu.getMachine().getName());
-                dto.getMachineUsages().add(muDTO);
+                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO(
+                    mu.getId(),
+                    mu.getCreatedAt(),
+                    mu.getUpdatedAt(),
+                    mu.getUsageTime(),
+                    mu.getMachine().getName()
+                );
+                machineUsageDTOs.add(muDTO);
             }
         }
-        dto.setCost(calculateCostAtTime(entity));
-        return dto;
+        return new GlazeFiringResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getTemperature(),
+            entity.getBurnTime(),
+            entity.getCoolingTime(),
+            entity.getGasConsumption(),
+            entity.getKiln().getName(),
+            glostDTOs,
+            machineUsageDTOs,
+            calculateCostAtTime(entity)
+        );
     }
 
     private BigDecimal calculateCostAtTime(GlazeFiring entity) {

@@ -33,13 +33,13 @@ public class ProductTransactionService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException("Produto não encontrado. Id: " + productId));
         List<ProductTransaction> list = transactionRepository.findByProduct(product);
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Transactional(readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByState(ProductState state) {
         List<ProductTransaction> list = transactionRepository.findByState(state);
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Transactional(readOnly = true)
@@ -48,7 +48,7 @@ public class ProductTransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction transaction = transactionRepository.findByIdAndProduct(transactionId, product)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
-        return entityToDTO(transaction);
+        return entityToResponseDTO(transaction);
     }
 
     @Transactional
@@ -63,7 +63,7 @@ public class ProductTransactionService {
             entity = transactionRepository.save(entity);
             list.add(entity);
         }
-        return list.stream().map(this::entityToDTO).toList();
+        return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Transactional
@@ -90,23 +90,27 @@ public class ProductTransactionService {
         entity.setOutgoingReason(outgoingReason);
         entity.setOutgoingAt(Instant.now());
         entity = transactionRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
-    private ProductTransactionResponseDTO entityToDTO(ProductTransaction entity) {
-        ProductTransactionResponseDTO dto = new ProductTransactionResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setOutgoingAt(entity.getOutgoingAt());
-        dto.setState(entity.getState());
-        dto.setOutgoingReason(entity.getOutgoingReason());
-        dto.setProductName(entity.getProduct().getName());
+    private ProductTransactionResponseDTO entityToResponseDTO(ProductTransaction entity) {
+        String glazeColor = "sem glasura";
+        double glazeQuantity = 0;
         if (entity.getGlazeTransaction() != null) {
-            dto.setGlazeColor(entity.getGlazeTransaction().getGlaze().getColor());
-            dto.setGlazeQuantity(entity.getGlazeTransaction().getQuantity());
+            glazeColor = entity.getGlazeTransaction().getGlaze().getColor();
+            glazeQuantity = entity.getGlazeTransaction().getQuantity();
         }
-        dto.setProfit(entity.getProfit());
-        return dto;
+        return new ProductTransactionResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getOutgoingAt(),
+            entity.getState(),
+            entity.getOutgoingReason(),
+            entity.getProduct().getName(),
+            glazeColor,
+            glazeQuantity,
+            entity.getProfit()
+        );
     }
 }
