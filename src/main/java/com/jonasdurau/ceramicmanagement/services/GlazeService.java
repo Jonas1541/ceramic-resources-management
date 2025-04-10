@@ -22,12 +22,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeMachineUsageDTO;
-import com.jonasdurau.ceramicmanagement.dtos.GlazeResourceUsageDTO;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeMachineUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeResourceUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeMachineUsageResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResourceUsageResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
@@ -44,7 +47,7 @@ import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
-public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeDTO, GlazeDTO, Long> {
+public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long> {
 
     @Autowired
     private GlazeRepository glazeRepository;
@@ -84,41 +87,60 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeD
 
     @Override
     @Transactional(readOnly = true)
-    public GlazeDTO findById(Long id) {
+    public GlazeResponseDTO findById(Long id) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
-        return entityToDTO(glaze);
+        return entityToResponseDTO(glaze);
     }
 
     @Override
     @Transactional
-    public GlazeDTO create(GlazeDTO dto) {
+    public GlazeResponseDTO create(GlazeRequestDTO dto) {
         Glaze glaze = new Glaze();
-        copyDTOToEntity(dto, glaze);
+        glaze.setColor(dto.color());
+        glaze.setUnitValue(dto.unitValue());
+        for (GlazeResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
+            Resource resource = resourceRepository.findById(usageDTO.resourceId())
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.resourceId()));
+            GlazeResourceUsage usage = new GlazeResourceUsage();
+            usage.setGlaze(glaze);
+            usage.setResource(resource);
+            usage.setQuantity(usageDTO.quantity());
+            glaze.getResourceUsages().add(usage);
+        }
+        for (GlazeMachineUsageRequestDTO muDTO : dto.machineUsages()) {
+            Machine machine = machineRepository.findById(muDTO.machineId())
+                .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.machineId()));
+            GlazeMachineUsage mu = new GlazeMachineUsage();
+            mu.setGlaze(glaze);
+            mu.setMachine(machine);
+            mu.setUsageTime(muDTO.usageTime());
+            glaze.getMachineUsages().add(mu);
+        }
         computeUnitCost(glaze);
         glaze = glazeRepository.save(glaze);
-        return entityToDTO(glaze);
+        return entityToResponseDTO(glaze);
     }
 
     @Override
     @Transactional
-    public GlazeDTO update(Long id, GlazeDTO dto) {
+    public GlazeResponseDTO update(Long id, GlazeRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
         Map<Long, GlazeResourceUsage> existingResourceUsages = glaze.getResourceUsages().stream()
             .collect(Collectors.toMap(r -> r.getResource().getId(), r -> r));
-        for (GlazeResourceUsageDTO usageDTO : dto.getResourceUsages()) {
-            GlazeResourceUsage existingUsage = existingResourceUsages.get(usageDTO.getResourceId());
+        for (GlazeResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
+            GlazeResourceUsage existingUsage = existingResourceUsages.get(usageDTO.resourceId());
             if (existingUsage != null) {
-                existingUsage.setQuantity(usageDTO.getQuantity());
-                existingResourceUsages.remove(usageDTO.getResourceId());
+                existingUsage.setQuantity(usageDTO.quantity());
+                existingResourceUsages.remove(usageDTO.resourceId());
             } else {
-                Resource resource = resourceRepository.findById(usageDTO.getResourceId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.getResourceId()));
+                Resource resource = resourceRepository.findById(usageDTO.resourceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.resourceId()));
                 GlazeResourceUsage newUsage = new GlazeResourceUsage();
                 newUsage.setGlaze(glaze);
                 newUsage.setResource(resource);
-                newUsage.setQuantity(usageDTO.getQuantity());
+                newUsage.setQuantity(usageDTO.quantity());
                 glaze.getResourceUsages().add(newUsage);
             }
         }
@@ -128,20 +150,20 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeD
         Map<Long, GlazeMachineUsage> existingMachineUsages = glaze.getMachineUsages().stream()
             .collect(Collectors.toMap(mu -> mu.getMachine().getId(), mu -> mu));
         Set<Long> updatedMachineIds = new HashSet<>();
-        for (GlazeMachineUsageDTO muDTO : dto.getMachineUsages()) {
-            GlazeMachineUsage existingMu = existingMachineUsages.get(muDTO.getMachineId());
+        for (GlazeMachineUsageRequestDTO muDTO : dto.machineUsages()) {
+            GlazeMachineUsage existingMu = existingMachineUsages.get(muDTO.machineId());
             if (existingMu != null) {
-                existingMu.setUsageTime(muDTO.getUsageTime());
-                updatedMachineIds.add(muDTO.getMachineId());
+                existingMu.setUsageTime(muDTO.usageTime());
+                updatedMachineIds.add(muDTO.machineId());
             } else {
-                Machine machine = machineRepository.findById(muDTO.getMachineId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.getMachineId()));
+                Machine machine = machineRepository.findById(muDTO.machineId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.machineId()));
                 GlazeMachineUsage newMu = new GlazeMachineUsage();
                 newMu.setGlaze(glaze);
                 newMu.setMachine(machine);
-                newMu.setUsageTime(muDTO.getUsageTime());
+                newMu.setUsageTime(muDTO.usageTime());
                 glaze.getMachineUsages().add(newMu);
-                updatedMachineIds.add(muDTO.getMachineId());
+                updatedMachineIds.add(muDTO.machineId());
             }
         }
         List<GlazeMachineUsage> muToRemove = glaze.getMachineUsages().stream()
@@ -150,11 +172,11 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeD
         for (GlazeMachineUsage mu : muToRemove) {
             glaze.getMachineUsages().remove(mu);
         }
-        glaze.setColor(dto.getColor());
-        glaze.setUnitValue(dto.getUnitValue());
+        glaze.setColor(dto.color());
+        glaze.setUnitValue(dto.unitValue());
         computeUnitCost(glaze);
         glaze = glazeRepository.save(glaze);
-        return entityToDTO(glaze);
+        return entityToResponseDTO(glaze);
     }
 
     @Override
@@ -227,60 +249,37 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeD
         return yearReports;
     }
 
-    private GlazeDTO entityToDTO(Glaze entity) {
-        GlazeDTO dto = new GlazeDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setColor(entity.getColor());
-        dto.setUnitValue(entity.getUnitValue());
-        dto.setUnitCost(entity.getUnitCost());
-        dto.setCurrentQuantity(entity.getCurrentQuantity());
-        dto.setCurrentQuantityPrice(entity.getCurrentQuantityPrice());
-        List<GlazeResourceUsageDTO> usageDTOs = entity.getResourceUsages().stream()
+    private GlazeResponseDTO entityToResponseDTO(Glaze entity) {
+        List<GlazeResourceUsageResponseDTO> resourceUsageDTOs = entity.getResourceUsages().stream()
             .map(usage -> {
-                GlazeResourceUsageDTO u = new GlazeResourceUsageDTO();
-                u.setResourceId(usage.getResource().getId());
-                u.setResourceName(usage.getResource().getName());
-                u.setQuantity(usage.getQuantity());
-                return u;
+                return new GlazeResourceUsageResponseDTO(
+                    usage.getResource().getId(),
+                    usage.getResource().getName(),
+                    usage.getQuantity()
+                );
             })
             .collect(Collectors.toList());
-        dto.getResourceUsages().addAll(usageDTOs);
-        List<GlazeMachineUsageDTO> machineDTOs = entity.getMachineUsages().stream()
+        List<GlazeMachineUsageResponseDTO> machineUsageDTOs = entity.getMachineUsages().stream()
             .map(mu -> {
-                GlazeMachineUsageDTO m = new GlazeMachineUsageDTO();
-                m.setMachineId(mu.getMachine().getId());
-                m.setMachineName(mu.getMachine().getName());
-                m.setUsageTime(mu.getUsageTime());
-                return m;
+                return new GlazeMachineUsageResponseDTO(
+                    mu.getMachine().getId(),
+                    mu.getMachine().getName(),
+                    mu.getUsageTime()
+                );
             })
             .collect(Collectors.toList());
-        dto.getMachineUsages().addAll(machineDTOs);
-        return dto;
-    }
-
-    private void copyDTOToEntity(GlazeDTO dto, Glaze entity) {
-        entity.setColor(dto.getColor());
-        entity.setUnitValue(dto.getUnitValue());
-        for (GlazeResourceUsageDTO usageDTO : dto.getResourceUsages()) {
-            Resource resource = resourceRepository.findById(usageDTO.getResourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.getResourceId()));
-            GlazeResourceUsage usage = new GlazeResourceUsage();
-            usage.setGlaze(entity);
-            usage.setResource(resource);
-            usage.setQuantity(usageDTO.getQuantity());
-            entity.getResourceUsages().add(usage);
-        }
-        for (GlazeMachineUsageDTO muDTO : dto.getMachineUsages()) {
-            Machine machine = machineRepository.findById(muDTO.getMachineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.getMachineId()));
-            GlazeMachineUsage mu = new GlazeMachineUsage();
-            mu.setGlaze(entity);
-            mu.setMachine(machine);
-            mu.setUsageTime(muDTO.getUsageTime());
-            entity.getMachineUsages().add(mu);
-        }
+        return new GlazeResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getColor(),
+            entity.getUnitValue(),
+            resourceUsageDTOs,
+            machineUsageDTOs,
+            entity.getUnitCost(),
+            entity.getCurrentQuantity(),
+            entity.getCurrentQuantityPrice()
+        );
     }
 
     private void computeUnitCost(Glaze glaze) {

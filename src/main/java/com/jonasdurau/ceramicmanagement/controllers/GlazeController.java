@@ -8,14 +8,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.dtos.GlazeDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.GlazeRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeService;
 
 @RestController
 @RequestMapping("/glazes")
-public class GlazeController extends IndependentController<GlazeListDTO, GlazeDTO, GlazeDTO, Long, GlazeService> {
+public class GlazeController extends IndependentController<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long, GlazeService> {
 
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
