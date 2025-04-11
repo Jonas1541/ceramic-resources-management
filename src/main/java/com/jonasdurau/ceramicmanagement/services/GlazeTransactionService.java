@@ -41,7 +41,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         return glaze.getTransactions().stream()
-            .map(this::entityToDTO)
+            .map(this::entityToResponseDTO)
             .collect(Collectors.toList());
     }
 
@@ -54,7 +54,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
             .filter(t -> t.getId().equals(transactionId))
             .findFirst()
             .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
-        return entityToDTO(transaction);
+        return entityToResponseDTO(transaction);
     }
 
     @Override
@@ -63,20 +63,20 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction entity = new GlazeTransaction();
-        entity.setType(dto.getType());
-        entity.setQuantity(dto.getQuantity());
+        entity.setType(dto.type());
+        entity.setQuantity(dto.quantity());
         entity.setGlaze(glaze);
-        BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.getQuantity());
-        BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.getQuantity());
+        BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.quantity());
+        BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.quantity());
         BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
         entity.setResourceTotalCostAtTime(resourceCost);
         entity.setMachineEnergyConsumptionCostAtTime(machineCost);
         entity.setGlazeFinalCostAtTime(finalCost);
-        if (dto.getType() == TransactionType.INCOMING) {
-            createResourceTransactionsForGlazeTx(entity, glaze, dto.getQuantity());
+        if (dto.type() == TransactionType.INCOMING) {
+            createResourceTransactionsForGlazeTx(entity, glaze, dto.quantity());
         }
         entity = glazeTransactionRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Transactional
@@ -106,20 +106,20 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
             .filter(t -> t.getId().equals(transactionId))
             .findFirst()
             .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
-        transaction.setType(dto.getType());
-        transaction.setQuantity(dto.getQuantity());
-        BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.getQuantity());
-        BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.getQuantity());
+        transaction.setType(dto.type());
+        transaction.setQuantity(dto.quantity());
+        BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.quantity());
+        BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.quantity());
         BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
         transaction.setResourceTotalCostAtTime(resourceCost);
         transaction.setMachineEnergyConsumptionCostAtTime(machineCost);
         transaction.setGlazeFinalCostAtTime(finalCost);
         transaction.getResourceTransactions().clear();
-        if (dto.getType() == TransactionType.INCOMING) {
-            createResourceTransactionsForGlazeTx(transaction, glaze, dto.getQuantity());
+        if (dto.type() == TransactionType.INCOMING) {
+            createResourceTransactionsForGlazeTx(transaction, glaze, dto.quantity());
         }
         transaction = glazeTransactionRepository.save(transaction);
-        return entityToDTO(transaction);
+        return entityToResponseDTO(transaction);
     }
 
     @Override
@@ -177,17 +177,17 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    private GlazeTransactionResponseDTO entityToDTO(GlazeTransaction entity) {
-        GlazeTransactionResponseDTO dto = new GlazeTransactionResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setQuantity(entity.getQuantity());
-        dto.setType(entity.getType());
-        dto.setGlazeColor(entity.getGlaze().getColor());
-        dto.setResourceTotalCostAtTime(entity.getResourceTotalCostAtTime());
-        dto.setMachineEnergyConsumptionCostAtTime(entity.getMachineEnergyConsumptionCostAtTime());
-        dto.setGlazeFinalCostAtTime(entity.getGlazeFinalCostAtTime());
-        return dto;
+    private GlazeTransactionResponseDTO entityToResponseDTO(GlazeTransaction entity) {
+        return new GlazeTransactionResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getQuantity(),
+            entity.getType(),
+            entity.getGlaze().getColor(),
+            entity.getResourceTotalCostAtTime(),
+            entity.getMachineEnergyConsumptionCostAtTime(),
+            entity.getGlazeFinalCostAtTime()
+        );
     }
 }
