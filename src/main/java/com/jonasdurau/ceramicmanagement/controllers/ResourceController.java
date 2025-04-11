@@ -1,8 +1,9 @@
 package com.jonasdurau.ceramicmanagement.controllers;
 
-import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ResourceRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ResourceResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.ResourceService;
 
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/resources")
-public class ResourceController extends IndependentController<ResourceListDTO, ResourceDTO, ResourceDTO, Long, ResourceService> {
+public class ResourceController extends IndependentController<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long, ResourceService> {
 
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {

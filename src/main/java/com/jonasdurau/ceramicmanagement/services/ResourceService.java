@@ -4,9 +4,10 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.ResourceDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ResourceRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ResourceResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
@@ -33,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class ResourceService  implements IndependentCrudService<ResourceListDTO, ResourceDTO, ResourceDTO, Long>{
+public class ResourceService  implements IndependentCrudService<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long>{
 
     @Autowired
     private ResourceRepository resourceRepository;
@@ -72,48 +73,48 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
 
     @Override
     @Transactional(readOnly = true)
-    public ResourceDTO findById(Long id) {
+    public ResourceResponseDTO findById(Long id) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ResourceDTO create(ResourceDTO dto) {
-        if (resourceRepository.existsByName(dto.getName())) {
-            throw new BusinessException("O nome '" + dto.getName() + "' já existe.");
+    public ResourceResponseDTO create(ResourceRequestDTO dto) {
+        if (resourceRepository.existsByName(dto.name())) {
+            throw new BusinessException("O nome '" + dto.name() + "' já existe.");
         }
-        if (isUniqueCategory(dto.getCategory()) && resourceRepository.existsByCategory(dto.getCategory())) {
-            throw new BusinessException("Já existe um recurso com a categoria " + dto.getCategory());
+        if (isUniqueCategory(dto.category()) && resourceRepository.existsByCategory(dto.category())) {
+            throw new BusinessException("Já existe um recurso com a categoria " + dto.category());
         }
         Resource entity = new Resource();
-        entity.setName(dto.getName());
-        entity.setCategory(dto.getCategory());
-        entity.setUnitValue(dto.getUnitValue());
+        entity.setName(dto.name());
+        entity.setCategory(dto.category());
+        entity.setUnitValue(dto.unitValue());
         entity = resourceRepository.save(entity);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
     @Transactional
-    public ResourceDTO update(Long id, ResourceDTO dto) {
+    public ResourceResponseDTO update(Long id, ResourceRequestDTO dto) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
-        if (isUniqueCategory(dto.getCategory()) && resourceRepository.existsByCategoryAndIdNot(dto.getCategory(), id)) {
-            throw new BusinessException("Já existe outro recurso com a categoria " + dto.getCategory());
+        if (isUniqueCategory(dto.category()) && resourceRepository.existsByCategoryAndIdNot(dto.category(), id)) {
+            throw new BusinessException("Já existe outro recurso com a categoria " + dto.category());
         }
-        String newName = dto.getName();
+        String newName = dto.name();
         String oldName = entity.getName();
         if (!oldName.equals(newName) && resourceRepository.existsByName(newName)) {
             throw new BusinessException("O nome '" + newName + "' já existe.");
         }
         entity.setName(newName);
-        entity.setCategory(dto.getCategory());
-        entity.setUnitValue(dto.getUnitValue());
+        entity.setCategory(dto.category());
+        entity.setUnitValue(dto.unitValue());
         entity = resourceRepository.save(entity);
         glazeService.recalculateGlazesByResource(id);
-        return entityToDTO(entity);
+        return entityToResponseDTO(entity);
     }
 
     @Override
@@ -136,17 +137,17 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
         resourceRepository.delete(entity);
     }
 
-    private ResourceDTO entityToDTO(Resource entity) {
-        ResourceDTO dto = new ResourceDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setCategory(entity.getCategory());
-        dto.setUnitValue(entity.getUnitValue());
-        dto.setCurrentQuantity(entity.getCurrentQuantity());
-        dto.setCurrentQuantityPrice(entity.getCurrentQuantityPrice());
-        return dto;
+    private ResourceResponseDTO entityToResponseDTO(Resource entity) {
+        return new ResourceResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getCategory(),
+            entity.getUnitValue(),
+            entity.getCurrentQuantity(),
+            entity.getCurrentQuantityPrice()
+        );
     }
 
     @Transactional
