@@ -104,18 +104,18 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         entity.setKiln(kiln);
         entity = firingRepository.save(entity);
         for(GlostRequestDTO glostDTO : dto.glosts()) {
-            ProductTransaction glost = productTransactionRepository.findById(glostDTO.getProductTransactionId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.getProductTransactionId()));
+            ProductTransaction glost = productTransactionRepository.findById(glostDTO.productTransactionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.productTransactionId()));
             if(glost.getGlazeFiring() != null  && !glost.getGlazeFiring().getId().equals(entity.getId())) {
                 throw new ResourceNotFoundException("Produto já passou por uma 2° queima. Id: " + glost.getId());
             }
             glost.setGlazeFiring(entity);
             glost.setState(ProductState.GLAZED);
-            if (glostDTO.getGlazeId() != null && glostDTO.getQuantity() == null) {
+            if (glostDTO.glazeId() != null && glostDTO.quantity() == null) {
                 throw new ResourceNotFoundException("Quantidade de glasura não informada.");
             }
-            if (glostDTO.getGlazeId() != null && glostDTO.getQuantity() != null) {
-                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.getGlazeId(), glostDTO.getQuantity());
+            if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
+                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity());
                 glost.setGlazeTransaction(glazeTransaction);
             }
             entity.getGlosts().add(glost);
@@ -152,16 +152,16 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         List<ProductTransaction> oldList = new ArrayList<>(entity.getGlosts());
         List<ProductTransaction> newList = dto.glosts().stream()
                 .map(glostDTO -> {
-                    ProductTransaction glost = productTransactionRepository.findById(glostDTO.getProductTransactionId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.getProductTransactionId()));
+                    ProductTransaction glost = productTransactionRepository.findById(glostDTO.productTransactionId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.productTransactionId()));
                     if (glost.getGlazeFiring() != null && !glost.getGlazeFiring().getId().equals(entity.getId())) {
                         throw new ResourceNotFoundException("Produto já passou por uma 2° queima. Id: " + glost.getId());
                     }
-                    if (glostDTO.getGlazeId() != null && glostDTO.getQuantity() == null) {
+                    if (glostDTO.glazeId() != null && glostDTO.quantity() == null) {
                         throw new ResourceNotFoundException("Quantidade de glasura não informada.");
                     }
-                    if (glostDTO.getGlazeId() != null && glostDTO.getQuantity() != null) {
-                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.getGlazeId(), glostDTO.getQuantity());
+                    if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
+                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity());
                         glost.setGlazeTransaction(glazeTransaction);
                     } else {
                         glost.setGlazeTransaction(null);
@@ -225,17 +225,18 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
 
     private GlazeFiringResponseDTO entityToResponseDTO(GlazeFiring entity) {
         List<GlostResponseDTO> glostDTOs = new ArrayList<>();
-        for(ProductTransaction glost : entity.getGlosts()) {
-            GlostResponseDTO glostDTO = new GlostResponseDTO();
-            glostDTO.setProductName(glost.getProduct().getName());
-            if(glost.getGlazeTransaction() != null) {
-                glostDTO.setGlazeColor(glost.getGlazeTransaction().getGlaze().getColor());
-                glostDTO.setQuantity(glost.getGlazeTransaction().getQuantity());
+        for (ProductTransaction glost : entity.getGlosts()) {
+            String productName = glost.getProduct().getName();
+            String glazeColor;
+            Double quantity;
+            if (glost.getGlazeTransaction() != null) {
+                glazeColor = glost.getGlazeTransaction().getGlaze().getColor();
+                quantity = glost.getGlazeTransaction().getQuantity();
+            } else {
+                glazeColor = "sem glasura";
+                quantity = 0.0;
             }
-            else {
-                glostDTO.setGlazeColor("sem glasura");
-                glostDTO.setQuantity(0.0);
-            }
+            GlostResponseDTO glostDTO = new GlostResponseDTO(productName, glazeColor, quantity);
             glostDTOs.add(glostDTO);
         }
         List<FiringMachineUsageResponseDTO> machineUsageDTOs = new ArrayList<>();
