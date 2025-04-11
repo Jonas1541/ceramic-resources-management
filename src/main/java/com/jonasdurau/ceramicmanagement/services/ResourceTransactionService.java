@@ -1,11 +1,10 @@
 package com.jonasdurau.ceramicmanagement.services;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.ResourceTransactionDTO;
-import com.jonasdurau.ceramicmanagement.entities.Batch;
+import com.jonasdurau.ceramicmanagement.dtos.request.ResourceTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.ResourceTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
-import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ResourceTransactionService implements DependentCrudService<ResourceTransactionDTO, ResourceTransactionDTO,  ResourceTransactionDTO, Long> {
+public class ResourceTransactionService implements DependentCrudService<ResourceTransactionResponseDTO, ResourceTransactionRequestDTO,  ResourceTransactionResponseDTO, Long> {
 
     @Autowired
     private ResourceTransactionRepository transactionRepository;
@@ -27,12 +26,9 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     @Autowired
     private ResourceRepository resourceRepository;
 
-    @Autowired
-    private BatchRepository batchRepository;
-
     @Override
     @Transactional(readOnly = true)
-    public List<ResourceTransactionDTO> findAllByParentId(Long resourceId) {
+    public List<ResourceTransactionResponseDTO> findAllByParentId(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         List<ResourceTransaction> transactions = transactionRepository.findByResource(resource);
@@ -41,7 +37,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
 
     @Override
     @Transactional(readOnly = true)
-    public ResourceTransactionDTO findById(Long resourceId, Long transactionId) {
+    public ResourceTransactionResponseDTO findById(Long resourceId, Long transactionId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         ResourceTransaction transaction = transactionRepository.findByIdAndResource(transactionId, resource)
@@ -51,19 +47,14 @@ public class ResourceTransactionService implements DependentCrudService<Resource
 
     @Override
     @Transactional
-    public ResourceTransactionDTO create(Long resourceId, ResourceTransactionDTO dto) {
+    public ResourceTransactionResponseDTO create(Long resourceId, ResourceTransactionRequestDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         ResourceTransaction transaction = new ResourceTransaction();
-        transaction.setType(dto.getType());
-        transaction.setQuantity(dto.getQuantity());
+        transaction.setType(dto.type());
+        transaction.setQuantity(dto.quantity());
         transaction.setResource(resource);
-        if (dto.getBatchId() != null) {
-            Batch batch = batchRepository.findById(dto.getBatchId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Batch não encontrada. Id: " + dto.getBatchId()));
-            transaction.setBatch(batch);
-        }
-        BigDecimal costAtTime = calculateCostAtTime(resource, dto.getQuantity());
+        BigDecimal costAtTime = calculateCostAtTime(resource, dto.quantity());
         transaction.setCostAtTime(costAtTime);
         transaction = transactionRepository.save(transaction);
         return entityToDTO(transaction);
@@ -71,21 +62,14 @@ public class ResourceTransactionService implements DependentCrudService<Resource
 
     @Override
     @Transactional
-    public ResourceTransactionDTO update(Long resourceId, Long transactionId, ResourceTransactionDTO dto) {
+    public ResourceTransactionResponseDTO update(Long resourceId, Long transactionId, ResourceTransactionRequestDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         ResourceTransaction transaction = transactionRepository.findByIdAndResource(transactionId, resource)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
-        transaction.setType(dto.getType());
-        transaction.setQuantity(dto.getQuantity());
-        if (dto.getBatchId() != null) {
-            Batch batch = batchRepository.findById(dto.getBatchId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Batch não encontrada. Id: " + dto.getBatchId()));
-            transaction.setBatch(batch);
-        } else {
-            transaction.setBatch(null);
-        }
-        BigDecimal costAtTime = calculateCostAtTime(resource, dto.getQuantity());
+        transaction.setType(dto.type());
+        transaction.setQuantity(dto.quantity());
+        BigDecimal costAtTime = calculateCostAtTime(resource, dto.quantity());
         transaction.setCostAtTime(costAtTime);
         transaction = transactionRepository.save(transaction);
         return entityToDTO(transaction);
@@ -101,21 +85,18 @@ public class ResourceTransactionService implements DependentCrudService<Resource
         transactionRepository.delete(transaction);
     }
 
-    private ResourceTransactionDTO entityToDTO(ResourceTransaction entity) {
-        ResourceTransactionDTO dto = new ResourceTransactionDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setType(entity.getType());
-        dto.setQuantity(entity.getQuantity());
-        dto.setResourceName(entity.getResource().getName());
-        if (entity.getBatch() != null) {
-            dto.setBatchId(entity.getBatch().getId());
-        } else {
-            dto.setBatchId(null);
-        }
-        dto.setCost(entity.getCostAtTime().setScale(2, RoundingMode.HALF_UP));
-        return dto;
+    private ResourceTransactionResponseDTO entityToDTO(ResourceTransaction entity) {
+        Long batchId = entity.getBatch() != null ? entity.getBatch().getId() : null;
+        return new ResourceTransactionResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getType(),
+            entity.getQuantity(),
+            entity.getResource().getName(),
+            batchId,
+            entity.getCostAtTime().setScale(2, RoundingMode.HALF_UP)
+        );
     }
 
     private BigDecimal calculateCostAtTime(Resource resource, double quantity) {
