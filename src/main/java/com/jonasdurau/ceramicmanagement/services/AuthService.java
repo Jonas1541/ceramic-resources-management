@@ -8,6 +8,7 @@ import com.jonasdurau.ceramicmanagement.config.TenantContext;
 import com.jonasdurau.ceramicmanagement.config.TokenService;
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidCredentialsException;
+import com.jonasdurau.ceramicmanagement.dtos.LoginDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.TokenResponseDTO;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 
@@ -23,13 +24,13 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public TokenResponseDTO login(String email, String password) {
+    public TokenResponseDTO login(LoginDTO dto) {
         // Busca a empresa pelo email
-        Company company = companyRepository.findByEmail(email)
+        Company company = companyRepository.findByEmail(dto.email())
             .orElseThrow(() -> new InvalidCredentialsException("Credenciais inválidas"));
 
         // Verifica a senha (já deve estar criptografada)
-        if (!passwordEncoder.matches(password, company.getPassword())) {
+        if (!passwordEncoder.matches(dto.password(), company.getPassword())) {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }
 
