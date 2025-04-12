@@ -65,15 +65,15 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto) {
         Product entity = new Product();
-        entity.setName(dto.getName());
-        entity.setPrice(dto.getPrice());
-        entity.setHeight(dto.getHeight());
-        entity.setLength(dto.getLength());
-        entity.setWidth(dto.getWidth());
-        ProductType type = typeRepository.findById(dto.getTypeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.getTypeId()));
-        ProductLine line = lineRepository.findById(dto.getLineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.getLineId()));
+        entity.setName(dto.name());
+        entity.setPrice(dto.price());
+        entity.setHeight(dto.height());
+        entity.setLength(dto.length());
+        entity.setWidth(dto.width());
+        ProductType type = typeRepository.findById(dto.typeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.typeId()));
+        ProductLine line = lineRepository.findById(dto.lineId())
+                .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.lineId()));
         entity.setType(type);
         entity.setLine(line);
         entity = productRepository.save(entity);
@@ -85,15 +85,15 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
-        entity.setName(dto.getName());
-        entity.setPrice(dto.getPrice());
-        entity.setHeight(dto.getHeight());
-        entity.setLength(dto.getLength());
-        entity.setWidth(dto.getWidth());
-        ProductType type = typeRepository.findById(dto.getTypeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.getTypeId()));
-        ProductLine line = lineRepository.findById(dto.getLineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.getLineId()));
+        entity.setName(dto.name());
+        entity.setPrice(dto.price());
+        entity.setHeight(dto.height());
+        entity.setLength(dto.length());
+        entity.setWidth(dto.width());
+        ProductType type = typeRepository.findById(dto.typeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.typeId()));
+        ProductLine line = lineRepository.findById(dto.lineId())
+                .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.lineId()));
         entity.setType(type);
         entity.setLine(line);
         entity = productRepository.save(entity);
@@ -168,18 +168,18 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     }
 
     private ProductResponseDTO entityToDTO(Product entity) {
-        ProductResponseDTO dto = new ProductResponseDTO();
-        dto.setId(entity.getId());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setName(entity.getName());
-        dto.setPrice(entity.getPrice());
-        dto.setHeight(entity.getHeight());
-        dto.setLength(entity.getLength());
-        dto.setWidth(entity.getWidth());
-        dto.setType(entity.getType().getName());
-        dto.setLine(entity.getLine().getName());
-        dto.setProductStock(entity.getProductStock());
-        return dto;
+        return new ProductResponseDTO(
+            entity.getId(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt(),
+            entity.getName(),
+            entity.getPrice(),
+            entity.getHeight(),
+            entity.getLength(),
+            entity.getWidth(),
+            entity.getType().getName(),
+            entity.getLine().getName(),
+            entity.getProductStock()
+        );
     }
 }
