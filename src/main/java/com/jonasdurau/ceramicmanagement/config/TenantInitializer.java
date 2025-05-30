@@ -1,10 +1,10 @@
-// TenantInitializer.java
 package com.jonasdurau.ceramicmanagement.config;
 
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 import com.jonasdurau.ceramicmanagement.services.DatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -19,18 +19,23 @@ public class TenantInitializer implements CommandLineRunner {
     @Autowired
     private DatabaseService databaseService;
 
+    @Value("${tenant.datasource.username}")
+    private String tenantDbUsername;
+
+    @Value("${tenant.datasource.password}")
+    private String tenantDbPassword;
+
     @Override
     public void run(String... args) throws Exception {
-        // Carrega todas as empresas do main_db
+        TenantContext.clear(); 
+
         List<Company> companies = companyRepository.findAll();
         
-        // Para cada empresa, adiciona o tenant ao DynamicDataSource
         for (Company company : companies) {
-            String tenantId = company.getDatabaseName();
-            String url = company.getDatabaseUrl();
-            int port = company.getDatabasePort();
-            // Usuário e senha assumidos fixos para simplificar:
-            databaseService.addTenant(tenantId, url, port, "root", "root");
+            String tenantId = company.getDatabaseName(); 
+            String jdbcUrl = company.getDatabaseUrl();   
+            
+            databaseService.addTenant(tenantId, jdbcUrl, tenantDbUsername, tenantDbPassword);
         }
     }
 }

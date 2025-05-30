@@ -3,7 +3,7 @@ package com.jonasdurau.ceramicmanagement.config;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
 import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
+import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -31,14 +32,12 @@ public class SecurityFilter extends OncePerRequestFilter {
         String token = recoverToken(request);
         try {
             if (token != null) {
-                String email = tokenService.getEmailFromToken(token);
+                String email = tokenService.getEmailFromToken(token);   
+                TenantContext.clear(); 
                 Company company = companyRepository.findByEmail(email).orElse(null);
-
                 if (company != null) {
-                    // Configura o TenantContext com o identificador do tenant
-                    TenantContext.setCurrentTenant("company_" + company.getName().toLowerCase().replace(" ", "_"));
-
-                    var authentication = new UsernamePasswordAuthenticationToken(company, null, null);
+                    TenantContext.setCurrentTenant(company.getDatabaseName());
+                    var authentication = new UsernamePasswordAuthenticationToken(company, null, Collections.emptyList());                    
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
@@ -46,21 +45,21 @@ public class SecurityFilter extends OncePerRequestFilter {
         } catch (ExpiredTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Token Expired\",\"message\":\"" + ex.getMessage() + "\"}");
+            response.getWriter().write("{\"error\":\"Token Expirado\",\"message\":\"" + ex.getMessage() + "\"}");
         } catch (InvalidTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Invalid token\",\"message\":\"" + ex.getMessage() + "\"}");
+            response.getWriter().write("{\"error\":\"Token inválido\",\"message\":\"" + ex.getMessage() + "\"}");
         } finally {
-            // Limpa o TenantContext após a requisição
             TenantContext.clear();
         }
     }
 
     private String recoverToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null)
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return null;
-        return authHeader.replace("Bearer ", "");
+        }
+        return authHeader.substring(7);
     }
 }

@@ -25,19 +25,16 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public TokenResponseDTO login(LoginDTO dto) {
-        // Busca a empresa pelo email
+        TenantContext.clear(); 
         Company company = companyRepository.findByEmail(dto.email())
             .orElseThrow(() -> new InvalidCredentialsException("Credenciais inválidas"));
 
-        // Verifica a senha (já deve estar criptografada)
         if (!passwordEncoder.matches(dto.password(), company.getPassword())) {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }
 
-        // Configura o TenantContext com a URL e porta do banco
-        TenantContext.setCurrentTenant(company.getDatabaseUrl() + ":" + company.getDatabasePort());
+        TenantContext.setCurrentTenant(company.getDatabaseName());
 
-        // Gera o token JWT contendo os dados do tenant
         String token = tokenService.generateToken(company);
 
         return new TokenResponseDTO(token);

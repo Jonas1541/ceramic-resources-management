@@ -5,6 +5,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,39 +22,42 @@ import java.util.stream.Collectors;
 @Service
 public class DatabaseService {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate mainJdbcTemplate;
 
     @Autowired
-    private DataSource dataSource;
+    @Qualifier("dataSource")
+    private DataSource dynamicDataSourceBean;
 
-    public DatabaseService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Value("${tenant.datasource.base-url}")
+    private String tenantDbBaseUrl;
+
+    @Value("${tenant.datasource.username}")
+    private String tenantDbUsername;
+
+    @Value("${tenant.datasource.password}")
+    private String tenantDbPassword;
+    
+    @Autowired
+    public DatabaseService(@Qualifier("mainActualDataSource") DataSource mainDS) {
+        this.mainJdbcTemplate = new JdbcTemplate(mainDS);
     }
 
     public void createDatabase(String databaseName) {
-        String createDatabaseSql = "CREATE DATABASE " + databaseName;
-        jdbcTemplate.execute(createDatabaseSql);
+        String createDatabaseSql = "CREATE DATABASE IF NOT EXISTS `" + databaseName + "`";
+        mainJdbcTemplate.execute(createDatabaseSql);
     }
 
     public void initializeSchema(String databaseName, InputStream schemaStream) throws IOException {
-        DataSource dataSource = createDataSourceForDatabase(databaseName);
-        JdbcTemplate newDbTemplate = new JdbcTemplate(dataSource);
-
-        // Lê o conteúdo do InputStream para uma String
+        DataSource tenantSpecificDataSource = createDataSourceForNewTenantDB(databaseName);
+        JdbcTemplate newDbTemplate = new JdbcTemplate(tenantSpecificDataSource);
         String sqlScript;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(schemaStream))) {
             sqlScript = reader.lines().collect(Collectors.joining("\n"));
         }
-
-        // Verifica se o script SQL está vazio
         if (sqlScript == null || sqlScript.trim().isEmpty()) {
-            throw new IllegalArgumentException("O script SQL está vazio.");
+            throw new IllegalArgumentException("O script SQL do schema está vazio.");
         }
-
-        // Divide o script em instruções separadas usando o delimitador ";"
         String[] sqlStatements = sqlScript.split(";");
-
-        // Executa cada instrução separadamente
         for (String statement : sqlStatements) {
             String trimmedStatement = statement.trim();
             if (!trimmedStatement.isEmpty()) {
@@ -61,42 +66,35 @@ public class DatabaseService {
         }
     }
 
-    private DataSource createDataSourceForDatabase(String databaseName) {
+    private DataSource createDataSourceForNewTenantDB(String databaseName) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost/" + databaseName);
-        config.setUsername("root");
-        config.setPassword("root");
+        String cleanBaseUrl = tenantDbBaseUrl.endsWith("/") ? tenantDbBaseUrl.substring(0, tenantDbBaseUrl.length() -1) : tenantDbBaseUrl;
+        String jdbcUrl = cleanBaseUrl + "/" + databaseName + "?useSSL=false&allowPublicKeyRetrieval=true"; 
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(tenantDbUsername);
+        config.setPassword(tenantDbPassword);
         return new HikariDataSource(config);
     }
 
-    public void addTenant(String tenantId, String url, int port, String username, String password) {
-        // Verifica se o dataSource é uma instância de DynamicDataSource
-        if (!(dataSource instanceof DynamicDataSource)) {
+    public void addTenant(String tenantId, String jdbcUrl, String username, String password) {
+        if (!(dynamicDataSourceBean instanceof DynamicDataSource)) {
             throw new IllegalStateException("DataSource configurado não é DynamicDataSource");
         }
-
-        DynamicDataSource dynamicDataSource = (DynamicDataSource) dataSource;
-
-        // Cria o novo DataSource para o tenant
-        DataSource newDataSource = createDataSource(url, port, username, password);
-
-        // Obtém o mapa atual de DataSources do DynamicDataSource
-        Map<Object, DataSource> currentResolved = (Map<Object, DataSource>) dynamicDataSource.getResolvedDataSources();
-
-        // Cria um novo mapa mutável a partir do mapa atual
-        Map<Object, Object> newDataSources = new HashMap<>(currentResolved);
-
-        // Adiciona o novo tenant ao mapa mutável
-        newDataSources.put(tenantId, newDataSource);
-
-        // Atualiza o DynamicDataSource com o novo mapa
-        dynamicDataSource.setTargetDataSources(newDataSources);
-        dynamicDataSource.afterPropertiesSet(); // Recarrega as configurações internas
+        DynamicDataSource dynamicDataSource = (DynamicDataSource) dynamicDataSourceBean;
+        DataSource newTenantDataSource = createHikariDataSource(jdbcUrl, username, password);
+        Map<Object, DataSource> currentResolvedDataSources = dynamicDataSource.getResolvedDataSources();
+        Map<Object, Object> newTargetDataSources = new HashMap<>();
+        if (currentResolvedDataSources != null) {
+            newTargetDataSources.putAll(currentResolvedDataSources);
+        }
+        newTargetDataSources.put(tenantId, newTenantDataSource);
+        dynamicDataSource.setTargetDataSources(newTargetDataSources);
+        dynamicDataSource.afterPropertiesSet();
     }
 
-    private DataSource createDataSource(String url, int port, String username, String password) {
+    private DataSource createHikariDataSource(String jdbcUrl, String username, String password) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(url);
+        config.setJdbcUrl(jdbcUrl);
         config.setUsername(username);
         config.setPassword(password);
         return new HikariDataSource(config);

@@ -7,14 +7,16 @@ import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -30,8 +32,22 @@ public class CompanyService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private DataSource dataSource;
+    @Qualifier("dataSource")
+    private DataSource dynamicDataSourceBean; 
 
+    @Value("${tenant.datasource.base-url}")
+    private String tenantDbBaseUrl;
+
+    @Value("${tenant.datasource.port}")
+    private int tenantDbPort;
+
+    @Value("${tenant.datasource.username}")
+    private String tenantDbUsername;
+
+    @Value("${tenant.datasource.password}")
+    private String tenantDbPassword;
+
+    @Transactional
     public CompanyResponseDTO registerCompany(CompanyRequestDTO dto) throws IOException {
         if (companyRepository.existsByEmail(dto.email())) {
             throw new BusinessException("Este email já está cadastrado.");
@@ -39,43 +55,43 @@ public class CompanyService {
         if (companyRepository.existsByCnpj(dto.cnpj())) {
             throw new BusinessException("Este CNPJ já está cadastrado.");
         }
+
         String databaseName = "company_" + dto.name().toLowerCase().replace(" ", "_");
-        if (!(dataSource instanceof DynamicDataSource)) {
-            throw new IllegalStateException("DataSource não é DynamicDataSource!");
+
+        if (!(dynamicDataSourceBean instanceof DynamicDataSource)) {
+            throw new IllegalStateException("DataSource injetado não é DynamicDataSource!");
         }
-        DynamicDataSource dynamicDataSource = (DynamicDataSource) dataSource;
-        Map<Object, DataSource> tenants = (Map<Object, DataSource>) dynamicDataSource.getResolvedDataSources();
-        if (tenants.containsKey(databaseName)) {
+        DynamicDataSource actualDynamicDataSource = (DynamicDataSource) dynamicDataSourceBean;
+        Map<Object, DataSource> resolvedDataSources = actualDynamicDataSource.getResolvedDataSources();
+        if (resolvedDataSources != null && resolvedDataSources.containsKey(databaseName)) {
             throw new BusinessException("Já existe um tenant registrado com o nome " + databaseName);
         }
+        
         try {
             databaseService.createDatabase(databaseName);
         } catch (DataAccessException e) {
-            throw new BusinessException("Erro ao criar o banco de dados: " + e.getMostSpecificCause().getMessage(), e);
+            throw new BusinessException("Erro ao criar o banco de dados para o tenant '" + databaseName + "': " + e.getMostSpecificCause().getMessage(), e);
         }
 
-        // 4. Initialize schema
         InputStream schemaStream = getClass().getClassLoader().getResourceAsStream("schema.sql");
         if (schemaStream == null) {
-            throw new BusinessException("schema.sql não encontrado em resources!");
+            throw new BusinessException("schema.sql não encontrado no classpath!");
         }
         databaseService.initializeSchema(databaseName, schemaStream);
 
-        // 5. Adicionar o novo banco ao DynamicDataSource
-        String databaseUrl = "jdbc:mysql://localhost/" + databaseName;
-        databaseService.addTenant(databaseName, databaseUrl, 3306, "root", "root");
+        String cleanBaseUrl = tenantDbBaseUrl.endsWith("/") ? tenantDbBaseUrl.substring(0, tenantDbBaseUrl.length() -1) : tenantDbBaseUrl;
+        String tenantJdbcUrl = cleanBaseUrl + "/" + databaseName + "?useSSL=false&allowPublicKeyRetrieval=true"; 
 
-        // 6. Salvar a empresa no banco principal
+        databaseService.addTenant(databaseName, tenantJdbcUrl, tenantDbUsername, tenantDbPassword);
+
         Company company = new Company();
         company.setName(dto.name());
         company.setEmail(dto.email());
         company.setCnpj(dto.cnpj());
         company.setPassword(passwordEncoder.encode(dto.password()));
-        company.setDatabaseUrl(databaseUrl);
-        company.setDatabasePort(3306);
-        company.setDatabaseName(databaseName);
-        company.setCreatedAt(Instant.now());
-        company.setUpdatedAt(Instant.now());
+        company.setDatabaseUrl(tenantJdbcUrl); 
+        company.setDatabasePort(tenantDbPort); 
+        company.setDatabaseName(databaseName); 
 
         companyRepository.save(company);
         return entityToResponseDTO(company);
@@ -89,7 +105,7 @@ public class CompanyService {
             entity.getName(),
             entity.getEmail(),
             entity.getCnpj(),
-            entity.getPassword()
+            null 
         );
     }
 }
