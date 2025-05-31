@@ -1,5 +1,7 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -21,6 +23,8 @@ public class Company extends BaseEntity{
 
     @Column(unique = true)
     private String databaseName;
+
+    private Instant lastActivityAt;
 
     public Company() {
     }
@@ -79,5 +83,13 @@ public class Company extends BaseEntity{
 
     public void setDatabaseName(String databaseName) {
         this.databaseName = databaseName;
+    }
+
+    public Instant getLastActivityAt() {
+        return lastActivityAt;
+    }
+
+    public void setLastActivityAt(Instant lastActivityAt) {
+        this.lastActivityAt = lastActivityAt;
     }
 }

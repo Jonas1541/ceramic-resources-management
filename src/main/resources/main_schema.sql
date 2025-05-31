@@ -2,6 +2,7 @@ CREATE TABLE tb_company (
   id bigint NOT NULL AUTO_INCREMENT,
   cnpj varchar(255) DEFAULT NULL UNIQUE,
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  last_activity_at datetime DEFAULT NULL,
   database_port int DEFAULT NULL,
   database_name varchar(255) DEFAULT NULL,
   database_url varchar(255) DEFAULT NULL,

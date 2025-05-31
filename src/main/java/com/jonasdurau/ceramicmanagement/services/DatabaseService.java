@@ -4,6 +4,8 @@ import com.jonasdurau.ceramicmanagement.config.DynamicDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class DatabaseService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
 
     private final JdbcTemplate mainJdbcTemplate;
 
@@ -98,5 +102,39 @@ public class DatabaseService {
         config.setUsername(username);
         config.setPassword(password);
         return new HikariDataSource(config);
+    }
+
+    public void dropTenantDatabase(String databaseName) {
+        logger.warn("Iniciando processo de exclusão para o banco de dados do tenant: {}", databaseName);
+        String dropDatabaseSql = "DROP DATABASE IF EXISTS `" + databaseName + "`";
+        try {
+            mainJdbcTemplate.execute(dropDatabaseSql);
+            logger.info("Banco de dados do tenant {} dropado com sucesso do servidor MySQL.", databaseName);
+        } catch (Exception e) {
+            logger.error("Falha ao dropar o banco de dados {} do servidor MySQL: {}", databaseName, e.getMessage(), e);
+            throw new RuntimeException("Falha ao dropar o banco de dados " + databaseName + " do servidor.", e);
+        }
+        if (dynamicDataSourceBean instanceof DynamicDataSource) {
+            DynamicDataSource dynamicDataSource = (DynamicDataSource) dynamicDataSourceBean;
+            Map<Object, DataSource> currentResolvedDataSources = dynamicDataSource.getResolvedDataSources();
+            if (currentResolvedDataSources != null && currentResolvedDataSources.containsKey(databaseName)) {
+                Map<Object, Object> newTargetDataSources = new HashMap<>(currentResolvedDataSources);
+                Object removedDataSourceObject = newTargetDataSources.remove(databaseName);
+                dynamicDataSource.setTargetDataSources(newTargetDataSources);
+                dynamicDataSource.afterPropertiesSet(); // Recarrega as configurações do DynamicDataSource
+                logger.info("DataSource para o tenant {} removido do DynamicDataSource.", databaseName);
+                if (removedDataSourceObject instanceof HikariDataSource) {
+                    HikariDataSource hikariDs = (HikariDataSource) removedDataSourceObject;
+                    if (!hikariDs.isClosed()) {
+                        hikariDs.close();
+                        logger.info("Pool de conexões Hikari para o tenant {} fechado.", databaseName);
+                    }
+                }
+            } else {
+                logger.warn("DataSource para o tenant {} não foi encontrado no DynamicDataSource para remoção (pode já ter sido removido ou nunca existiu).", databaseName);
+            }
+        } else {
+            logger.error("dynamicDataSourceBean não é uma instância de DynamicDataSource. Não é possível remover o tenant {}.", databaseName);
+        }
     }
 }
