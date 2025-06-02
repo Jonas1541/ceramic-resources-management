@@ -1,4 +1,4 @@
-package com.jonasdurau.ceramicmanagement.repositories;
+package com.jonasdurau.ceramicmanagement.repositories.main;
 
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +21,6 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     @Query("SELECT c FROM Company c WHERE (c.lastActivityAt < :cutoffDate) OR (c.lastActivityAt IS NULL AND c.createdAt < :cutoffDate)")
     List<Company> findInactiveCompanies(@Param("cutoffDate") Instant cutoffDate);
+
+    List<Company> findByMarkedForDeletionTrueAndDeletionScheduledAtBefore(Instant date);
 }

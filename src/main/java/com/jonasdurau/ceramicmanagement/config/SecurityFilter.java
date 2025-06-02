@@ -3,7 +3,8 @@ package com.jonasdurau.ceramicmanagement.config;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
 import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository; 
+import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,7 +52,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Token inválido\",\"message\":\"" + ex.getMessage() + "\"}");
         } finally {
-            TenantContext.clear();
+            //TenantContext.clear();
         }
     }
 

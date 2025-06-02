@@ -137,4 +137,9 @@ public class DatabaseService {
             logger.error("dynamicDataSourceBean não é uma instância de DynamicDataSource. Não é possível remover o tenant {}.", databaseName);
         }
     }
+
+
+    public DynamicDataSource getDynamicDataSource() {
+        return (DynamicDataSource) dynamicDataSourceBean;
+    }
 }

@@ -59,7 +59,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     private ResourceTransactionRepository resourceTransactionRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<BatchListDTO> findAll() {
         List<Batch> list = batchRepository.findAll();
         return list.stream()
@@ -73,7 +73,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public BatchResponseDTO findById(Long id) {
         Batch batch = batchRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
@@ -81,7 +81,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public BatchResponseDTO create(BatchRequestDTO dto) {
         Batch batch = new Batch();
         for (BatchResourceUsageRequestDTO resourceUsageDTO : dto.resourceUsages()) {
@@ -130,7 +130,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public BatchResponseDTO update(Long id, BatchRequestDTO dto) {
         Batch batch = batchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
@@ -240,14 +240,14 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Batch batch = batchRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
         batchRepository.delete(batch);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport() {
         List<Batch> batches = batchRepository.findAll();
         ZoneId zone = ZoneId.systemDefault();

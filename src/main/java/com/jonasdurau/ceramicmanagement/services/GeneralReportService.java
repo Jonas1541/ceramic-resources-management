@@ -53,7 +53,7 @@ public class GeneralReportService {
     @Autowired
     private DryingSessionRepository dryingSessionRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> generalYearlyReport() {
         ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, BigDecimal>> inputMap = new HashMap<>();

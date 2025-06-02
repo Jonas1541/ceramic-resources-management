@@ -27,7 +27,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     private ResourceRepository resourceRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ResourceTransactionResponseDTO> findAllByParentId(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
@@ -36,7 +36,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ResourceTransactionResponseDTO findById(Long resourceId, Long transactionId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
@@ -46,7 +46,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ResourceTransactionResponseDTO create(Long resourceId, ResourceTransactionRequestDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
@@ -61,7 +61,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ResourceTransactionResponseDTO update(Long resourceId, Long transactionId, ResourceTransactionRequestDTO dto) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
@@ -76,7 +76,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long resourceId, Long transactionId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));

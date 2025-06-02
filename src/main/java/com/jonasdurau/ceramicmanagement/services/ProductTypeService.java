@@ -25,14 +25,14 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeRes
     private ProductRepository productRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTypeResponseDTO> findAll() {
         List<ProductType> list = productTypeRepository.findAll();
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ProductTypeResponseDTO findById(Long id) {
         ProductType entity = productTypeRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. Id: " + id));
@@ -40,7 +40,7 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductTypeResponseDTO create(ProductTypeRequestDTO dto) {
         if(productTypeRepository.existsByName(dto.name())) {
             throw new BusinessException("O nome " + dto.name() + " já existe.");
@@ -52,7 +52,7 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductTypeResponseDTO update(Long id, ProductTypeRequestDTO dto) {
         ProductType entity = productTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. id: " + id));
@@ -67,7 +67,7 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         ProductType entity = productTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. Id " + id));

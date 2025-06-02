@@ -28,7 +28,7 @@ public class ProductTransactionService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException("Produto não encontrado. Id: " + productId));
@@ -36,13 +36,13 @@ public class ProductTransactionService {
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByState(ProductState state) {
         List<ProductTransaction> list = transactionRepository.findByState(state);
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ProductTransactionResponseDTO findById(Long productId, Long transactionId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
@@ -51,7 +51,7 @@ public class ProductTransactionService {
         return entityToResponseDTO(transaction);
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public List<ProductTransactionResponseDTO> create(Long productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
@@ -66,7 +66,7 @@ public class ProductTransactionService {
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long productId, Long transactionId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
@@ -81,7 +81,7 @@ public class ProductTransactionService {
         transactionRepository.delete(entity);
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductTransactionResponseDTO outgoing(Long productId, Long transactionId, ProductOutgoingReason outgoingReason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));

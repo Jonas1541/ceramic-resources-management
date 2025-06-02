@@ -36,14 +36,14 @@ public class MachineService implements IndependentCrudService<MachineResponseDTO
     private GlazeService glazeService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<MachineResponseDTO> findAll() {
         List<Machine> list = machineRepository.findAll();
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public MachineResponseDTO findById(Long id) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
@@ -51,7 +51,7 @@ public class MachineService implements IndependentCrudService<MachineResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public MachineResponseDTO create(MachineRequestDTO dto) {
         if(machineRepository.existsByName(dto.name())) {
             throw new BusinessException("O nome '" + dto.name() + "' já existe.");
@@ -64,7 +64,7 @@ public class MachineService implements IndependentCrudService<MachineResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public MachineResponseDTO update(Long id, MachineRequestDTO dto) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));
@@ -81,7 +81,7 @@ public class MachineService implements IndependentCrudService<MachineResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Machine entity = machineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + id));

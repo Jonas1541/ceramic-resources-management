@@ -36,7 +36,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     private ResourceRepository resourceRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<GlazeTransactionResponseDTO> findAllByParentId(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -46,7 +46,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public GlazeTransactionResponseDTO findById(Long glazeId, Long transactionId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -58,7 +58,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeTransactionResponseDTO create(Long glazeId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -79,7 +79,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         return entityToResponseDTO(entity);
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeTransaction createEntity(Long glazeId, double quantity) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -98,7 +98,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeTransactionResponseDTO update(Long glazeId, Long transactionId, GlazeTransactionRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
@@ -123,7 +123,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long glazeId, Long transactionId) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));

@@ -46,7 +46,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     private DryingSessionRepository dryingSessionRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<DryingRoomListDTO> findAll() {
         List<DryingRoom> list = dryingRoomRepository.findAll();
         return list.stream().map(
@@ -61,7 +61,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public DryingRoomResponseDTO findById(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
@@ -69,7 +69,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public DryingRoomResponseDTO create(DryingRoomRequestDTO dto) {
         DryingRoom entity = new DryingRoom();
         if(dryingRoomRepository.existsByName(dto.name())) {
@@ -87,7 +87,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public DryingRoomResponseDTO update(Long id, DryingRoomRequestDTO dto) {
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
@@ -115,7 +115,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
@@ -126,7 +126,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
         dryingRoomRepository.delete(entity);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport(Long dryingRoomId) {
         DryingRoom dryingRoom = dryingRoomRepository.findById(dryingRoomId)
                 .orElseThrow(() -> new ResourceNotFoundException("DryingRoom not found: " + dryingRoomId));

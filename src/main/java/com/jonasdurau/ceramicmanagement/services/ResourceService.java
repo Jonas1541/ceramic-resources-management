@@ -52,7 +52,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     private GlazeService glazeService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ResourceListDTO> findAll() {
         List<Resource> list = resourceRepository.findAll();
         return list.stream()
@@ -72,7 +72,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ResourceResponseDTO findById(Long id) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
@@ -80,7 +80,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ResourceResponseDTO create(ResourceRequestDTO dto) {
         if (resourceRepository.existsByName(dto.name())) {
             throw new BusinessException("O nome '" + dto.name() + "' já existe.");
@@ -97,7 +97,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ResourceResponseDTO update(Long id, ResourceRequestDTO dto) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
@@ -118,7 +118,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
@@ -150,7 +150,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
         );
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public List<YearReportDTO> yearlyReport(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + resourceId));

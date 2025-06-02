@@ -42,14 +42,14 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     private GlazeFiringRepository glazeFiringRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<KilnResponseDTO> findAll() {
         List<Kiln> list = kilnRepository.findAll();
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public KilnResponseDTO findById(Long id) {
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + id));
@@ -57,7 +57,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public KilnResponseDTO create(KilnRequestDTO dto) {
         Kiln entity = new Kiln();
         entity.setName(dto.name());
@@ -67,7 +67,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public KilnResponseDTO update(Long id, KilnRequestDTO dto) {
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. id: " + id));
@@ -78,7 +78,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + id));
@@ -90,7 +90,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
         kilnRepository.delete(entity);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport(Long kilnId) {
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kiln not found: " + kilnId));

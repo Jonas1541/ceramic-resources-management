@@ -1,7 +1,7 @@
 package com.jonasdurau.ceramicmanagement.config;
 
 import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
+import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
 import com.jonasdurau.ceramicmanagement.services.DatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

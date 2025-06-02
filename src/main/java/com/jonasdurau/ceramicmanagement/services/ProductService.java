@@ -47,14 +47,14 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     private ProductTransactionRepository transactionRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductResponseDTO> findAll() {
         List<Product> list = productRepository.findAll();
         return list.stream().map(this::entityToDTO).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ProductResponseDTO findById(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
@@ -62,7 +62,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductResponseDTO create(ProductRequestDTO dto) {
         Product entity = new Product();
         entity.setName(dto.name());
@@ -81,7 +81,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
@@ -101,7 +101,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
@@ -112,7 +112,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
         productRepository.delete(entity);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));

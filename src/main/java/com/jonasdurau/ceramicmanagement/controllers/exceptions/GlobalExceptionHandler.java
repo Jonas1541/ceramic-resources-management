@@ -88,4 +88,34 @@ public class GlobalExceptionHandler {
         // senão, retorna um genérico
         throw ex;
     }
+
+    @ExceptionHandler(PartialCleanupFailureException.class)
+    public ResponseEntity<PartialCleanupError> handlePartialFailure(PartialCleanupFailureException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.MULTI_STATUS; // 207
+        
+        PartialCleanupError err = new PartialCleanupError(
+            Instant.now(),
+            status.value(),
+            "Partial Cleanup Failure",
+            ex.getMessage(),
+            request.getRequestURI(),
+            ex.getSuccessCount(),
+            ex.getFailureCount()
+        );
+        
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(CleanupJobException.class)
+    public ResponseEntity<StandardError> handleCleanupJobException(CleanupJobException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        StandardError err = new StandardError(
+            Instant.now(),
+            status.value(),
+            "Cleanup Job Failure",
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(err);
+    }
 }

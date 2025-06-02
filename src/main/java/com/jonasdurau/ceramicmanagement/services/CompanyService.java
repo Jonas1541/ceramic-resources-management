@@ -3,13 +3,19 @@ package com.jonasdurau.ceramicmanagement.services;
 import com.jonasdurau.ceramicmanagement.config.DynamicDataSource;
 import com.jonasdurau.ceramicmanagement.dtos.request.CompanyRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.CompanyResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.DeletionStatusResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Company;
+import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 @Service
 public class CompanyService {
 
     @Autowired
-    private CompanyRepository companyRepository;
+    private CompanyRepository companyRepository; // Repositório do main_db
 
     @Autowired
     private DatabaseService databaseService;
@@ -33,7 +41,10 @@ public class CompanyService {
 
     @Autowired
     @Qualifier("dataSource")
-    private DataSource dynamicDataSourceBean; 
+    private DataSource dynamicDataSourceBean;
+
+    @PersistenceContext(unitName = "main_db")
+    private EntityManager mainEntityManager; // EntityManager específico para main_db
 
     @Value("${tenant.datasource.base-url}")
     private String tenantDbBaseUrl;
@@ -47,7 +58,9 @@ public class CompanyService {
     @Value("${tenant.datasource.password}")
     private String tenantDbPassword;
 
-    @Transactional
+    private static final int DELETION_GRACE_PERIOD_DAYS = 30;
+
+    @Transactional(transactionManager = "mainTransactionManager") // Especifica o transaction manager para main_db
     public CompanyResponseDTO registerCompany(CompanyRequestDTO dto) throws IOException {
         if (companyRepository.existsByEmail(dto.email())) {
             throw new BusinessException("Este email já está cadastrado.");
@@ -95,6 +108,53 @@ public class CompanyService {
 
         companyRepository.save(company);
         return entityToResponseDTO(company);
+    }
+
+    @Transactional(transactionManager = "mainTransactionManager") // Especifica o transaction manager para main_db
+    public void scheduleCurrentCompanyDeletion() {
+        Company principal = (Company) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        Company managedCompany = companyRepository.findById(principal.getId())
+                .orElseThrow(() -> new BusinessException("Empresa não encontrada"));
+        
+        if (managedCompany.isMarkedForDeletion()) {
+            throw new BusinessException("A exclusão desta conta já está agendada.");
+        }
+        
+        managedCompany.setMarkedForDeletion(true);
+        managedCompany.setDeletionScheduledAt(Instant.now().plus(DELETION_GRACE_PERIOD_DAYS, ChronoUnit.DAYS));
+        
+        companyRepository.save(managedCompany);
+    }
+
+    @Transactional(transactionManager = "mainTransactionManager") // Especifica o transaction manager para main_db
+    public void cancelCurrentCompanyDeletion() {
+        Company principal = (Company) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        Company managedCompany = companyRepository.findById(principal.getId())
+                .orElseThrow(() -> new BusinessException("Empresa não encontrada"));
+        
+        if (!managedCompany.isMarkedForDeletion()) {
+            throw new BusinessException("A exclusão desta conta não está agendada");
+        }
+
+        managedCompany.setMarkedForDeletion(false);
+        managedCompany.setDeletionScheduledAt(null);
+        
+        companyRepository.save(managedCompany);
+    }
+
+    @Transactional(transactionManager = "mainTransactionManager", readOnly = true) // Especifica o transaction manager para main_db
+    public DeletionStatusResponseDTO getCurrentCompanyDeletionStatus() {
+        Company principal = (Company) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        Company managedCompany = companyRepository.findById(principal.getId())
+                .orElseThrow(() -> new BusinessException("Empresa não encontrada"));
+        
+        return new DeletionStatusResponseDTO(
+            managedCompany.isMarkedForDeletion(),
+            managedCompany.getDeletionScheduledAt()
+        );
     }
 
     private CompanyResponseDTO entityToResponseDTO(Company entity) {

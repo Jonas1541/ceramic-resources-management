@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.config.TenantContext;
 import com.jonasdurau.ceramicmanagement.config.TokenService;
 import com.jonasdurau.ceramicmanagement.entities.Company;
+import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidCredentialsException;
 import com.jonasdurau.ceramicmanagement.dtos.LoginDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.TokenResponseDTO;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
 
 @Service
 public class AuthService {
@@ -27,7 +27,7 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public TokenResponseDTO login(LoginDTO dto) {
         TenantContext.clear(); 
         Company company = companyRepository.findByEmail(dto.email())

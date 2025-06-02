@@ -68,7 +68,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<GlazeListDTO> findAll() {
         List<Glaze> entities = glazeRepository.findAll();
         return entities.stream()
@@ -86,7 +86,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public GlazeResponseDTO findById(Long id) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
@@ -94,7 +94,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeResponseDTO create(GlazeRequestDTO dto) {
         Glaze glaze = new Glaze();
         glaze.setColor(dto.color());
@@ -123,7 +123,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeResponseDTO update(Long id, GlazeRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
@@ -180,7 +180,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
@@ -192,7 +192,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         glazeRepository.delete(glaze);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrada: " + glazeId));
@@ -306,7 +306,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void recalculateGlazesByResource(Long resourceId) {
         List<GlazeResourceUsage> usages = glazeResourceUsageRepository.findByResourceId(resourceId);
         List<Glaze> glazes = usages.stream()
@@ -319,7 +319,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         }
     }
 
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void recalculateGlazesByMachine(Long machineId) {
         List<GlazeMachineUsage> usages = glazeMachineUsageRepository.findByMachineId(machineId);
         List<Glaze> glazes = usages.stream()

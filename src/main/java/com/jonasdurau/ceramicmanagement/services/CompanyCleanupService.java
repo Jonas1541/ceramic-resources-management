@@ -1,8 +1,10 @@
 package com.jonasdurau.ceramicmanagement.services;
 
-import com.jonasdurau.ceramicmanagement.config.TenantContext;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.CleanupJobException;
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.PartialCleanupFailureException;
+import com.jonasdurau.ceramicmanagement.dtos.response.CleanupResultDTO;
 import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.CompanyRepository;
+import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,30 +27,92 @@ public class CompanyCleanupService {
     @Autowired
     private DatabaseService databaseService;
 
-    @Transactional
-    public void deleteInactiveCompanies() {
-        TenantContext.clear();
-        logger.info("Iniciando job de limpeza de empresas inativas...");
-        Instant cutoffDate = Instant.now().minus(365, ChronoUnit.DAYS);
-        List<Company> inactiveCompanies = companyRepository.findInactiveCompanies(cutoffDate);
-        if (inactiveCompanies.isEmpty()) {
-            logger.info("Nenhuma empresa inativa encontrada para exclusão.");
-            return;
-        }
-        logger.info("Encontradas {} empresas inativas para possível exclusão.", inactiveCompanies.size());
-        for (Company company : inactiveCompanies) {
-            logger.warn("Processando exclusão por inatividade para a empresa: {} (ID: {}, Email: {}, Última Atividade: {}, Criada em: {})",
-                    company.getName(), company.getId(), company.getEmail(), company.getLastActivityAt(), company.getCreatedAt());
-            try {
-                databaseService.dropTenantDatabase(company.getDatabaseName());
-                companyRepository.delete(company);
-                logger.info("Empresa inativa {} (ID: {}) e seu banco de dados foram excluídos com sucesso.", company.getName(), company.getId());
-                // Opcional: Enviar um email informando sobre a exclusão (se houver um email de contato válido e política para isso)
-            } catch (Exception e) {
-                logger.error("Falha ao processar a exclusão da empresa inativa {} (ID: {}): {}",
-                        company.getName(), company.getId(), e.getMessage(), e);
+    @Transactional(transactionManager = "mainTransactionManager")
+    public CleanupResultDTO deleteInactiveCompanies() {
+        try {
+            logger.info("Iniciando job de limpeza de empresas inativas...");
+            Instant cutoffDate = Instant.now().minus(365, ChronoUnit.DAYS);
+            List<Company> inactiveCompanies = companyRepository.findInactiveCompanies(cutoffDate);
+            
+            if (inactiveCompanies.isEmpty()) {
+                String msg = "Nenhuma empresa inativa encontrada para exclusão.";
+                logger.info(msg);
+                return new CleanupResultDTO(0, 0, msg);
             }
+            
+            logger.info("Encontradas {} empresas inativas para possível exclusão.", inactiveCompanies.size());
+            
+            List<Company> deletionFailures = new ArrayList<>();
+            
+            for (Company company : inactiveCompanies) {
+                try {
+                    databaseService.dropTenantDatabase(company.getDatabaseName());
+                    companyRepository.delete(company);
+                } catch (Exception e) {
+                    logger.error("Falha ao processar exclusão da empresa {}", company.getName(), e);
+                    deletionFailures.add(company);
+                }
+            }
+            
+            if (!deletionFailures.isEmpty()) {
+                int successCount = inactiveCompanies.size() - deletionFailures.size();
+                int failureCount = deletionFailures.size();
+                String errorMessage = String.format("Falha ao excluir %d empresas.", failureCount);
+                throw new PartialCleanupFailureException(successCount, failureCount, errorMessage);
+            }
+            
+            String message = String.format("Job de limpeza concluído. Excluídas: %d", inactiveCompanies.size());
+            logger.info(message);
+            return new CleanupResultDTO(inactiveCompanies.size(), 0, message);
+            
+        } catch (Exception e) {
+            logger.error("Erro catastrófico durante o job de limpeza de empresas inativas", e);
+            throw new CleanupJobException("Falha geral no job de limpeza: " + e.getMessage(), e);
         }
-        logger.info("Job de limpeza de empresas inativas concluído.");
+    }
+
+    @Transactional(transactionManager = "mainTransactionManager")
+    public CleanupResultDTO deleteScheduledCompanies() {
+        try {
+            logger.info("Iniciando job de exclusão de contas agendadas...");
+            
+            Instant now = Instant.now();
+            List<Company> companiesToDelete = companyRepository.findByMarkedForDeletionTrueAndDeletionScheduledAtBefore(now);
+            
+            if (companiesToDelete.isEmpty()) {
+                String msg = "Nenhuma conta agendada para exclusão encontrada.";
+                logger.info(msg);
+                return new CleanupResultDTO(0, 0, msg);
+            }
+            
+            logger.info("Encontradas {} contas agendadas para exclusão.", companiesToDelete.size());
+            
+            List<Company> deletionFailures = new ArrayList<>();
+            
+            for (Company company : companiesToDelete) {
+                try {
+                    databaseService.dropTenantDatabase(company.getDatabaseName());
+                    companyRepository.delete(company);
+                } catch (Exception e) {
+                    logger.error("Falha ao excluir conta {}", company.getEmail(), e);
+                    deletionFailures.add(company);
+                }
+            }
+            
+            if (!deletionFailures.isEmpty()) {
+                int successCount = companiesToDelete.size() - deletionFailures.size();
+                int failureCount = deletionFailures.size();
+                String errorMessage = String.format("Falha ao excluir %d contas.", failureCount);
+                throw new PartialCleanupFailureException(successCount, failureCount, errorMessage);
+            }
+            
+            String message = String.format("Job de exclusão de contas concluído. Excluídas: %d", companiesToDelete.size());
+            logger.info(message);
+            return new CleanupResultDTO(companiesToDelete.size(), 0, message);
+            
+        } catch (Exception e) {
+            logger.error("Erro catastrófico durante o job de exclusão de contas agendadas", e);
+            throw new CleanupJobException("Falha geral no job de exclusão: " + e.getMessage(), e);
+        }
     }
 }

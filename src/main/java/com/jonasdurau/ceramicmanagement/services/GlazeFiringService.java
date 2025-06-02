@@ -60,7 +60,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     private FiringMachineUsageRepository machineUsageRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<FiringListDTO> findAllByParentId(Long kilnId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
@@ -81,7 +81,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public GlazeFiringResponseDTO findById(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
@@ -92,7 +92,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeFiringResponseDTO create(Long kilnId, GlazeFiringRequestDTO dto) {
         GlazeFiring entity = new GlazeFiring();
         entity.setTemperature(dto.temperature());
@@ -138,7 +138,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public GlazeFiringResponseDTO update(Long kilnId, Long firingId, GlazeFiringRequestDTO dto) {
         if (!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId);
@@ -207,7 +207,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     }
     
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long kilnId, Long firingId) {
         if(!kilnRepository.existsById(kilnId)) {
             throw new ResourceNotFoundException("Forno não encontrado. id: " + kilnId);

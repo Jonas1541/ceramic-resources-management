@@ -10,5 +10,7 @@ CREATE TABLE tb_company (
   name varchar(255) DEFAULT NULL,
   password varchar(255) DEFAULT NULL,
   updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  marked_for_deletion BOOLEAN NOT NULL DEFAULT FALSE,
+  deletion_scheduled_at DATETIME DEFAULT NULL
   PRIMARY KEY (id)
 ) ENGINE=InnoDB

@@ -32,7 +32,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
     private ResourceRepository resourceRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<DryingSessionResponseDTO> findAllByParentId(Long roomId) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
@@ -40,7 +40,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public DryingSessionResponseDTO findById(Long roomId, Long sessionId) {
         if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);
@@ -51,7 +51,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public DryingSessionResponseDTO create(Long roomId, DryingSessionRequestDTO dto) {
         DryingRoom room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId));
@@ -64,7 +64,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public DryingSessionResponseDTO update(Long roomId, Long sessionId, DryingSessionRequestDTO dto) {
         if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);
@@ -78,7 +78,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long roomId, Long sessionId) {
         if(!roomRepository.existsById(roomId)) {
             throw new ResourceNotFoundException("Estufa não encontrada. Id: " + roomId);

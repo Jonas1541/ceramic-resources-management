@@ -25,14 +25,14 @@ public class ProductLineService implements IndependentCrudService<ProductLineRes
     private ProductRepository productRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductLineResponseDTO> findAll() {
         List<ProductLine> list = productLineRepository.findAll();
         return list.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public ProductLineResponseDTO findById(Long id) {
         ProductLine entity = productLineRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. Id: " + id));
@@ -40,7 +40,7 @@ public class ProductLineService implements IndependentCrudService<ProductLineRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductLineResponseDTO create(ProductLineRequestDTO dto) {
         if(productLineRepository.existsByName(dto.name())) {
             throw new BusinessException("O nome " + dto.name() + " já existe.");
@@ -52,7 +52,7 @@ public class ProductLineService implements IndependentCrudService<ProductLineRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductLineResponseDTO update(Long id, ProductLineRequestDTO dto) {
         ProductLine entity = productLineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. id: " + id));
@@ -67,7 +67,7 @@ public class ProductLineService implements IndependentCrudService<ProductLineRes
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         ProductLine entity = productLineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. Id " + id));
