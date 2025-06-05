@@ -13,4 +13,4 @@ CREATE TABLE tb_company (
   marked_for_deletion BOOLEAN NOT NULL DEFAULT FALSE,
   deletion_scheduled_at DATETIME DEFAULT NULL,
   PRIMARY KEY (id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB;
