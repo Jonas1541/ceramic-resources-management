@@ -55,11 +55,12 @@ public class DatabaseService {
         DataSource tenantSpecificDataSource = createDataSourceForNewTenantDB(databaseName);
         InputStreamResource resource = new InputStreamResource(schemaStream);
         try (Connection connection = tenantSpecificDataSource.getConnection()) {
+            connection.setCatalog(databaseName);
             ScriptUtils.executeSqlScript(connection, resource);
             logger.info("Schema para o tenant {} inicializado com sucesso.", databaseName);
         } catch (Exception e) {
             logger.error("Falha ao inicializar o schema para o tenant {}: {}", databaseName, e.getMessage(), e);
-            dropTenantDatabase(databaseName);
+            dropTenantDatabase(databaseName); 
             throw new IOException("Falha ao executar schema.sql", e);
         } finally {
             if (tenantSpecificDataSource instanceof com.zaxxer.hikari.HikariDataSource) {
