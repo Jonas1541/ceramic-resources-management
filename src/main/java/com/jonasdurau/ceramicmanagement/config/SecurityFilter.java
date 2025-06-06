@@ -4,22 +4,29 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenExcep
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
 import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
-
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Collections;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(SecurityFilter.class);
 
     @Autowired
     private TokenService tokenService;
@@ -27,32 +34,41 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     private CompanyRepository companyRepository;
 
+    @Autowired
+    @Qualifier("dataSource")
+    private DataSource dynamicDataSource;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
+        String tenantId = null;
         try {
             if (token != null) {
-                String email = tokenService.getEmailFromToken(token);   
-                TenantContext.clear(); 
+                String email = tokenService.getEmailFromToken(token);
                 Company company = companyRepository.findByEmail(email).orElse(null);
                 if (company != null) {
-                    TenantContext.setCurrentTenant(company.getDatabaseName());
-                    var authentication = new UsernamePasswordAuthenticationToken(company, null, Collections.emptyList());                    
+                    tenantId = company.getDatabaseName();
+                    TenantContext.setCurrentTenant(tenantId);
+                    logger.info("SecurityFilter: Contexto do tenant definido para '{}' no request para '{}'", tenantId, request.getRequestURI());
+                    try (Connection connection = dynamicDataSource.getConnection();
+                         Statement statement = connection.createStatement()) {
+                        statement.execute("USE `" + tenantId + "`");
+                    } catch (Exception e) {
+                        logger.error("Falha ao preparar a conexão para o tenant '{}'", tenantId, e);
+                    }
+                    var authentication = new UsernamePasswordAuthenticationToken(company, null, Collections.emptyList());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
             filterChain.doFilter(request, response);
-        } catch (ExpiredTokenException ex) {
+        } catch (ExpiredTokenException | InvalidTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Token Expirado\",\"message\":\"" + ex.getMessage() + "\"}");
-        } catch (InvalidTokenException ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Token inválido\",\"message\":\"" + ex.getMessage() + "\"}");
+            response.getWriter().write("{\"error\":\"Token inválido ou expirado\",\"message\":\"" + ex.getMessage() + "\"}");
         } finally {
-            //TenantContext.clear();
+            if (tenantId != null) {
+                TenantContext.clear();
+            }
         }
     }
 
