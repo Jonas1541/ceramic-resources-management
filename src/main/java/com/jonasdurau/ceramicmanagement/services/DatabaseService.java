@@ -9,17 +9,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class DatabaseService {
@@ -53,19 +53,17 @@ public class DatabaseService {
 
     public void initializeSchema(String databaseName, InputStream schemaStream) throws IOException {
         DataSource tenantSpecificDataSource = createDataSourceForNewTenantDB(databaseName);
-        JdbcTemplate newDbTemplate = new JdbcTemplate(tenantSpecificDataSource);
-        String sqlScript;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(schemaStream))) {
-            sqlScript = reader.lines().collect(Collectors.joining("\n"));
-        }
-        if (sqlScript == null || sqlScript.trim().isEmpty()) {
-            throw new IllegalArgumentException("O script SQL do schema está vazio.");
-        }
-        String[] sqlStatements = sqlScript.split(";");
-        for (String statement : sqlStatements) {
-            String trimmedStatement = statement.trim();
-            if (!trimmedStatement.isEmpty()) {
-                newDbTemplate.execute(trimmedStatement);
+        InputStreamResource resource = new InputStreamResource(schemaStream);
+        try (Connection connection = tenantSpecificDataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection, resource);
+            logger.info("Schema para o tenant {} inicializado com sucesso.", databaseName);
+        } catch (Exception e) {
+            logger.error("Falha ao inicializar o schema para o tenant {}: {}", databaseName, e.getMessage(), e);
+            dropTenantDatabase(databaseName);
+            throw new IOException("Falha ao executar schema.sql", e);
+        } finally {
+            if (tenantSpecificDataSource instanceof com.zaxxer.hikari.HikariDataSource) {
+                ((com.zaxxer.hikari.HikariDataSource) tenantSpecificDataSource).close();
             }
         }
     }
