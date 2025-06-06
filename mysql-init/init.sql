@@ -1,4 +1,10 @@
-CREATE TABLE tb_company (
+-- Arquivo: mysql-init/init.sql
+
+-- Cria a tabela tb_company se ela não existir no banco de dados 'main_db'.
+-- O docker-compose já cria o banco 'main_db', então podemos usá-lo diretamente.
+USE main_db;
+
+CREATE TABLE IF NOT EXISTS tb_company (
   id bigint NOT NULL AUTO_INCREMENT,
   cnpj varchar(255) DEFAULT NULL UNIQUE,
   created_at datetime DEFAULT CURRENT_TIMESTAMP,
@@ -14,3 +20,8 @@ CREATE TABLE tb_company (
   deletion_scheduled_at DATETIME DEFAULT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
+
+-- Concede ao usuário 'app_admin' todas as permissões em todos os bancos de dados (*.*).
+-- Isso é necessário para que a aplicação possa criar e gerenciar os bancos dos tenants.
+GRANT ALL PRIVILEGES ON *.* TO 'app_admin'@'%';
+FLUSH PRIVILEGES;

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  ceramic-api:
+    build: .
+    container_name: ceramic-api
+    ports:
+      - "8080:8080"
+    environment:
+      - MAIN_DB_URL=jdbc:mysql://mysql-db:3306/main_db?useSSL=false&allowPublicKeyRetrieval=true
+      - MAIN_DB_USERNAME=${DB_USER}
+      - MAIN_DB_PASSWORD=${DB_PASSWORD}
+      - TENANT_DB_BASE_URL=jdbc:mysql://mysql-db:3306?useSSL=false&allowPublicKeyRetrieval=true
+      - TENANT_DB_USERNAME=${DB_USER}
+      - TENANT_DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - INTERNAL_JOB_AUTH_TOKEN=${INTERNAL_JOB_AUTH_TOKEN}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=main_db
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
