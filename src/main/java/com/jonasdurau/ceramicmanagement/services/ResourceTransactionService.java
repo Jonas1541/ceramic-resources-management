@@ -87,6 +87,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
 
     private ResourceTransactionResponseDTO entityToDTO(ResourceTransaction entity) {
         Long batchId = entity.getBatch() != null ? entity.getBatch().getId() : null;
+        Long glazeTxId = entity.getGlazeTransaction() != null ? entity.getGlazeTransaction().getId() : null;
         return new ResourceTransactionResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
@@ -95,6 +96,7 @@ public class ResourceTransactionService implements DependentCrudService<Resource
             entity.getQuantity(),
             entity.getResource().getName(),
             batchId,
+            glazeTxId,
             entity.getCostAtTime().setScale(2, RoundingMode.HALF_UP)
         );
     }

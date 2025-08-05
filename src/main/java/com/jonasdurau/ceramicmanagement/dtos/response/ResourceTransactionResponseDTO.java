@@ -13,5 +13,6 @@ public record ResourceTransactionResponseDTO(
     double quantity,
     String resourceName,
     Long batchId,
+    Long glazeTxId,
     BigDecimal cost
 ) {}
