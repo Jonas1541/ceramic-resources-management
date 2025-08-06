@@ -1,5 +1,6 @@
 package com.jonasdurau.ceramicmanagement.services;
 
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.request.ResourceTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.ResourceTransactionResponseDTO;
@@ -82,6 +83,12 @@ public class ResourceTransactionService implements DependentCrudService<Resource
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + resourceId));
         ResourceTransaction transaction = transactionRepository.findByIdAndResource(transactionId, resource)
                 .orElseThrow(() -> new ResourceNotFoundException("Transação não encontrada. Id: " + transactionId));
+        if (transaction.getBatch() != null) {
+            throw new BusinessException("Essa transação não pode ser deletada pois possui uma batelada associada. Id da batelada: " + transaction.getBatch().getId());
+        }
+        if (transaction.getGlazeTransaction() != null) {
+            throw new BusinessException("Essa transação não pode ser deletada pois possui uma transação de glasura associada. Id da transação de glasura: " + transaction.getGlazeTransaction().getId());
+        }
         transactionRepository.delete(transaction);
     }
 
