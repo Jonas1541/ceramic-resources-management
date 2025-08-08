@@ -93,6 +93,18 @@ public class ProductTransactionService {
         return entityToResponseDTO(entity);
     }
 
+    @Transactional(transactionManager = "tenantTransactionManager")
+    public ProductTransactionResponseDTO cancelOutgoing(Long productId, Long transactionId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
+        ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
+                .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
+        entity.setOutgoingReason(null);
+        entity.setOutgoingAt(null);
+        entity = transactionRepository.save(entity);
+        return entityToResponseDTO(entity);
+    }
+
     private ProductTransactionResponseDTO entityToResponseDTO(ProductTransaction entity) {
         String glazeColor = "sem glasura";
         double glazeQuantity = 0;

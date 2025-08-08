@@ -60,4 +60,10 @@ public class ProductTransactionController {
         ProductTransactionResponseDTO dto = transactionService.outgoing(productId, transactionId, outgoingReason);
         return ResponseEntity.ok(dto);
     }
+
+    @PatchMapping("/{transactionId}")
+    public ResponseEntity<ProductTransactionResponseDTO> cancelOutgoing(@PathVariable Long productId, @PathVariable Long transactionId) {
+        ProductTransactionResponseDTO dto = transactionService.cancelOutgoing(productId, transactionId);
+        return ResponseEntity.ok(dto);
+    }
 }
