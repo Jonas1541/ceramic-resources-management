@@ -226,6 +226,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     private GlazeFiringResponseDTO entityToResponseDTO(GlazeFiring entity) {
         List<GlostResponseDTO> glostDTOs = new ArrayList<>();
         for (ProductTransaction glost : entity.getGlosts()) {
+            Long productTxId = entity.getId();
             String productName = glost.getProduct().getName();
             String glazeColor;
             Double quantity;
@@ -236,7 +237,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 glazeColor = "sem glasura";
                 quantity = 0.0;
             }
-            GlostResponseDTO glostDTO = new GlostResponseDTO(productName, glazeColor, quantity);
+            GlostResponseDTO glostDTO = new GlostResponseDTO(productTxId, productName, glazeColor, quantity);
             glostDTOs.add(glostDTO);
         }
         List<FiringMachineUsageResponseDTO> machineUsageDTOs = new ArrayList<>();
