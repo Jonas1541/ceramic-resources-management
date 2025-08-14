@@ -7,5 +7,6 @@ public record FiringMachineUsageResponseDTO(
     Instant createdAt,
     Instant updatedAt,
     Double usageTime,
+    Long machineId,
     String machineName
 ) {}

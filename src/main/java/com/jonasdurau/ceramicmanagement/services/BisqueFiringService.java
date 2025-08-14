@@ -243,6 +243,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
                     mu.getCreatedAt(),
                     mu.getUpdatedAt(),
                     mu.getUsageTime(),
+                    mu.getMachine().getId(),
                     mu.getMachine().getName()
                 );
                 machineUsageDTOs.add(muDTO);

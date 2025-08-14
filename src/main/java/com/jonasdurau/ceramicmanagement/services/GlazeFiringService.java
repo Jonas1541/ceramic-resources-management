@@ -248,6 +248,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                     mu.getCreatedAt(),
                     mu.getUpdatedAt(),
                     mu.getUsageTime(),
+                    mu.getMachine().getId(),
                     mu.getMachine().getName()
                 );
                 machineUsageDTOs.add(muDTO);
