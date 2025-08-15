@@ -226,7 +226,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     private GlazeFiringResponseDTO entityToResponseDTO(GlazeFiring entity) {
         List<GlostResponseDTO> glostDTOs = new ArrayList<>();
         for (ProductTransaction glost : entity.getGlosts()) {
-            Long productTxId = entity.getId();
+            Long productTxId = glost.getId();
             String productName = glost.getProduct().getName();
             String glazeColor;
             Double quantity;
