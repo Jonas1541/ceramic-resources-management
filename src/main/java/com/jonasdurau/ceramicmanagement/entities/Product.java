@@ -41,9 +41,6 @@ public class Product extends BaseEntity {
             if(tx.getOutgoingReason() == null) {
                 stock++;
             }
-            else {
-                stock--;
-            }
         }
         return stock;
     }
