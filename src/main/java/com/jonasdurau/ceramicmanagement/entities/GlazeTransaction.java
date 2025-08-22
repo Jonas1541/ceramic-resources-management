@@ -14,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,6 +29,9 @@ public class GlazeTransaction extends BaseEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "glaze_id")
     private Glaze glaze;
+
+    @OneToOne(mappedBy = "glazeTransaction")
+    private ProductTransaction productTransaction;
 
     private BigDecimal resourceTotalCostAtTime;
     private BigDecimal machineEnergyConsumptionCostAtTime;
@@ -67,6 +71,14 @@ public class GlazeTransaction extends BaseEntity {
 
     public void setGlaze(Glaze glaze) {
         this.glaze = glaze;
+    }
+
+    public ProductTransaction getProductTransaction() {
+        return productTransaction;
+    }
+
+    public void setProductTransaction(ProductTransaction productTransaction) {
+        this.productTransaction = productTransaction;
     }
 
     public BigDecimal getResourceTotalCostAtTime() {

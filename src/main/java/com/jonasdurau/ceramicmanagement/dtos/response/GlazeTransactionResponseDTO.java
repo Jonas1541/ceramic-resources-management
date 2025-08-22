@@ -12,6 +12,7 @@ public record GlazeTransactionResponseDTO(
     double quantity,
     TransactionType type,
     String glazeColor,
+    Long productTxId,
     BigDecimal resourceTotalCostAtTime,
     BigDecimal machineEnergyConsumptionCostAtTime,
     BigDecimal glazeFinalCostAtTime

@@ -115,7 +115,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 throw new ResourceNotFoundException("Quantidade de glasura não informada.");
             }
             if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
-                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity());
+                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity(), glost);
                 glost.setGlazeTransaction(glazeTransaction);
             }
             entity.getGlosts().add(glost);
@@ -161,7 +161,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                         throw new ResourceNotFoundException("Quantidade de glasura não informada.");
                     }
                     if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
-                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity());
+                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity(), glost);
                         glost.setGlazeTransaction(glazeTransaction);
                     } else {
                         glost.setGlazeTransaction(null);

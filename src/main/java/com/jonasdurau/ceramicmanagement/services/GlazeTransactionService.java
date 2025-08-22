@@ -16,6 +16,7 @@ import com.jonasdurau.ceramicmanagement.entities.Glaze;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
+import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
@@ -80,13 +81,14 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public GlazeTransaction createEntity(Long glazeId, double quantity) {
+    public GlazeTransaction createEntity(Long glazeId, double quantity, ProductTransaction productTransaction) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction entity = new GlazeTransaction();
         entity.setType(TransactionType.OUTGOING);
         entity.setQuantity(quantity);
         entity.setGlaze(glaze);
+        entity.setProductTransaction(productTransaction);
         BigDecimal resourceCost = computeResourceCostAtTime(glaze, quantity);
         BigDecimal machineCost = computeMachineCostAtTime(glaze, quantity);
         BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
@@ -178,6 +180,10 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     private GlazeTransactionResponseDTO entityToResponseDTO(GlazeTransaction entity) {
+        Long productTxId = null;
+        if (entity.getProductTransaction() != null) {
+            productTxId = entity.getProductTransaction().getId();
+        }
         return new GlazeTransactionResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
@@ -185,6 +191,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
             entity.getQuantity(),
             entity.getType(),
             entity.getGlaze().getColor(),
+            productTxId,
             entity.getResourceTotalCostAtTime(),
             entity.getMachineEnergyConsumptionCostAtTime(),
             entity.getGlazeFinalCostAtTime()

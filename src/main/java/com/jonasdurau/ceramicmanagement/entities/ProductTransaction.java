@@ -94,6 +94,10 @@ public class ProductTransaction extends BaseEntity {
 
     public void setGlazeTransaction(GlazeTransaction glazeTransaction) {
         this.glazeTransaction = glazeTransaction;
+        if (glazeTransaction != null && glazeTransaction.getProductTransaction() != this) {
+            // Garante que o outro lado da relação seja definido
+            glazeTransaction.setProductTransaction(this);
+        }
     }
 
     public BisqueFiring getBisqueFiring() {

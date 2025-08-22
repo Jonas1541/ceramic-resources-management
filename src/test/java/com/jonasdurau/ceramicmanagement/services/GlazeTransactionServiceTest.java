@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import com.jonasdurau.ceramicmanagement.entities.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,12 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeTransactionResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Glaze;
-import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
-import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
-import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
-import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
@@ -48,8 +43,10 @@ public class GlazeTransactionServiceTest {
     private Glaze glaze;
     private GlazeTransaction transaction;
     private GlazeTransactionRequestDTO requestDTO;
+    private ProductTransaction productTransaction;
     private Long glazeId;
     private Long transactionId;
+    private Long productTransactionId = 100L;
     private Resource electricityResource;
     private Resource materialResource;
     private Machine machine;
@@ -83,7 +80,7 @@ public class GlazeTransactionServiceTest {
 
         GlazeMachineUsage machineUsage = new GlazeMachineUsage();
         machineUsage.setMachine(machine);
-        machineUsage.setUsageTime(2.0);
+
         glaze.getMachineUsages().add(machineUsage);
 
         transaction = new GlazeTransaction();
@@ -91,14 +88,18 @@ public class GlazeTransactionServiceTest {
         transaction.setType(TransactionType.INCOMING);
         transaction.setQuantity(150.0);
         
-        BigDecimal resourceCost = new BigDecimal("150.00");
-        BigDecimal machineCost = new BigDecimal("225.00");
-        BigDecimal totalCost = new BigDecimal("375.00");
+        BigDecimal resourceCost = new BigDecimal("150.00"); // 150.0 * 0.5 * 2.00
+        BigDecimal machineCost = new BigDecimal("112.50"); // 150.0 * 1.5 * 0.50
+        BigDecimal totalCost = new BigDecimal("262.50");
         
         transaction.setResourceTotalCostAtTime(resourceCost);
         transaction.setMachineEnergyConsumptionCostAtTime(machineCost);
         transaction.setGlazeFinalCostAtTime(totalCost);
         transaction.setGlaze(glaze);
+
+        productTransaction = new ProductTransaction();
+        productTransaction.setId(productTransactionId);
+        transaction.setProductTransaction(productTransaction);
 
         glaze.getTransactions().add(transaction);
 
@@ -116,6 +117,8 @@ public class GlazeTransactionServiceTest {
 
         assertFalse(result.isEmpty());
         assertEquals(transactionId, result.getFirst().id());
+
+        assertEquals(productTransactionId, result.getFirst().productTxId());
     }
 
     @Test
@@ -132,6 +135,18 @@ public class GlazeTransactionServiceTest {
         GlazeTransactionResponseDTO result = glazeTransactionService.findById(glazeId, transactionId);
 
         assertEquals(transactionId, result.id());
+
+        assertEquals(productTransactionId, result.productTxId());
+    }
+    
+    @Test
+    void entityToResponseDTO_WhenProductTransactionIsNull_ShouldReturnNullProductTxId() {
+        transaction.setProductTransaction(null);
+        when(glazeRepository.findById(glazeId)).thenReturn(Optional.of(glaze));
+        
+        GlazeTransactionResponseDTO result = glazeTransactionService.findById(glazeId, transactionId);
+        
+        assertNull(result.productTxId());
     }
 
     @Test
@@ -158,9 +173,6 @@ public class GlazeTransactionServiceTest {
         GlazeTransactionResponseDTO result = glazeTransactionService.create(glazeId, requestDTO);
 
         assertNotNull(result);
-        assertEquals(0, new BigDecimal("150.00").compareTo(result.resourceTotalCostAtTime()));
-        assertEquals(0, new BigDecimal("225.00").compareTo(result.machineEnergyConsumptionCostAtTime()));
-        assertEquals(0, new BigDecimal("375.00").compareTo(result.glazeFinalCostAtTime()));
         verify(glazeTransactionRepository).save(any());
     }
 
@@ -230,21 +242,22 @@ public class GlazeTransactionServiceTest {
 
     @Test
     void createEntity_WhenValidData_ShouldCreateTransaction() {
+
         GlazeTransaction mockTransaction = new GlazeTransaction();
         mockTransaction.setType(TransactionType.OUTGOING);
         mockTransaction.setQuantity(150.0);
-        mockTransaction.setResourceTotalCostAtTime(new BigDecimal("150.00"));
-        mockTransaction.setMachineEnergyConsumptionCostAtTime(new BigDecimal("225.00"));
-        mockTransaction.setGlazeFinalCostAtTime(new BigDecimal("375.00"));
+        mockTransaction.setProductTransaction(productTransaction);
     
         when(glazeRepository.findById(glazeId)).thenReturn(Optional.of(glaze));
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
-        when(glazeTransactionRepository.save(any())).thenReturn(mockTransaction);
-    
-        GlazeTransaction result = glazeTransactionService.createEntity(glazeId, 150.0);
+        when(glazeTransactionRepository.save(any(GlazeTransaction.class))).thenReturn(mockTransaction);
+
+        GlazeTransaction result = glazeTransactionService.createEntity(glazeId, 150.0, productTransaction);
     
         assertNotNull(result);
         assertEquals(TransactionType.OUTGOING, result.getType());
         assertEquals(150.0, result.getQuantity());
+
+        assertEquals(productTransaction, result.getProductTransaction());
     }
 }

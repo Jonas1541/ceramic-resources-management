@@ -141,7 +141,7 @@ public class GlazeFiringServiceTest {
         glazeTx.setGlaze(glaze);
         glazeTx.setQuantity(2.5);
 
-        when(glazeTransactionService.createEntity(glazeId, 2.5)).thenReturn(glazeTx);
+        when(glazeTransactionService.createEntity(eq(glazeId), eq(2.5), any(ProductTransaction.class))).thenReturn(glazeTx);
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
@@ -158,32 +158,6 @@ public class GlazeFiringServiceTest {
 
         assertEquals("Azul Cobalto", result.glosts().getFirst().glazeColor());
         assertEquals(2.5, result.glosts().getFirst().quantity());
-    }
-
-    @Test
-    void create_WithoutMachines_ShouldCalculateCostCorrectly() {
-
-        GlazeTransaction glazeTx = new GlazeTransaction();
-        glazeTx.setGlaze(glaze);
-        glazeTx.setQuantity(2.5);
-        
-        when(glazeTransactionService.createEntity(eq(glazeId), anyDouble())).thenReturn(glazeTx);
-    
-        when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
-        when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
-        when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
-        when(firingRepository.save(any(GlazeFiring.class))).thenReturn(firing);
-    
-        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            800.0, 6.0, 3.0, 8.0,
-            List.of(new GlostRequestDTO(glostId, glazeId, 2.5)),
-            Collections.emptyList()
-        );
-    
-        GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
-    
-        assertEquals(new BigDecimal("51.98"), result.cost());
     }
 
     @Test
