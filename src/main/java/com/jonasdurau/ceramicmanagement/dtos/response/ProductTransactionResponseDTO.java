@@ -14,6 +14,8 @@ public record ProductTransactionResponseDTO(
     ProductState state,
     ProductOutgoingReason outgoingReason,
     String productName,
+    Long bisqueFiringId,
+    Long glazeFiringId,
     String glazeColor,
     double glazeQuantity,
     BigDecimal profit

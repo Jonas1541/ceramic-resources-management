@@ -217,9 +217,17 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
             String productName = biscuit.getProduct().getName();
             String glazeColor = "sem glasura";
             double glazeQuantity = 0;
+            Long bisqueFiringId = null;
+            Long glazeFiringId = null;
             if (biscuit.getGlazeTransaction() != null && biscuit.getGlazeTransaction().getGlaze() != null) {
                 glazeColor = biscuit.getGlazeTransaction().getGlaze().getColor();
                 glazeQuantity = biscuit.getGlazeTransaction().getQuantity();
+            }
+            if (biscuit.getBisqueFiring() != null) {
+                bisqueFiringId = biscuit.getBisqueFiring().getId();
+            }
+            if (biscuit.getGlazeFiring() != null) {
+                glazeFiringId = biscuit.getGlazeFiring().getId();
             }
             ProductTransactionResponseDTO biscuitDTO = new ProductTransactionResponseDTO(
                 biscuit.getId(),
@@ -229,6 +237,8 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
                 biscuit.getState(),
                 biscuit.getOutgoingReason(),
                 productName,
+                bisqueFiringId,
+                glazeFiringId,
                 glazeColor,
                 glazeQuantity,
                 biscuit.getProfit()

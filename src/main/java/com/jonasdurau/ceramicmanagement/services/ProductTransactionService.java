@@ -108,9 +108,17 @@ public class ProductTransactionService {
     private ProductTransactionResponseDTO entityToResponseDTO(ProductTransaction entity) {
         String glazeColor = "sem glasura";
         double glazeQuantity = 0;
+        Long bisqueFiringId = null;
+        Long glazeFiringId = null;
         if (entity.getGlazeTransaction() != null) {
             glazeColor = entity.getGlazeTransaction().getGlaze().getColor();
             glazeQuantity = entity.getGlazeTransaction().getQuantity();
+        }
+        if (entity.getBisqueFiring() != null) {
+            bisqueFiringId = entity.getBisqueFiring().getId();
+        }
+        if (entity.getGlazeFiring() != null) {
+            glazeFiringId = entity.getGlazeFiring().getId();
         }
         return new ProductTransactionResponseDTO(
             entity.getId(),
@@ -120,6 +128,8 @@ public class ProductTransactionService {
             entity.getState(),
             entity.getOutgoingReason(),
             entity.getProduct().getName(),
+            bisqueFiringId,
+            glazeFiringId,
             glazeColor,
             glazeQuantity,
             entity.getProfit()
