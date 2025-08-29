@@ -139,9 +139,8 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
                 double outgoingQty = 0.0;
                 BigDecimal profit = BigDecimal.ZERO;
                 for (ProductTransaction t : monthTx) {
-                    if (t.getOutgoingReason() == null) {
-                        incomingQty += 1;
-                    } else {
+                    incomingQty += 1;
+                    if (t.getOutgoingReason() != null) {
                         outgoingQty += 1;
                         profit = profit.add(t.getProfit());
                     }
