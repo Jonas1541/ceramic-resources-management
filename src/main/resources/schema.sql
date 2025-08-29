@@ -43,7 +43,7 @@ CREATE TABLE tb_batch_resource_usage (
 
 CREATE TABLE tb_batch_machine_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    usage_time BIGINT NOT NULL,
+    usage_time DOUBLE NOT NULL,
     batch_id BIGINT NOT NULL,
     machine_id BIGINT NOT NULL,
     PRIMARY KEY (id),
@@ -75,7 +75,7 @@ CREATE TABLE tb_glaze_resource_usage (
 
 CREATE TABLE tb_glaze_machine_usage (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    usage_time BIGINT NOT NULL,
+    usage_time DOUBLE NOT NULL,
     glaze_id BIGINT NOT NULL,
     machine_id BIGINT NOT NULL,
     PRIMARY KEY (id),
