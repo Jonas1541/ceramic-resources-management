@@ -21,6 +21,17 @@ CREATE TABLE IF NOT EXISTS tb_company (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS tb_password_reset_token (
+  id bigint NOT NULL AUTO_INCREMENT,
+  token varchar(255) DEFAULT NULL,
+  company_id bigint NOT NULL,
+  expiry_date datetime DEFAULT NULL,
+  created_at datetime DEFAULT CURRENT_TIMESTAMP,
+  updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (company_id) REFERENCES tb_company(id)
+) ENGINE=InnoDB;
+
 -- Concede ao usuário 'app_admin' todas as permissões em todos os bancos de dados (*.*).
 -- Isso é necessário para que a aplicação possa criar e gerenciar os bancos dos tenants.
 GRANT ALL PRIVILEGES ON *.* TO 'app_admin'@'%';
