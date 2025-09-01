@@ -10,4 +10,8 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 # Copia o JAR do estágio anterior
 COPY --from=builder /app/target/*.jar app.jar
+
+# Documenta a porta que a aplicação usa
+EXPOSE 8080
+
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
