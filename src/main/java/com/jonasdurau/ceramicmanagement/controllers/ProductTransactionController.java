@@ -19,7 +19,7 @@ import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.services.ProductTransactionService;
 
 @RestController
-@RequestMapping("/products/{productId}/transactions")
+@RequestMapping("/api/products/{productId}/transactions")
 public class ProductTransactionController {
 
     @Autowired

@@ -9,6 +9,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.BisqueFiringService;
 
 @RestController
-@RequestMapping("/kilns/{parentId}/bisque-firings")
+@RequestMapping("/api/kilns/{parentId}/bisque-firings")
 public class BisqueFiringController extends DependentController<FiringListDTO, BisqueFiringRequestDTO, BisqueFiringResponseDTO, Long, BisqueFiringService> {
 }

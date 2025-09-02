@@ -8,6 +8,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.MachineService;
 
 @RestController
-@RequestMapping("/machines")
+@RequestMapping("/api/machines")
 public class MachineController extends IndependentController<MachineResponseDTO, MachineRequestDTO, MachineResponseDTO, Long, MachineService>{
 }

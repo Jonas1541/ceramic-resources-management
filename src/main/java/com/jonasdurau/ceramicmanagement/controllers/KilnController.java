@@ -14,7 +14,7 @@ import com.jonasdurau.ceramicmanagement.dtos.response.KilnResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.KilnService;
 
 @RestController
-@RequestMapping("/kilns")
+@RequestMapping("/api/kilns")
 public class KilnController extends IndependentController<KilnResponseDTO, KilnRequestDTO, KilnResponseDTO, Long, KilnService> {
 
     @GetMapping("/{id}/yearly-report")

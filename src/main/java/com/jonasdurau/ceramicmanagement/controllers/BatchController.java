@@ -14,7 +14,7 @@ import com.jonasdurau.ceramicmanagement.dtos.response.BatchResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.BatchService;
 
 @RestController
-@RequestMapping("/batches")
+@RequestMapping("/api/batches")
 public class BatchController extends IndependentController<BatchListDTO, BatchRequestDTO, BatchResponseDTO, Long, BatchService>{
 
     @GetMapping("/yearly-report")

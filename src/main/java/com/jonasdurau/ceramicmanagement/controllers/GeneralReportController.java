@@ -12,7 +12,7 @@ import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.services.GeneralReportService;
 
 @RestController
-@RequestMapping("/general-report")
+@RequestMapping("/api/general-report")
 public class GeneralReportController {
     
     @Autowired

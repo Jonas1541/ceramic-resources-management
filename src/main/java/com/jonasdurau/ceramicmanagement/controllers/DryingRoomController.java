@@ -15,7 +15,7 @@ import com.jonasdurau.ceramicmanagement.dtos.response.DryingRoomResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.DryingRoomService;
 
 @RestController
-@RequestMapping("/drying-rooms")
+@RequestMapping("/api/drying-rooms")
 public class DryingRoomController extends IndependentController<DryingRoomListDTO, DryingRoomRequestDTO, DryingRoomResponseDTO, Long, DryingRoomService> {
 
     @GetMapping("/{id}/yearly-report")

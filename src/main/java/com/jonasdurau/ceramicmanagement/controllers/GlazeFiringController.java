@@ -9,6 +9,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeFiringService;
 
 @RestController
-@RequestMapping("/kilns/{parentId}/glaze-firings")
+@RequestMapping("/api/kilns/{parentId}/glaze-firings")
 public class GlazeFiringController extends DependentController<FiringListDTO, GlazeFiringRequestDTO, GlazeFiringResponseDTO, Long, GlazeFiringService> {
 }

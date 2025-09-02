@@ -8,6 +8,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.ProductLineResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.ProductLineService;
 
 @RestController
-@RequestMapping("/product-lines")
+@RequestMapping("/api/product-lines")
 public class ProductLineController extends IndependentController<ProductLineResponseDTO, ProductLineRequestDTO, ProductLineResponseDTO, Long, ProductLineService>{
 }

@@ -8,6 +8,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.GlazeTransactionResponseDT
 import com.jonasdurau.ceramicmanagement.services.GlazeTransactionService;
 
 @RestController
-@RequestMapping("/glazes/{parentId}/transactions")
+@RequestMapping("/api/glazes/{parentId}/transactions")
 public class GlazeTransactionController extends DependentController<GlazeTransactionResponseDTO, GlazeTransactionRequestDTO, GlazeTransactionResponseDTO, Long, GlazeTransactionService> {
 }

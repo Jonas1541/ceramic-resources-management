@@ -14,7 +14,7 @@ import com.jonasdurau.ceramicmanagement.dtos.response.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.ProductService;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 public class ProductController extends IndependentController<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long, ProductService> {
 
     @GetMapping("/{id}/yearly-report")

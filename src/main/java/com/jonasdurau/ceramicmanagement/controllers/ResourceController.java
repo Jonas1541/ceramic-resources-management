@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/resources")
+@RequestMapping("/api/resources")
 public class ResourceController extends IndependentController<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long, ResourceService> {
 
     @GetMapping("/{id}/yearly-report")

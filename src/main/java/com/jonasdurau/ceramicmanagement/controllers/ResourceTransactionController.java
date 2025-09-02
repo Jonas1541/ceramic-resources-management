@@ -8,6 +8,6 @@ import com.jonasdurau.ceramicmanagement.dtos.response.ResourceTransactionRespons
 import com.jonasdurau.ceramicmanagement.services.ResourceTransactionService;
 
 @RestController
-@RequestMapping("/resources/{parentId}/transactions")
+@RequestMapping("/api/resources/{parentId}/transactions")
 public class ResourceTransactionController extends DependentController<ResourceTransactionResponseDTO, ResourceTransactionRequestDTO, ResourceTransactionResponseDTO, Long, ResourceTransactionService>{
 }

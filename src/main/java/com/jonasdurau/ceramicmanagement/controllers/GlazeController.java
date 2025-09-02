@@ -15,7 +15,7 @@ import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResponseDTO;
 import com.jonasdurau.ceramicmanagement.services.GlazeService;
 
 @RestController
-@RequestMapping("/glazes")
+@RequestMapping("/api/glazes")
 public class GlazeController extends IndependentController<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long, GlazeService> {
 
     @GetMapping("/{id}/yearly-report")
