@@ -8,7 +8,6 @@ public record GlazeListDTO(
     Instant createdAt,
     Instant updatedAt,
     String color,
-    BigDecimal unitValue,
     BigDecimal unitCost,
     double currentQuantity,
     BigDecimal currentQuantityPrice

@@ -79,13 +79,11 @@ public class GlazeServiceTest {
         glaze = new Glaze();
         glaze.setId(testId);
         glaze.setColor("Azul");
-        glaze.setUnitValue(new BigDecimal("100.00"));
         glaze.setCreatedAt(Instant.now());
         glaze.setUpdatedAt(Instant.now());
 
         requestDTO = new GlazeRequestDTO(
             "Azul",
-            new BigDecimal("100.00"),
             List.of(new GlazeResourceUsageRequestDTO(1L, 2.0)),
             List.of(new GlazeMachineUsageRequestDTO(1L, 5.0))
         );

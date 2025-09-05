@@ -10,7 +10,6 @@ public record GlazeResponseDTO(
     Instant createdAt,
     Instant updatedAt,
     String color,
-    BigDecimal unitValue,
     List<GlazeResourceUsageResponseDTO> resourceUsages,
     List<GlazeMachineUsageResponseDTO> machineUsages,
     BigDecimal unitCost,

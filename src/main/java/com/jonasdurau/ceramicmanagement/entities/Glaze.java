@@ -17,7 +17,6 @@ import jakarta.persistence.Table;
 public class Glaze extends BaseEntity {
     
     private String color;
-    private BigDecimal unitValue;
 
     @OneToMany(mappedBy = "glaze", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GlazeResourceUsage> resourceUsages = new ArrayList<>();
@@ -48,7 +47,7 @@ public class Glaze extends BaseEntity {
 
     public BigDecimal getCurrentQuantityPrice() {
         return BigDecimal.valueOf(getCurrentQuantity())
-                .multiply(this.unitValue)
+                .multiply(this.unitCost)
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
@@ -58,14 +57,6 @@ public class Glaze extends BaseEntity {
 
     public void setColor(String color) {
         this.color = color;
-    }
-
-    public BigDecimal getUnitValue() {
-        return unitValue;
-    }
-
-    public void setUnitValue(BigDecimal unitValue) {
-        this.unitValue = unitValue;
     }
 
     public List<GlazeResourceUsage> getResourceUsages() {

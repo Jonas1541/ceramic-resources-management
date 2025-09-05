@@ -77,7 +77,6 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
                 glaze.getCreatedAt(),
                 glaze.getUpdatedAt(),
                 glaze.getColor(),
-                glaze.getUnitValue(),
                 glaze.getUnitCost(),
                 glaze.getCurrentQuantity(),
                 glaze.getCurrentQuantityPrice()
@@ -98,7 +97,6 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     public GlazeResponseDTO create(GlazeRequestDTO dto) {
         Glaze glaze = new Glaze();
         glaze.setColor(dto.color());
-        glaze.setUnitValue(dto.unitValue());
         for (GlazeResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
             Resource resource = resourceRepository.findById(usageDTO.resourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.resourceId()));
@@ -173,7 +171,6 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             glaze.getMachineUsages().remove(mu);
         }
         glaze.setColor(dto.color());
-        glaze.setUnitValue(dto.unitValue());
         computeUnitCost(glaze);
         glaze = glazeRepository.save(glaze);
         return entityToResponseDTO(glaze);
@@ -273,7 +270,6 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             entity.getCreatedAt(),
             entity.getUpdatedAt(),
             entity.getColor(),
-            entity.getUnitValue(),
             resourceUsageDTOs,
             machineUsageDTOs,
             entity.getUnitCost(),

@@ -44,7 +44,7 @@ public class GlazeTransaction extends BaseEntity {
     }
 
     public BigDecimal getCost() {
-        return glaze.getUnitValue()
+        return glaze.getUnitCost()
                     .multiply(BigDecimal.valueOf(quantity))
                     .setScale(2, RoundingMode.HALF_UP);
     }
