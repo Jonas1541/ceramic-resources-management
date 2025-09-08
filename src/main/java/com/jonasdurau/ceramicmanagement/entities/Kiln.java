@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -12,7 +15,14 @@ import jakarta.persistence.Table;
 public class Kiln extends BaseEntity {
 
     private String name;
-    private double power;
+
+    @ManyToMany
+    @JoinTable(
+        name = "tb_kiln_machine",
+        joinColumns = @JoinColumn(name = "kiln_id"),
+        inverseJoinColumns = @JoinColumn(name = "machine_id")
+    )
+    private List<Machine> machines = new ArrayList<>();
 
     @OneToMany(mappedBy = "kiln")
     private List<BisqueFiring> bisqueFirings = new ArrayList<>();
@@ -23,6 +33,14 @@ public class Kiln extends BaseEntity {
     public Kiln() {
     }
 
+    public double getPower() {
+        double totalPower = 0.0;
+        for (Machine m : machines) {
+            totalPower += m.getPower();
+        }
+        return totalPower;
+    }
+
     public String getName() {
         return name;
     }
@@ -31,12 +49,8 @@ public class Kiln extends BaseEntity {
         this.name = name;
     }
 
-    public double getPower() {
-        return power;
-    }
-
-    public void setPower(double power) {
-        this.power = power;
+    public List<Machine> getMachines() {
+        return machines;
     }
 
     public List<BisqueFiring> getBisqueFirings() {

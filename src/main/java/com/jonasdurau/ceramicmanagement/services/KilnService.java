@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,16 +25,22 @@ import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.KilnRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.KilnResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
+import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
+import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
-public class KilnService implements IndependentCrudService<KilnResponseDTO, KilnRequestDTO, KilnResponseDTO, Long>{
-    
+public class KilnService implements IndependentCrudService<KilnResponseDTO, KilnRequestDTO, KilnResponseDTO, Long> {
+
     @Autowired
     private KilnRepository kilnRepository;
+
+    @Autowired
+    private MachineRepository machineRepository;
 
     @Autowired
     private BisqueFiringRepository bisqueFiringRepository;
@@ -61,7 +68,11 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     public KilnResponseDTO create(KilnRequestDTO dto) {
         Kiln entity = new Kiln();
         entity.setName(dto.name());
-        entity.setPower(dto.power());
+        for (Long machineId : dto.machines()) {
+            Machine machine = machineRepository.findById(machineId)
+                .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
+            entity.getMachines().add(machine);
+        }
         entity = kilnRepository.save(entity);
         return entityToResponseDTO(entity);
     }
@@ -72,7 +83,18 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. id: " + id));
         entity.setName(dto.name());
-        entity.setPower(dto.power());
+        List<Machine> oldList = new ArrayList<>(entity.getMachines());
+        List<Machine> newList = dto.machines().stream().map(machineId -> {
+            Machine machine = machineRepository.findById(machineId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
+            return machine;
+        }).collect(Collectors.toList());
+        Set<Long> oldIds = oldList.stream().map(Machine::getId).collect(Collectors.toSet());
+        Set<Long> newIds = newList.stream().map(Machine::getId).collect(Collectors.toSet());
+        List<Machine> toRemove = oldList.stream().filter(machine -> !newIds.contains(machine.getId())).collect(Collectors.toList());
+        List<Machine> toAdd = newList.stream().filter(machine -> !oldIds.contains(machine.getId())).collect(Collectors.toList());
+        entity.getMachines().removeAll(toRemove);
+        entity.getMachines().addAll(toAdd);
         entity = kilnRepository.save(entity);
         return entityToResponseDTO(entity);
     }
@@ -84,7 +106,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + id));
         boolean hasBisqueFiring = bisqueFiringRepository.existsByKilnId(id);
         boolean hasGlazeFiring = glazeFiringRepository.existsByKilnId(id);
-        if(hasBisqueFiring || hasGlazeFiring) {
+        if (hasBisqueFiring || hasGlazeFiring) {
             throw new ResourceDeletionException("O forno não pode ser deletado pois possui queimas associadas.");
         }
         kilnRepository.delete(entity);
@@ -141,12 +163,23 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     }
 
     private KilnResponseDTO entityToResponseDTO(Kiln entity) {
+        List<MachineResponseDTO> machineDTOs = new ArrayList<>();
+        for (Machine machine : entity.getMachines()) {
+            MachineResponseDTO machineDTO = new MachineResponseDTO(
+                    machine.getId(),
+                    machine.getCreatedAt(),
+                    machine.getUpdatedAt(),
+                    machine.getName(),
+                    machine.getPower());
+            machineDTOs.add(machineDTO);
+        }
         return new KilnResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
             entity.getUpdatedAt(),
             entity.getName(),
-            entity.getPower()
+            entity.getPower(),
+            machineDTOs
         );
     }
 }

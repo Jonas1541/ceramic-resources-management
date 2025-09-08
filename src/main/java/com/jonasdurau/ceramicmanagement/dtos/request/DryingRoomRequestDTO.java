@@ -11,7 +11,7 @@ public record DryingRoomRequestDTO(
     String name,
     @Positive(message = "O consumo de gás por hora deve ser positivo")
     double gasConsumptionPerHour,
-    List<@Positive(message = "O id das máquinas devem ser positivos") Long> machines
+    List<@Positive(message = "Os id das máquinas devem ser positivos") Long> machines
 ) {
     public DryingRoomRequestDTO {
         if (machines == null) {

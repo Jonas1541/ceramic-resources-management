@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,11 +52,12 @@ public class KilnServiceTest {
         kiln = new Kiln();
         kiln.setId(testId);
         kiln.setName("Forno Principal");
-        kiln.setPower(1500.0);
         kiln.setCreatedAt(Instant.now());
         kiln.setUpdatedAt(Instant.now());
-
-        requestDTO = new KilnRequestDTO("Forno Principal", 1500.0);
+        List<Long> machineRequestDTOs = new ArrayList<>();
+        machineRequestDTOs.add(1L);
+        machineRequestDTOs.add(2L);
+        requestDTO = new KilnRequestDTO("Forno Principal", machineRequestDTOs);
     }
 
     @Test

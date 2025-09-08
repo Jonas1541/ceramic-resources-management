@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +74,15 @@ public class GlazeFiringServiceTest {
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno de Esmalte");
-        kiln.setPower(6.0);
+
+        Machine machine1 = new Machine();
+        machine1.setId(2L);
+        machine1.setCreatedAt(Instant.now());
+        machine1.setUpdatedAt(null);
+        machine1.setName("Máquina");
+        machine1.setPower(10);
+        
+        kiln.getMachines().add(machine1);
 
         firing = new GlazeFiring();
         firing.setId(firingId);

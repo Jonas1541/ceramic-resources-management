@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -82,7 +83,15 @@ public class BisqueFiringServiceTest {
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno Principal");
-        kiln.setPower(5.0);
+
+        Machine machine1 = new Machine();
+        machine1.setId(2L);
+        machine1.setCreatedAt(Instant.now());
+        machine1.setUpdatedAt(null);
+        machine1.setName("Máquina");
+        machine1.setPower(10);
+        
+        kiln.getMachines().add(machine1);
 
         firing = new BisqueFiring();
         firing.setId(firingId);

@@ -225,6 +225,14 @@ CREATE TABLE tb_drying_room (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE tb_kiln_machine (
+    kiln_id BIGINT NOT NULL,
+    machine_id BIGINT NOT NULL,
+    PRIMARY KEY (kiln_id, machine_id),
+    FOREIGN KEY (kiln_id) REFERENCES tb_kiln(id) ON DELETE CASCADE,
+    FOREIGN KEY (machine_id) REFERENCES tb_machine(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE tb_drying_room_machine (
     drying_room_id BIGINT NOT NULL,
     machine_id BIGINT NOT NULL,

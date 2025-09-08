@@ -1,11 +1,19 @@
 package com.jonasdurau.ceramicmanagement.dtos.request;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
 public record KilnRequestDTO(
     @NotBlank(message = "O nome é obrigatório")
     String name,
-    @Positive(message = "A potência deve ser positiva.")
-    double power
-) {}
+    List<@Positive(message = "Os id das máquinas devem ser positivos") Long> machines
+) {
+    public KilnRequestDTO {
+        if (machines == null) {
+            machines = new ArrayList<>();
+        }
+    }
+}
