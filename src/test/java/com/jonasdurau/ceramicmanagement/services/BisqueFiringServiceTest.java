@@ -1,13 +1,10 @@
 package com.jonasdurau.ceramicmanagement.services;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,10 +22,8 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionE
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BisqueFiringRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.FiringMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.BisqueFiring;
-import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Product;
@@ -37,9 +32,7 @@ import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.ProductType;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
-import com.jonasdurau.ceramicmanagement.repositories.FiringMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
-import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
@@ -57,12 +50,6 @@ public class BisqueFiringServiceTest {
 
     @Mock
     private ResourceRepository resourceRepository;
-
-    @Mock
-    private MachineRepository machineRepository;
-
-    @Mock
-    private FiringMachineUsageRepository machineUsageRepository;
 
     @InjectMocks
     private BisqueFiringService bisqueFiringService;
@@ -185,20 +172,11 @@ public class BisqueFiringServiceTest {
     void create_WithValidData_ShouldCreateFiring() {
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
             1000.0, 8.0, 4.0, 10.0, 
-            List.of(biscuitId), 
-            List.of(new FiringMachineUsageRequestDTO(2.0, machineId))
+            List.of(biscuitId)
         );
-
-        when(machineUsageRepository.save(any(FiringMachineUsage.class))).thenAnswer(invocation -> {
-            FiringMachineUsage usage = invocation.getArgument(0);
-            usage.setId(1L);
-            usage.setMachine(machine);
-            return usage;
-        });
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(biscuitId)).thenReturn(Optional.of(biscuit));
-        when(machineRepository.findById(machineId)).thenReturn(Optional.of(machine));
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
         when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
         when(firingRepository.save(any())).thenReturn(firing);
@@ -208,17 +186,12 @@ public class BisqueFiringServiceTest {
         assertNotNull(result);
         assertEquals(ProductState.BISCUIT, biscuit.getState());
         
-        verify(machineUsageRepository).save(argThat(usage -> 
-            usage.getMachine().equals(machine) &&
-            usage.getUsageTime() == 2.0
-        ));
-        
         verify(firingRepository, times(2)).save(any());
     }
 
     @Test
     void create_WhenKilnNotFound_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId), Collections.emptyList());
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId));
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.empty());
 
@@ -230,8 +203,7 @@ public class BisqueFiringServiceTest {
     void create_WithInvalidMachine_ShouldThrowException() {
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
             1000.0, 8.0, 4.0, 10.0, 
-            List.of(biscuitId), 
-            List.of(new FiringMachineUsageRequestDTO(2.0, 999L))
+            List.of(biscuitId)
         );
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
@@ -241,7 +213,7 @@ public class BisqueFiringServiceTest {
 
     @Test
     void create_WithInvalidBiscuit_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId), Collections.emptyList());
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId));
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(biscuitId)).thenReturn(Optional.empty());
@@ -251,12 +223,11 @@ public class BisqueFiringServiceTest {
 
     @Test
     void update_WhenValid_ShouldUpdateFiringAndBiscuits() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(biscuitId), List.of(new FiringMachineUsageRequestDTO(3.0, machineId)));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(biscuitId));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
         when(productTransactionRepository.findById(biscuitId)).thenReturn(Optional.of(biscuit));
-        when(machineRepository.findById(machineId)).thenReturn(Optional.of(machine));
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
         when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
         when(firingRepository.save(any())).thenReturn(firing);
@@ -276,7 +247,7 @@ public class BisqueFiringServiceTest {
         otherBiscuit.setId(2L);
         otherBiscuit.setBisqueFiring(otherFiring);
 
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(2L), Collections.emptyList());
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(2L));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));

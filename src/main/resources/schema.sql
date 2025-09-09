@@ -184,20 +184,6 @@ CREATE TABLE tb_glaze_firing (
     FOREIGN KEY (kiln_id) REFERENCES tb_kiln (id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE tb_firing_machine_usage (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    usage_time DOUBLE NOT NULL,
-    bisque_firing_id BIGINT,
-    glaze_firing_id BIGINT,
-    machine_id BIGINT NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id),
-    FOREIGN KEY (glaze_firing_id) REFERENCES tb_glaze_firing (id),
-    FOREIGN KEY (machine_id) REFERENCES tb_machine (id)
-) ENGINE=InnoDB;
-
 CREATE TABLE tb_product_transaction (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,

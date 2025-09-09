@@ -13,25 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.FiringMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlostRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.FiringMachineUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlostResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.FiringMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeFiring;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
-import com.jonasdurau.ceramicmanagement.repositories.FiringMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
-import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
@@ -52,12 +46,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
 
     @Autowired
     private GlazeTransactionService glazeTransactionService;
-
-    @Autowired
-    private MachineRepository machineRepository;
-
-    @Autowired
-    private FiringMachineUsageRepository machineUsageRepository;
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -120,18 +108,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             }
             entity.getGlosts().add(glost);
         }
-        if (!dto.machineUsages().isEmpty()) {
-            for (FiringMachineUsageRequestDTO muDTO : dto.machineUsages()) {
-                FiringMachineUsage mu = new FiringMachineUsage();
-                mu.setUsageTime(muDTO.usageTime());
-                mu.setGlazeFiring(entity);
-                Machine machine = machineRepository.findById(muDTO.machineId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + muDTO.machineId()));
-                mu.setMachine(machine);
-                mu = machineUsageRepository.save(mu);
-                entity.getMachineUsages().add(mu);
-            }
-        }
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = firingRepository.save(entity);
         return entityToResponseDTO(entity);
@@ -183,24 +159,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         List<ProductTransaction> toAdd = newList.stream().filter(glost -> !oldIds.contains(glost.getId())).collect(Collectors.toList());
         toAdd.forEach(glost -> productTransactionRepository.save(glost));
         entity.getGlosts().addAll(toAdd);
-        List<FiringMachineUsage> oldListmu = new ArrayList<>(entity.getMachineUsages());
-        List<FiringMachineUsage> newListmu = dto.machineUsages().stream()
-                .map(muDTO -> {
-                    FiringMachineUsage mu = new FiringMachineUsage();
-                    mu.setUsageTime(muDTO.usageTime());
-                    mu.setGlazeFiring(entity);
-                    Machine machine = machineRepository.findById(muDTO.machineId())
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Máquina não encontrada. Id: " + muDTO.machineId()));
-                    mu.setMachine(machine);
-                    return mu;
-                }).collect(Collectors.toList());
-        Set<Long> oldIdsmu = oldListmu.stream().map(FiringMachineUsage::getId).collect(Collectors.toSet());
-        Set<Long> newIdsmu = newListmu.stream().map(FiringMachineUsage::getId).collect(Collectors.toSet());
-        List<FiringMachineUsage> toRemovemu = oldListmu.stream().filter(mu -> !newIdsmu.contains(mu.getId())).collect(Collectors.toList());
-        List<FiringMachineUsage> toAddmu = newListmu.stream().filter(mu -> !oldIdsmu.contains(mu.getId())).collect(Collectors.toList());
-        entity.getMachineUsages().removeAll(toRemovemu);
-        entity.getMachineUsages().addAll(toAddmu);
         entity.setCostAtTime(calculateCostAtTime(entity));
         GlazeFiring updatedEntity = firingRepository.save(entity);
         return entityToResponseDTO(updatedEntity);
@@ -241,20 +199,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             GlostResponseDTO glostDTO = new GlostResponseDTO(productId, productTxId, productName, glazeColor, quantity);
             glostDTOs.add(glostDTO);
         }
-        List<FiringMachineUsageResponseDTO> machineUsageDTOs = new ArrayList<>();
-        if (!entity.getMachineUsages().isEmpty()) {
-            for (FiringMachineUsage mu : entity.getMachineUsages()) {
-                FiringMachineUsageResponseDTO muDTO = new FiringMachineUsageResponseDTO(
-                    mu.getId(),
-                    mu.getCreatedAt(),
-                    mu.getUpdatedAt(),
-                    mu.getUsageTime(),
-                    mu.getMachine().getId(),
-                    mu.getMachine().getName()
-                );
-                machineUsageDTOs.add(muDTO);
-            }
-        }
         return new GlazeFiringResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
@@ -265,7 +209,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             entity.getGasConsumption(),
             entity.getKiln().getName(),
             glostDTOs,
-            machineUsageDTOs,
             calculateCostAtTime(entity)
         );
     }
@@ -283,12 +226,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal costAtTime = gasCost.add(electricCost)
                 .setScale(2, RoundingMode.HALF_UP);
-        if (!entity.getMachineUsages().isEmpty()) {
-            double machineCosts = entity.getMachineUsages().stream()
-                    .mapToDouble(FiringMachineUsage::getEnergyConsumption).sum();
-            costAtTime = BigDecimal.valueOf(machineCosts).add(costAtTime)
-                    .setScale(2, RoundingMode.HALF_UP);
-        }
         return costAtTime;
     }
 }

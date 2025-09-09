@@ -14,6 +14,5 @@ public record GlazeFiringResponseDTO(
     double gasConsumption,
     String kilnName,
     List<GlostResponseDTO> glosts,
-    List<FiringMachineUsageResponseDTO> machineUsages,
     BigDecimal cost
 ) {}

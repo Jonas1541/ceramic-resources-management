@@ -1,6 +1,5 @@
 package com.jonasdurau.ceramicmanagement.dtos.request;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -19,13 +18,5 @@ public record GlazeFiringRequestDTO(
     double gasConsumption,
     @NotEmpty(message = "A queima deve ter produtos")
     @Valid
-    List<GlostRequestDTO> glosts,
-    @Valid
-    List<FiringMachineUsageRequestDTO> machineUsages
-) {
-    public GlazeFiringRequestDTO {
-        if (machineUsages == null) {
-            machineUsages = new ArrayList<>();
-        }
-    }
-}
+    List<GlostRequestDTO> glosts
+) {}

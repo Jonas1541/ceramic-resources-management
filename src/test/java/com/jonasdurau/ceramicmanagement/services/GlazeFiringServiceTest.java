@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.FiringMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlostRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
@@ -45,12 +44,6 @@ public class GlazeFiringServiceTest {
 
     @Mock
     private GlazeTransactionService glazeTransactionService;
-
-    @Mock
-    private MachineRepository machineRepository;
-
-    @Mock
-    private FiringMachineUsageRepository machineUsageRepository;
 
     @InjectMocks
     private GlazeFiringService glazeFiringService;
@@ -160,8 +153,7 @@ public class GlazeFiringServiceTest {
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             800.0, 6.0, 3.0, 8.0,
-            List.of(new GlostRequestDTO(glostId, glazeId, 2.5)),
-            Collections.emptyList()
+            List.of(new GlostRequestDTO(glostId, glazeId, 2.5))
         );
         GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
 
@@ -180,8 +172,7 @@ public class GlazeFiringServiceTest {
         GlostRequestDTO glostDTO = new GlostRequestDTO(2L, null, null);
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             850.0, 7.0, 4.0, 9.0,
-            List.of(glostDTO),
-            Collections.emptyList()
+            List.of(glostDTO)
         );
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
@@ -207,7 +198,6 @@ public class GlazeFiringServiceTest {
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             850.0, 7.0, 4.0, 9.0,
-            Collections.emptyList(),
             Collections.emptyList()
         );
 
@@ -225,13 +215,11 @@ public class GlazeFiringServiceTest {
     void update_WithInvalidMachine_ShouldThrowException() {
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             850.0, 7.0, 4.0, 9.0,
-            Collections.emptyList(),
-            List.of(new FiringMachineUsageRequestDTO(2.0, 999L))
+            Collections.emptyList()
         );
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
-        when(machineRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> glazeFiringService.update(kilnId, firingId, dto));
     }
