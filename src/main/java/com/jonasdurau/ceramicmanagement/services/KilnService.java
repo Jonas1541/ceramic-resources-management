@@ -68,6 +68,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     public KilnResponseDTO create(KilnRequestDTO dto) {
         Kiln entity = new Kiln();
         entity.setName(dto.name());
+        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
         for (Long machineId : dto.machines()) {
             Machine machine = machineRepository.findById(machineId)
                 .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
@@ -83,6 +84,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. id: " + id));
         entity.setName(dto.name());
+        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
         List<Machine> oldList = new ArrayList<>(entity.getMachines());
         List<Machine> newList = dto.machines().stream().map(machineId -> {
             Machine machine = machineRepository.findById(machineId)
@@ -179,6 +181,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
             entity.getUpdatedAt(),
             entity.getName(),
             entity.getPower(),
+            entity.getGasConsumptionPerHour(),
             machineDTOs
         );
     }

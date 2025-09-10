@@ -82,7 +82,6 @@ public class GlazeFiringServiceTest {
         firing.setTemperature(800.0);
         firing.setBurnTime(6.0);
         firing.setCoolingTime(3.0);
-        firing.setGasConsumption(8.0);
         firing.setKiln(kiln);
 
         Product product = new Product();
@@ -152,7 +151,7 @@ public class GlazeFiringServiceTest {
         when(firingRepository.save(any())).thenReturn(firing);
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            800.0, 6.0, 3.0, 8.0,
+            800.0, 6.0, 3.0,
             List.of(new GlostRequestDTO(glostId, glazeId, 2.5))
         );
         GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
@@ -171,7 +170,7 @@ public class GlazeFiringServiceTest {
 
         GlostRequestDTO glostDTO = new GlostRequestDTO(2L, null, null);
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0, 9.0,
+            850.0, 7.0, 4.0,
             List.of(glostDTO)
         );
 
@@ -197,7 +196,7 @@ public class GlazeFiringServiceTest {
         firing.getGlosts().add(existingGlost);
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0, 9.0,
+            850.0, 7.0, 4.0,
             Collections.emptyList()
         );
 
@@ -214,7 +213,7 @@ public class GlazeFiringServiceTest {
     @Test
     void update_WithInvalidMachine_ShouldThrowException() {
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0, 9.0,
+            850.0, 7.0, 4.0,
             Collections.emptyList()
         );
 

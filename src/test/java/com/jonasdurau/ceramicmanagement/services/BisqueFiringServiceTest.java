@@ -85,7 +85,6 @@ public class BisqueFiringServiceTest {
         firing.setTemperature(1000.0);
         firing.setBurnTime(8.0);
         firing.setCoolingTime(4.0);
-        firing.setGasConsumption(10.0);
         firing.setKiln(kiln);
 
         ProductType type = new ProductType();
@@ -171,7 +170,7 @@ public class BisqueFiringServiceTest {
     @Test
     void create_WithValidData_ShouldCreateFiring() {
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
-            1000.0, 8.0, 4.0, 10.0, 
+            1000.0, 8.0, 4.0, 
             List.of(biscuitId)
         );
 
@@ -191,7 +190,7 @@ public class BisqueFiringServiceTest {
 
     @Test
     void create_WhenKilnNotFound_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, List.of(biscuitId));
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.empty());
 
@@ -202,7 +201,7 @@ public class BisqueFiringServiceTest {
     @Test
     void create_WithInvalidMachine_ShouldThrowException() {
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
-            1000.0, 8.0, 4.0, 10.0, 
+            1000.0, 8.0, 4.0, 
             List.of(biscuitId)
         );
 
@@ -213,7 +212,7 @@ public class BisqueFiringServiceTest {
 
     @Test
     void create_WithInvalidBiscuit_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, 10.0, List.of(biscuitId));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, List.of(biscuitId));
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(biscuitId)).thenReturn(Optional.empty());
@@ -223,7 +222,7 @@ public class BisqueFiringServiceTest {
 
     @Test
     void update_WhenValid_ShouldUpdateFiringAndBiscuits() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(biscuitId));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, List.of(biscuitId));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
@@ -247,7 +246,7 @@ public class BisqueFiringServiceTest {
         otherBiscuit.setId(2L);
         otherBiscuit.setBisqueFiring(otherFiring);
 
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, 12.0, List.of(2L));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, List.of(2L));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));

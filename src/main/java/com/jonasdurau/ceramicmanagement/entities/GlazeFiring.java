@@ -17,7 +17,6 @@ public class GlazeFiring extends BaseEntity {
     private double temperature;
     private double burnTime;
     private double coolingTime;
-    private double gasConsumption;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "kiln_id")
@@ -33,6 +32,10 @@ public class GlazeFiring extends BaseEntity {
 
     public double getEnergyConsumption() {
         return (kiln.getPower() * 0.74) * (burnTime + coolingTime);
+    }
+
+    public double getGasConsumption() {
+        return burnTime * kiln.getGasConsumptionPerHour();
     }
 
     public double getTemperature() {
@@ -57,14 +60,6 @@ public class GlazeFiring extends BaseEntity {
 
     public void setCoolingTime(double coolingTime) {
         this.coolingTime = coolingTime;
-    }
-
-    public double getGasConsumption() {
-        return gasConsumption;
-    }
-
-    public void setGasConsumption(double gasConsumption) {
-        this.gasConsumption = gasConsumption;
     }
 
     public Kiln getKiln() {

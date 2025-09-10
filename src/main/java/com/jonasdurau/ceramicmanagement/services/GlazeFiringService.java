@@ -86,7 +86,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         entity.setTemperature(dto.temperature());
         entity.setBurnTime(dto.burnTime());
         entity.setCoolingTime(dto.coolingTime());
-        entity.setGasConsumption(dto.gasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
@@ -124,7 +123,6 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         entity.setTemperature(dto.temperature());
         entity.setBurnTime(dto.burnTime());
         entity.setCoolingTime(dto.coolingTime());
-        entity.setGasConsumption(dto.gasConsumption());
         List<ProductTransaction> oldList = new ArrayList<>(entity.getGlosts());
         List<ProductTransaction> newList = dto.glosts().stream()
                 .map(glostDTO -> {

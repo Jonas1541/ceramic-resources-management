@@ -10,6 +10,7 @@ public record KilnResponseDTO(
     Instant updatedAt,
     String name,
     double power,
+    double gasConsumptionPerHour,
     List<MachineResponseDTO> machines
 ) {
     public KilnResponseDTO {

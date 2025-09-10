@@ -13,8 +13,6 @@ public record BisqueFiringRequestDTO(
     double burnTime,
     @PositiveOrZero(message = "O tempo de resfriamento deve ser maior ou igual a zero")
     double coolingTime,
-    @Positive(message = "O consumo de gás deve ser positivo")
-    double gasConsumption,
     @NotEmpty(message = "A queima deve ter produtos")
     List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits
 ) {}

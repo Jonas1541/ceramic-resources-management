@@ -84,7 +84,6 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         entity.setTemperature(dto.temperature());
         entity.setBurnTime(dto.burnTime());
         entity.setCoolingTime(dto.coolingTime());
-        entity.setGasConsumption(dto.gasConsumption());
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
@@ -115,7 +114,6 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         entity.setTemperature(dto.temperature());
         entity.setBurnTime(dto.burnTime());
         entity.setCoolingTime(dto.coolingTime());
-        entity.setGasConsumption(dto.gasConsumption());
         List<ProductTransaction> oldList = new ArrayList<>(entity.getBiscuits());
         List<ProductTransaction> newList = dto.biscuits().stream()
                 .map(id -> {

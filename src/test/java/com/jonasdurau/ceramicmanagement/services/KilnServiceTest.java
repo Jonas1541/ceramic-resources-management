@@ -22,9 +22,11 @@ import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.KilnRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.KilnResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
+import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
+import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class KilnServiceTest {
@@ -38,16 +40,29 @@ public class KilnServiceTest {
     @Mock
     private GlazeFiringRepository glazeFiringRepository;
 
+    @Mock
+    private MachineRepository machineRepository;
+
     @InjectMocks
     private KilnService kilnService;
 
     private Kiln kiln;
     private KilnRequestDTO requestDTO;
     private Long testId;
+    private Machine machine1;
+    private Machine machine2;
 
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        machine1 = new Machine();
+        machine1.setId(1L);
+        machine1.setName("Máquina A");
+
+        machine2 = new Machine();
+        machine2.setId(2L);
+        machine2.setName("Máquina B");
         
         kiln = new Kiln();
         kiln.setId(testId);
@@ -57,7 +72,7 @@ public class KilnServiceTest {
         List<Long> machineRequestDTOs = new ArrayList<>();
         machineRequestDTOs.add(1L);
         machineRequestDTOs.add(2L);
-        requestDTO = new KilnRequestDTO("Forno Principal", machineRequestDTOs);
+        requestDTO = new KilnRequestDTO("Forno Principal", 10, machineRequestDTOs);
     }
 
     @Test
@@ -92,6 +107,8 @@ public class KilnServiceTest {
 
     @Test
     void create_WithValidData_ShouldReturnKiln() {
+        when(machineRepository.findById(1L)).thenReturn(Optional.of(machine1));
+        when(machineRepository.findById(2L)).thenReturn(Optional.of(machine2));
         when(kilnRepository.save(any(Kiln.class))).thenAnswer(invocation -> {
             Kiln saved = invocation.getArgument(0);
             saved.setId(testId);
@@ -106,6 +123,8 @@ public class KilnServiceTest {
 
     @Test
     void update_WithValidData_ShouldUpdateKiln() {
+        when(machineRepository.findById(1L)).thenReturn(Optional.of(machine1));
+        when(machineRepository.findById(2L)).thenReturn(Optional.of(machine2));
         when(kilnRepository.findById(testId)).thenReturn(Optional.of(kiln));
         when(kilnRepository.save(any(Kiln.class))).thenReturn(kiln);
 

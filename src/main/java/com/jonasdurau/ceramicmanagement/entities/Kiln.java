@@ -16,6 +16,8 @@ public class Kiln extends BaseEntity {
 
     private String name;
 
+    private double gasConsumptionPerHour;
+
     @ManyToMany
     @JoinTable(
         name = "tb_kiln_machine",
@@ -47,6 +49,14 @@ public class Kiln extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public double getGasConsumptionPerHour() {
+        return gasConsumptionPerHour;
+    }
+
+    public void setGasConsumptionPerHour(double gasConsumptionPerHour) {
+        this.gasConsumptionPerHour = gasConsumptionPerHour;
     }
 
     public List<Machine> getMachines() {

@@ -153,6 +153,7 @@ CREATE TABLE tb_kiln (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     name VARCHAR(255) NOT NULL,
     power DOUBLE NOT NULL,
+    gas_consumption_per_hour DOUBLE NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
@@ -163,7 +164,6 @@ CREATE TABLE tb_bisque_firing (
     temperature DOUBLE NOT NULL,
     burn_time DOUBLE NOT NULL,
     cooling_time DOUBLE NOT NULL,
-    gas_consumption DOUBLE NOT NULL,
     kiln_id BIGINT NOT NULL,
     cost_at_time DECIMAL(10,2),
     PRIMARY KEY (id),
@@ -177,7 +177,6 @@ CREATE TABLE tb_glaze_firing (
     temperature DOUBLE NOT NULL,
     burn_time DOUBLE NOT NULL,
     cooling_time DOUBLE NOT NULL,
-    gas_consumption DOUBLE NOT NULL,
     kiln_id BIGINT NOT NULL,
     cost_at_time DECIMAL(10,2),
     PRIMARY KEY (id),
