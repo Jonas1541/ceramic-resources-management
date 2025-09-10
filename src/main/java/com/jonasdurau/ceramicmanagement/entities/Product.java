@@ -20,6 +20,7 @@ public class Product extends BaseEntity {
     private double height;
     private double length;
     private double width;
+    private double glazeQuantityPerUnit;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "product_type_id")
@@ -83,6 +84,14 @@ public class Product extends BaseEntity {
 
     public void setWidth(double width) {
         this.width = width;
+    }
+
+    public double getglazeQuantityPerUnit() {
+        return glazeQuantityPerUnit;
+    }
+
+    public void setglazeQuantityPerUnit(double glazeQuantityPerUnit) {
+        this.glazeQuantityPerUnit = glazeQuantityPerUnit;
     }
 
     public ProductType getType() {

@@ -140,6 +140,7 @@ CREATE TABLE tb_product (
     height DOUBLE NOT NULL,
     length DOUBLE NOT NULL,
     width DOUBLE NOT NULL,
+    glaze_quantity_per_unit DOUBLE NOT NULL,
     product_type_id BIGINT NOT NULL,
     product_line_id BIGINT NOT NULL,
     PRIMARY KEY (id),

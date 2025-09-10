@@ -85,6 +85,7 @@ public class ProductServiceTest {
             30.0,
             20.0,
             20.0,
+            2.2,
             1L,
             1L
         );

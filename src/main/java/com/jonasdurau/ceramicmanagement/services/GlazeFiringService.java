@@ -98,11 +98,8 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             }
             glost.setGlazeFiring(entity);
             glost.setState(ProductState.GLAZED);
-            if (glostDTO.glazeId() != null && glostDTO.quantity() == null) {
-                throw new ResourceNotFoundException("Quantidade de glasura não informada.");
-            }
-            if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
-                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity(), glost);
+            if (glostDTO.glazeId() != null) {
+                GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glost);
                 glost.setGlazeTransaction(glazeTransaction);
             }
             entity.getGlosts().add(glost);
@@ -131,11 +128,8 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                     if (glost.getGlazeFiring() != null && !glost.getGlazeFiring().getId().equals(entity.getId())) {
                         throw new ResourceNotFoundException("Produto já passou por uma 2° queima. Id: " + glost.getId());
                     }
-                    if (glostDTO.glazeId() != null && glostDTO.quantity() == null) {
-                        throw new ResourceNotFoundException("Quantidade de glasura não informada.");
-                    }
-                    if (glostDTO.glazeId() != null && glostDTO.quantity() != null) {
-                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glostDTO.quantity(), glost);
+                    if (glostDTO.glazeId() != null) {
+                        GlazeTransaction glazeTransaction = glazeTransactionService.createEntity(glostDTO.glazeId(), glost);
                         glost.setGlazeTransaction(glazeTransaction);
                     } else {
                         glost.setGlazeTransaction(null);

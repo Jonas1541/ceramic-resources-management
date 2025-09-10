@@ -81,16 +81,16 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public GlazeTransaction createEntity(Long glazeId, double quantity, ProductTransaction productTransaction) {
+    public GlazeTransaction createEntity(Long glazeId, ProductTransaction productTransaction) {
         Glaze glaze = glazeRepository.findById(glazeId)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrado. Id: " + glazeId));
         GlazeTransaction entity = new GlazeTransaction();
         entity.setType(TransactionType.OUTGOING);
-        entity.setQuantity(quantity);
+        entity.setQuantity(productTransaction.getProduct().getglazeQuantityPerUnit());
         entity.setGlaze(glaze);
         entity.setProductTransaction(productTransaction);
-        BigDecimal resourceCost = computeResourceCostAtTime(glaze, quantity);
-        BigDecimal machineCost = computeMachineCostAtTime(glaze, quantity);
+        BigDecimal resourceCost = computeResourceCostAtTime(glaze, productTransaction.getProduct().getglazeQuantityPerUnit());
+        BigDecimal machineCost = computeMachineCostAtTime(glaze, productTransaction.getProduct().getglazeQuantityPerUnit());
         BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
         entity.setResourceTotalCostAtTime(resourceCost);
         entity.setMachineEnergyConsumptionCostAtTime(machineCost);

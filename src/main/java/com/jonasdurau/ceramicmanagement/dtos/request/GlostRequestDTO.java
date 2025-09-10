@@ -8,7 +8,5 @@ public record GlostRequestDTO(
     @Positive(message = "O id da transação do produto deve ser positivo")
     Long productTransactionId,
     @Positive(message = "O id da glasura deve ser positivo")
-    Long glazeId,
-    @Positive(message = "A quantidade de glasura deve ser positiva")
-    Double quantity
+    Long glazeId
 ) {}

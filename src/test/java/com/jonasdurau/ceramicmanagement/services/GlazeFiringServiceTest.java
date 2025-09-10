@@ -142,7 +142,7 @@ public class GlazeFiringServiceTest {
         glazeTx.setGlaze(glaze);
         glazeTx.setQuantity(2.5);
 
-        when(glazeTransactionService.createEntity(eq(glazeId), eq(2.5), any(ProductTransaction.class))).thenReturn(glazeTx);
+        when(glazeTransactionService.createEntity(eq(glazeId), any(ProductTransaction.class))).thenReturn(glazeTx);
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
@@ -152,7 +152,7 @@ public class GlazeFiringServiceTest {
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             800.0, 6.0, 3.0,
-            List.of(new GlostRequestDTO(glostId, glazeId, 2.5))
+            List.of(new GlostRequestDTO(glostId, glazeId))
         );
         GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
 
@@ -168,7 +168,7 @@ public class GlazeFiringServiceTest {
         otherGlost.setId(2L);
         otherGlost.setGlazeFiring(otherFiring);
 
-        GlostRequestDTO glostDTO = new GlostRequestDTO(2L, null, null);
+        GlostRequestDTO glostDTO = new GlostRequestDTO(2L, null);
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             850.0, 7.0, 4.0,
             List.of(glostDTO)

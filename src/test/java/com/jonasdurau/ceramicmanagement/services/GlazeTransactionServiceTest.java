@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +44,7 @@ public class GlazeTransactionServiceTest {
     private Glaze glaze;
     private GlazeTransaction transaction;
     private GlazeTransactionRequestDTO requestDTO;
+    private Product product;
     private ProductTransaction productTransaction;
     private Long glazeId;
     private Long transactionId;
@@ -97,8 +99,20 @@ public class GlazeTransactionServiceTest {
         transaction.setGlazeFinalCostAtTime(totalCost);
         transaction.setGlaze(glaze);
 
+        product = new Product();
+        product.setId(1L);
+        product.setCreatedAt(Instant.now());
+        product.setUpdatedAt(null);
+        product.setName("product");
+        product.setPrice(BigDecimal.valueOf(100));
+        product.setHeight(1.1);
+        product.setLength(1.1);
+        product.setWidth(1.1);
+        product.setglazeQuantityPerUnit(2.2);
+
         productTransaction = new ProductTransaction();
         productTransaction.setId(productTransactionId);
+        productTransaction.setProduct(product);
         transaction.setProductTransaction(productTransaction);
 
         glaze.getTransactions().add(transaction);
@@ -252,7 +266,7 @@ public class GlazeTransactionServiceTest {
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
         when(glazeTransactionRepository.save(any(GlazeTransaction.class))).thenReturn(mockTransaction);
 
-        GlazeTransaction result = glazeTransactionService.createEntity(glazeId, 150.0, productTransaction);
+        GlazeTransaction result = glazeTransactionService.createEntity(glazeId, productTransaction);
     
         assertNotNull(result);
         assertEquals(TransactionType.OUTGOING, result.getType());
