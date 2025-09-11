@@ -20,6 +20,8 @@ public record ProductRequestDTO(
     double width,
     @Positive(message = "A quantia de glasura por unidade deve ser positiva")
     double glazeQuantityPerUnit,
+    @Positive(message = "O peso deve ser positivo")
+    double weight,
     @Positive(message = "O tipo é obrigatório")
     long typeId,
     @Positive(message = "A linha é obrigatória")

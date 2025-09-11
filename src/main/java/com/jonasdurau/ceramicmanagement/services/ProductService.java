@@ -71,6 +71,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
         entity.setLength(dto.length());
         entity.setWidth(dto.width());
         entity.setglazeQuantityPerUnit(dto.glazeQuantityPerUnit());
+        entity.setWeight(dto.weight());
         ProductType type = typeRepository.findById(dto.typeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.typeId()));
         ProductLine line = lineRepository.findById(dto.lineId())
@@ -92,6 +93,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
         entity.setLength(dto.length());
         entity.setWidth(dto.width());
         entity.setglazeQuantityPerUnit(dto.glazeQuantityPerUnit());
+        entity.setWeight(dto.weight());
         ProductType type = typeRepository.findById(dto.typeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo não encontrado. Id: " + dto.typeId()));
         ProductLine line = lineRepository.findById(dto.lineId())
@@ -179,6 +181,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
             entity.getLength(),
             entity.getWidth(),
             entity.getglazeQuantityPerUnit(),
+            entity.getWeight(),
             entity.getType().getName(),
             entity.getLine().getName(),
             entity.getProductStock()

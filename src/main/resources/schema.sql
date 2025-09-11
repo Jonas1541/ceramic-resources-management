@@ -16,6 +16,7 @@ CREATE TABLE tb_batch (
     resource_total_cost_at_time DECIMAL(10,2) NOT NULL,
     machines_energy_consumption_cost_at_time DECIMAL(10,2) NOT NULL,
     batch_final_cost_at_time DECIMAL(10,2) NOT NULL,
+    weight DOUBLE NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
@@ -141,6 +142,7 @@ CREATE TABLE tb_product (
     length DOUBLE NOT NULL,
     width DOUBLE NOT NULL,
     glaze_quantity_per_unit DOUBLE NOT NULL,
+    weight DOUBLE NOT NULL,
     product_type_id BIGINT NOT NULL,
     product_line_id BIGINT NOT NULL,
     PRIMARY KEY (id),
@@ -195,6 +197,7 @@ CREATE TABLE tb_product_transaction (
     glaze_transaction_id BIGINT,
     bisque_firing_id BIGINT,
     glaze_firing_id BIGINT,
+    cost DECIMAL(10,2),
     PRIMARY KEY (id),
     FOREIGN KEY (product_id) REFERENCES tb_product (id),
     FOREIGN KEY (glaze_transaction_id) REFERENCES tb_glaze_transaction (id),

@@ -18,5 +18,6 @@ public record ProductTransactionResponseDTO(
     Long glazeFiringId,
     String glazeColor,
     double glazeQuantity,
+    BigDecimal cost,
     BigDecimal profit
 ) {}

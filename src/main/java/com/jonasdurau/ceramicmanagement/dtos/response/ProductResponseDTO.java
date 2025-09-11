@@ -13,6 +13,7 @@ public record ProductResponseDTO(
     double length,
     double width,
     double glazeQuantityPerUnit,
+    double weight,
     String type,
     String line,
     int productStock

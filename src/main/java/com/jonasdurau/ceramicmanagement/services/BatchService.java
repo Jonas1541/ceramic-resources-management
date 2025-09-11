@@ -125,6 +125,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         batch.setResourceTotalCostAtTime(resourceTotalCost);
         batch.setMachinesEnergyConsumptionCostAtTime(machinesEnergyConsumptionCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
+        batch.setWeight(batch.calculateResourceTotalQuantity());
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -235,6 +236,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         batch.setResourceTotalCostAtTime(resourceTotalCost);
         batch.setMachinesEnergyConsumptionCostAtTime(machinesEnergyConsumptionCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
+        batch.setWeight(batch.calculateResourceTotalQuantity());
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -274,7 +276,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 double outgoingQty = 0.0;
                 BigDecimal outgoingProfit = BigDecimal.ZERO;
                 for (Batch batch : monthBatches) {
-                    incomingQty += batch.getResourceTotalQuantity();
+                    incomingQty += batch.getWeight();
                     incomingCost = incomingCost
                             .add(batch.getBatchFinalCostAtTime() != null ? batch.getBatchFinalCostAtTime()
                                     : BigDecimal.ZERO);
@@ -330,11 +332,12 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
             machineUsageDTOs,
             entity.getBatchTotalWater(),
             entity.getBatchTotalWaterCostAtTime().setScale(2, RoundingMode.HALF_UP),
-            entity.getResourceTotalQuantity(),
+            entity.getWeight(),
             entity.getResourceTotalCost().setScale(2, RoundingMode.HALF_UP),
             entity.getMachinesEnergyConsumption(),
             entity.getMachinesEnergyConsumptionCostAtTime().setScale(2, RoundingMode.HALF_UP),
-            entity.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP)
+            entity.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP),
+            entity.getWeight()
         );
         return dto;
     }

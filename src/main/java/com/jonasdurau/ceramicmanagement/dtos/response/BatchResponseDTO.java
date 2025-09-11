@@ -16,5 +16,6 @@ public record BatchResponseDTO(
     BigDecimal resourceTotalCost,
     double machinesEnergyConsumption,
     BigDecimal machinesEnergyConsumptionCost,
-    BigDecimal batchFinalCost
+    BigDecimal batchFinalCost,
+    double weight
 ) {}

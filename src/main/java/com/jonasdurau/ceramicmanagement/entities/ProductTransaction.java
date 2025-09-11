@@ -43,6 +43,8 @@ public class ProductTransaction extends BaseEntity {
     @JoinColumn(name = "glaze_firing_id")
     private GlazeFiring glazeFiring;
 
+    private BigDecimal cost;
+
     public ProductTransaction() {
     }
 
@@ -114,5 +116,13 @@ public class ProductTransaction extends BaseEntity {
 
     public void setGlazeFiring(GlazeFiring glazeFiring) {
         this.glazeFiring = glazeFiring;
+    }
+
+    public BigDecimal getCost() {
+        return cost;
+    }
+
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
     }
 }

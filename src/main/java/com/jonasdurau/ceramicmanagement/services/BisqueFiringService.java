@@ -197,6 +197,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
                 glazeFiringId,
                 glazeColor,
                 glazeQuantity,
+                biscuit.getCost(),
                 biscuit.getProfit()
             );
             biscuitDTOs.add(biscuitDTO);

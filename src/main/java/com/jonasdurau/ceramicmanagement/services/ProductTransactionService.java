@@ -1,5 +1,7 @@
 package com.jonasdurau.ceramicmanagement.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
+import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 
@@ -27,6 +30,9 @@ public class ProductTransactionService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private BatchRepository batchRepository;
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByProduct(Long productId) {
@@ -60,6 +66,7 @@ public class ProductTransactionService {
             ProductTransaction entity = new ProductTransaction();
             entity.setState(ProductState.GREENWARE);
             entity.setProduct(product);
+            entity.setCost(calculateProductTransactionCost(product.getWeight()));
             entity = transactionRepository.save(entity);
             list.add(entity);
         }
@@ -132,7 +139,24 @@ public class ProductTransactionService {
             glazeFiringId,
             glazeColor,
             glazeQuantity,
+            entity.getCost(),
             entity.getProfit()
         );
     }
+
+    public BigDecimal calculateProductTransactionCost(double transactionWeight) {
+        Double totalWeight = batchRepository.getTotalWeight();
+        BigDecimal totalCost = batchRepository.getTotalFinalCost();
+
+        if (totalWeight == null || totalWeight == 0) {
+            throw new IllegalStateException("Total weight is zero, cannot divide by zero");
+        }
+
+        BigDecimal transactionWeightBD = BigDecimal.valueOf(transactionWeight);
+
+        return totalCost
+                .multiply(transactionWeightBD)
+                .divide(BigDecimal.valueOf(totalWeight), 2, RoundingMode.HALF_UP);
+    }
+
 }

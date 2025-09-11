@@ -27,6 +27,8 @@ public class Batch extends BaseEntity {
     private BigDecimal machinesEnergyConsumptionCostAtTime;
     private BigDecimal batchFinalCostAtTime;
 
+    private double weight;
+
     public Batch() {
     }
 
@@ -36,7 +38,7 @@ public class Batch extends BaseEntity {
                 .sum();
     }
 
-    public double getResourceTotalQuantity() {
+    public double calculateResourceTotalQuantity() {
         return resourceUsages.stream()
                 .mapToDouble(BatchResourceUsage::getTotalQuantity)
                 .sum();
@@ -96,5 +98,13 @@ public class Batch extends BaseEntity {
 
     public void setBatchFinalCostAtTime(BigDecimal batchFinalCostAtTime) {
         this.batchFinalCostAtTime = batchFinalCostAtTime;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 }
