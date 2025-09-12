@@ -3,6 +3,7 @@ package com.jonasdurau.ceramicmanagement.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.jonasdurau.ceramicmanagement.entities.Product;
@@ -18,4 +19,9 @@ public interface ProductTransactionRepository extends JpaRepository<ProductTrans
     Optional<ProductTransaction> findByIdAndProduct(Long id, Product product);
 
     List<ProductTransaction> findByState(ProductState state);
+
+    List<ProductTransaction> findByProductAndStateAndOutgoingReasonIsNullOrderByCreatedAtAsc(Product product, ProductState state, Pageable pageable);
+
+    List<ProductTransaction> findByProductAndStateAndOutgoingReasonIsNotNullOrderByCreatedAtAsc(Product product, ProductState state, Pageable pageable);
+
 }

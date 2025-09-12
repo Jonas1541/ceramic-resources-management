@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +102,24 @@ public class ProductTransactionService {
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
+    public List<ProductTransactionResponseDTO> outgoingByQuantity(Long productId, int quantity, ProductState state, ProductOutgoingReason outgoingReason) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
+        List<ProductTransaction> availableTransactions = transactionRepository
+                .findByProductAndStateAndOutgoingReasonIsNullOrderByCreatedAtAsc(product, state, PageRequest.of(0, quantity));
+        if (availableTransactions.size() < quantity) {
+            throw new ResourceNotFoundException("Quantidade solicitada maior que o estoque disponível.");
+        }
+        Instant now = Instant.now();
+        for (ProductTransaction tx : availableTransactions) {
+            tx.setOutgoingReason(outgoingReason);
+            tx.setOutgoingAt(now);
+        }
+        List<ProductTransaction> saved = transactionRepository.saveAll(availableTransactions);
+        return saved.stream().map(this::entityToResponseDTO).toList();
+    }
+
+    @Transactional(transactionManager = "tenantTransactionManager")
     public ProductTransactionResponseDTO cancelOutgoing(Long productId, Long transactionId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
@@ -110,6 +129,23 @@ public class ProductTransactionService {
         entity.setOutgoingAt(null);
         entity = transactionRepository.save(entity);
         return entityToResponseDTO(entity);
+    }
+
+    @Transactional(transactionManager = "tenantTransactionManager")
+    public List<ProductTransactionResponseDTO> cancelOutgoingByQuantity(Long productId, int quantity, ProductState state) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
+        List<ProductTransaction> availableTransactions = transactionRepository
+                .findByProductAndStateAndOutgoingReasonIsNotNullOrderByCreatedAtAsc(product, state, PageRequest.of(0, quantity));
+        if (availableTransactions.size() < quantity) {
+            throw new ResourceNotFoundException("Quantidade solicitada maior que o estoque disponível.");
+        }
+        for (ProductTransaction tx : availableTransactions) {
+            tx.setOutgoingReason(null);
+            tx.setOutgoingAt(null);
+        }
+        List<ProductTransaction> saved = transactionRepository.saveAll(availableTransactions);
+        return saved.stream().map(this::entityToResponseDTO).toList();
     }
 
     private ProductTransactionResponseDTO entityToResponseDTO(ProductTransaction entity) {

@@ -61,9 +61,21 @@ public class ProductTransactionController {
         return ResponseEntity.ok(dto);
     }
 
+    @PatchMapping("/outgoing-by-quantity")
+    public ResponseEntity<List<ProductTransactionResponseDTO>> outgoingByQuantity(@PathVariable Long productId, @RequestParam int quantity, @RequestParam ProductState state, @RequestParam ProductOutgoingReason outgoingReason) {
+        List<ProductTransactionResponseDTO> list = transactionService.outgoingByQuantity(productId, quantity, state, outgoingReason);
+        return ResponseEntity.ok(list);
+    }
+
     @PatchMapping("/{transactionId}")
     public ResponseEntity<ProductTransactionResponseDTO> cancelOutgoing(@PathVariable Long productId, @PathVariable Long transactionId) {
         ProductTransactionResponseDTO dto = transactionService.cancelOutgoing(productId, transactionId);
         return ResponseEntity.ok(dto);
+    }
+
+    @PatchMapping("/cancel-outgoing-by-quantity")
+    public ResponseEntity<List<ProductTransactionResponseDTO>> cancelOutgoingByQuantity(@PathVariable Long productId, @RequestParam int quantity, @RequestParam ProductState state) {
+        List<ProductTransactionResponseDTO> list = transactionService.cancelOutgoingByQuantity(productId, quantity, state);
+        return ResponseEntity.ok(list);
     }
 }
