@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
+import com.jonasdurau.ceramicmanagement.repositories.BatchEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 
@@ -22,6 +24,9 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
 
     @Autowired
     private EmployeeCategoryRepository employeeCategoryRepository;
+
+    @Autowired
+    private BatchEmployeeUsageRepository batchEmployeeUsageRepository;
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -70,6 +75,10 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
     public void delete(Long id) {
         Employee entity = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + id));
+        boolean hasBatches = batchEmployeeUsageRepository.existsByEmployeeId(id);
+        if(hasBatches) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
+        }
         employeeRepository.delete(entity);
     }
     

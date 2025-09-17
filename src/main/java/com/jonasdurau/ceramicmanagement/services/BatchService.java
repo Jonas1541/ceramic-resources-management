@@ -24,21 +24,26 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.BatchListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.BatchEmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchResourceUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.BatchEmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchMachineUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchResourceUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Batch;
+import com.jonasdurau.ceramicmanagement.entities.BatchEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.BatchMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.BatchResourceUsage;
+import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
+import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
@@ -54,6 +59,9 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
 
     @Autowired
     private MachineRepository machineRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private ResourceTransactionRepository resourceTransactionRepository;
@@ -84,9 +92,11 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     @Transactional(transactionManager = "tenantTransactionManager")
     public BatchResponseDTO create(BatchRequestDTO dto) {
         Batch batch = new Batch();
+        
+        // Resource Usages
         for (BatchResourceUsageRequestDTO resourceUsageDTO : dto.resourceUsages()) {
             Resource resource = resourceRepository.findById(resourceUsageDTO.resourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + resourceUsageDTO.resourceId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado: " + resourceUsageDTO.resourceId()));
             BatchResourceUsage resourceUsage = new BatchResourceUsage();
             resourceUsage.setBatch(batch);
             resourceUsage.setResource(resource);
@@ -104,28 +114,47 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
             tx.setCostAtTime(totalCost);
             batch.getResourceTransactions().add(tx);
         }
+
+        // Machine Usages
         for (BatchMachineUsageRequestDTO muDTO : dto.machineUsages()) {
             Machine machine = machineRepository.findById(muDTO.machineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.machineId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada: " + muDTO.machineId()));
             BatchMachineUsage mu = new BatchMachineUsage();
             mu.setBatch(batch);
             mu.setMachine(machine);
             mu.setUsageTime(muDTO.usageTime());
             batch.getMachineUsages().add(mu);
         }
+
+        // Employee Usages
+        for (BatchEmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            Employee employee = employeeRepository.findById(euDTO.employeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado: " + euDTO.employeeId()));
+            BatchEmployeeUsage eu = new BatchEmployeeUsage();
+            eu.setBatch(batch);
+            eu.setEmployee(employee);
+            eu.setUsageTime(euDTO.usageTime());
+            batch.getEmployeeUsages().add(eu);
+        }
+
+        // Cost Calculations
         BigDecimal batchTotalWaterCost = computeBatchWaterCost(batch).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal resourceTotalCost = batch.getResourceUsages().stream()
-            .map(BatchResourceUsage::getTotalCostAtTime)
-            .reduce(BigDecimal.ZERO, BigDecimal::add)
-            .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal resourceTotalCost = batch.getResourceTotalCost().setScale(2, RoundingMode.HALF_UP);
         BigDecimal machinesEnergyConsumptionCost = computeBatchElectricityCost(batch).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal batchFinalCost = resourceTotalCost.add(batchTotalWaterCost).add(machinesEnergyConsumptionCost)
+        BigDecimal employeeTotalCost = batch.calculateEmployeeTotalCost().setScale(2, RoundingMode.HALF_UP);
+        BigDecimal batchFinalCost = resourceTotalCost
+            .add(batchTotalWaterCost)
+            .add(machinesEnergyConsumptionCost)
+            .add(employeeTotalCost)
             .setScale(2, RoundingMode.HALF_UP);
+
         batch.setBatchTotalWaterCostAtTime(batchTotalWaterCost);
         batch.setResourceTotalCostAtTime(resourceTotalCost);
         batch.setMachinesEnergyConsumptionCostAtTime(machinesEnergyConsumptionCost);
+        batch.setEmployeeTotalCostAtTime(employeeTotalCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
         batch.setWeight(batch.calculateResourceTotalQuantity());
+        
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -135,6 +164,8 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     public BatchResponseDTO update(Long id, BatchRequestDTO dto) {
         Batch batch = batchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
+
+        // Update Resource Usages
         Map<Long, BatchResourceUsage> existingResourceUsagesMap = batch.getResourceUsages().stream()
                 .collect(Collectors.toMap(bru -> bru.getResource().getId(), bru -> bru));
         for (BatchResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
@@ -197,6 +228,8 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 resourceTransactionRepository.delete(txToRemove);
             }
         }
+        
+        // Update Machine Usages
         Map<Long, BatchMachineUsage> existingMachineUsagesMap = batch.getMachineUsages().stream()
                 .collect(Collectors.toMap(mu -> mu.getMachine().getId(), mu -> mu));
         Set<Long> updatedMachineIds = new HashSet<>();
@@ -218,25 +251,59 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 updatedMachineIds.add(machineId);
             }
         }
-        List<BatchMachineUsage> toRemove = batch.getMachineUsages().stream()
+        List<BatchMachineUsage> toRemoveMachines = batch.getMachineUsages().stream()
                 .filter(mu -> !updatedMachineIds.contains(mu.getMachine().getId()))
                 .collect(Collectors.toList());
-        for (BatchMachineUsage mu : toRemove) {
+        for (BatchMachineUsage mu : toRemoveMachines) {
             batch.getMachineUsages().remove(mu);
         }
+
+        // Update Employee Usages
+        Map<Long, BatchEmployeeUsage> existingEmployeeUsagesMap = batch.getEmployeeUsages().stream()
+                .collect(Collectors.toMap(eu -> eu.getEmployee().getId(), eu -> eu));
+        Set<Long> updatedEmployeeIds = new HashSet<>();
+        for (BatchEmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            Long employeeId = euDTO.employeeId();
+            BatchEmployeeUsage existingEu = existingEmployeeUsagesMap.get(employeeId);
+            if (existingEu != null) {
+                existingEu.setUsageTime(euDTO.usageTime());
+                updatedEmployeeIds.add(employeeId);
+            } else {
+                Employee employee = employeeRepository.findById(employeeId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + employeeId));
+                BatchEmployeeUsage newEu = new BatchEmployeeUsage();
+                newEu.setBatch(batch);
+                newEu.setEmployee(employee);
+                newEu.setUsageTime(euDTO.usageTime());
+                batch.getEmployeeUsages().add(newEu);
+                updatedEmployeeIds.add(employeeId);
+            }
+        }
+        List<BatchEmployeeUsage> toRemoveEmployees = batch.getEmployeeUsages().stream()
+                .filter(eu -> !updatedEmployeeIds.contains(eu.getEmployee().getId()))
+                .collect(Collectors.toList());
+        for (BatchEmployeeUsage eu : toRemoveEmployees) {
+            batch.getEmployeeUsages().remove(eu);
+        }
+
+        // Recalculate Costs
         BigDecimal batchTotalWaterCost = computeBatchWaterCost(batch).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal resourceTotalCost = batch.getResourceUsages().stream()
-                .map(BatchResourceUsage::getTotalCostAtTime)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal resourceTotalCost = batch.getResourceTotalCost().setScale(2, RoundingMode.HALF_UP);
         BigDecimal machinesEnergyConsumptionCost = computeBatchElectricityCost(batch).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal batchFinalCost = resourceTotalCost.add(batchTotalWaterCost).add(machinesEnergyConsumptionCost)
+        BigDecimal employeeTotalCost = batch.calculateEmployeeTotalCost().setScale(2, RoundingMode.HALF_UP);
+        BigDecimal batchFinalCost = resourceTotalCost
+                .add(batchTotalWaterCost)
+                .add(machinesEnergyConsumptionCost)
+                .add(employeeTotalCost)
                 .setScale(2, RoundingMode.HALF_UP);
+        
         batch.setBatchTotalWaterCostAtTime(batchTotalWaterCost);
         batch.setResourceTotalCostAtTime(resourceTotalCost);
         batch.setMachinesEnergyConsumptionCostAtTime(machinesEnergyConsumptionCost);
+        batch.setEmployeeTotalCostAtTime(employeeTotalCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
         batch.setWeight(batch.calculateResourceTotalQuantity());
+        
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -305,41 +372,48 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
 
     private BatchResponseDTO batchToResponseDTO(Batch entity) {
         List<BatchResourceUsageResponseDTO> resourceUsageDTOs = entity.getResourceUsages().stream()
-        .map(resourceUsage -> new BatchResourceUsageResponseDTO(
-            resourceUsage.getResource().getId(),
-            resourceUsage.getResource().getName(),
-            resourceUsage.getInitialQuantity(),
-            resourceUsage.getUmidity(),
-            resourceUsage.getAddedQuantity(),
-            resourceUsage.getTotalQuantity(),
-            resourceUsage.getTotalWater(),
-            resourceUsage.getTotalCostAtTime().setScale(2, RoundingMode.HALF_UP)
-        ))
-        .collect(Collectors.toList());
+            .map(ru -> new BatchResourceUsageResponseDTO(
+                ru.getResource().getId(),
+                ru.getResource().getName(),
+                ru.getInitialQuantity(),
+                ru.getUmidity(),
+                ru.getAddedQuantity(),
+                ru.getTotalQuantity(),
+                ru.getTotalWater(),
+                ru.getTotalCostAtTime().setScale(2, RoundingMode.HALF_UP)))
+            .collect(Collectors.toList());
+            
         List<BatchMachineUsageResponseDTO> machineUsageDTOs = entity.getMachineUsages().stream()
-        .map(mu -> new BatchMachineUsageResponseDTO(
-            mu.getMachine().getId(),
-            mu.getMachine().getName(),
-            mu.getUsageTime(),
-            mu.getEnergyConsumption()
-        ))
-        .collect(Collectors.toList());
-        BatchResponseDTO dto = new BatchResponseDTO(
+            .map(mu -> new BatchMachineUsageResponseDTO(
+                mu.getMachine().getId(),
+                mu.getMachine().getName(),
+                mu.getUsageTime(),
+                mu.getEnergyConsumption()))
+            .collect(Collectors.toList());
+
+        List<BatchEmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
+            .map(eu -> new BatchEmployeeUsageResponseDTO(
+                eu.getEmployee().getId(),
+                eu.getUsageTime()))
+            .collect(Collectors.toList());
+            
+        return new BatchResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
             entity.getUpdatedAt(),
             resourceUsageDTOs,
             machineUsageDTOs,
+            employeeUsageDTOs,
             entity.getBatchTotalWater(),
             entity.getBatchTotalWaterCostAtTime().setScale(2, RoundingMode.HALF_UP),
             entity.getWeight(),
-            entity.getResourceTotalCost().setScale(2, RoundingMode.HALF_UP),
+            entity.getResourceTotalCostAtTime().setScale(2, RoundingMode.HALF_UP),
             entity.getMachinesEnergyConsumption(),
             entity.getMachinesEnergyConsumptionCostAtTime().setScale(2, RoundingMode.HALF_UP),
+            entity.getEmployeeTotalCostAtTime().setScale(2, RoundingMode.HALF_UP),
             entity.getBatchFinalCostAtTime().setScale(2, RoundingMode.HALF_UP),
             entity.getWeight()
         );
-        return dto;
     }
 
     private BigDecimal computeBatchWaterCost(Batch batch) {

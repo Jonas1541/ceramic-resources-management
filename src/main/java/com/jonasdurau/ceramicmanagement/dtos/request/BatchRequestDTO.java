@@ -11,5 +11,8 @@ public record BatchRequestDTO(
     List<BatchResourceUsageRequestDTO> resourceUsages,
     @NotEmpty(message = "A lista de máquinas não pode estar vazia.")
     @Valid
-    List<BatchMachineUsageRequestDTO> machineUsages
+    List<BatchMachineUsageRequestDTO> machineUsages,
+    @NotEmpty(message = "A lista de funcionários não pode estar vazia.")
+    @Valid
+    List<BatchEmployeeUsageRequestDTO> employeeUsages
 ) {}

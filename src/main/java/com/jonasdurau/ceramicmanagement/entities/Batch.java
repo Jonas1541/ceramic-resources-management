@@ -20,16 +20,26 @@ public class Batch extends BaseEntity {
     private List<BatchMachineUsage> machineUsages = new ArrayList<>();
 
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BatchEmployeeUsage> employeeUsages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResourceTransaction> resourceTransactions = new ArrayList<>();
 
     private BigDecimal batchTotalWaterCostAtTime;
     private BigDecimal resourceTotalCostAtTime;
     private BigDecimal machinesEnergyConsumptionCostAtTime;
+    private BigDecimal employeeTotalCostAtTime;
     private BigDecimal batchFinalCostAtTime;
 
     private double weight;
 
     public Batch() {
+    }
+
+    public BigDecimal calculateEmployeeTotalCost() {
+        return employeeUsages.stream()
+                .map(BatchEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public double getBatchTotalWater() {
@@ -62,6 +72,18 @@ public class Batch extends BaseEntity {
 
     public List<BatchMachineUsage> getMachineUsages() {
         return machineUsages;
+    }
+
+    public List<BatchEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
+    }
+
+    public BigDecimal getEmployeeTotalCostAtTime() {
+        return employeeTotalCostAtTime;
+    }
+
+    public void setEmployeeTotalCostAtTime(BigDecimal employeeTotalCostAtTime) {
+        this.employeeTotalCostAtTime = employeeTotalCostAtTime;
     }
 
     public List<ResourceTransaction> getResourceTransactions() {

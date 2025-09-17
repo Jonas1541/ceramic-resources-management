@@ -34,6 +34,7 @@ CREATE TABLE tb_batch (
     batch_total_water_cost_at_time DECIMAL(10,2) NOT NULL,
     resource_total_cost_at_time DECIMAL(10,2) NOT NULL,
     machines_energy_consumption_cost_at_time DECIMAL(10,2) NOT NULL,
+    employee_total_cost_at_time DECIMAL(10,2) NOT NULL,
     batch_final_cost_at_time DECIMAL(10,2) NOT NULL,
     weight DOUBLE NOT NULL,
     PRIMARY KEY (id)
@@ -69,6 +70,16 @@ CREATE TABLE tb_batch_machine_usage (
     PRIMARY KEY (id),
     FOREIGN KEY (batch_id) REFERENCES tb_batch (id),
     FOREIGN KEY (machine_id) REFERENCES tb_machine (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_batch_employee_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time DOUBLE NOT NULL,
+    employee_id BIGINT NOT NULL,
+    batch_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES tb_employee (id),
+    FOREIGN KEY (batch_id) REFERENCES tb_batch (id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE tb_glaze (
