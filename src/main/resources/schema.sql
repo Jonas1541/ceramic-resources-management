@@ -115,6 +115,16 @@ CREATE TABLE tb_glaze_machine_usage (
         FOREIGN KEY (machine_id) REFERENCES tb_machine (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+CREATE TABLE tb_glaze_employee_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time DOUBLE NOT NULL,
+    employee_id BIGINT NOT NULL,
+    glaze_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES tb_employee (id) ON DELETE RESTRICT,
+    FOREIGN KEY (glaze_id) REFERENCES tb_glaze (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE tb_glaze_transaction (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,

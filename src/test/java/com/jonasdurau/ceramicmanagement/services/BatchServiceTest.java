@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.BatchListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.BatchEmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchResourceUsageRequestDTO;
@@ -150,7 +150,7 @@ public class BatchServiceTest {
         requestDTO = new BatchRequestDTO(
             List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
             List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
-            List.of(new BatchEmployeeUsageRequestDTO(2.0, 1L))
+            List.of(new EmployeeUsageRequestDTO(2.0, 1L))
         );
     }
 
@@ -227,8 +227,8 @@ public class BatchServiceTest {
             List.of(new BatchResourceUsageRequestDTO(3L, 15.0, 50.0, 5.0)),
             List.of(new BatchMachineUsageRequestDTO(1L, 3.0)),
             List.of(
-                new BatchEmployeeUsageRequestDTO(4.0, 1L),
-                new BatchEmployeeUsageRequestDTO(5.0, 2L)
+                new EmployeeUsageRequestDTO(4.0, 1L),
+                new EmployeeUsageRequestDTO(5.0, 2L)
             )
         );
 
@@ -251,7 +251,7 @@ public class BatchServiceTest {
         BatchRequestDTO invalidRequest = new BatchRequestDTO(
             List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
             List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
-            List.of(new BatchEmployeeUsageRequestDTO(1.0, 999L))
+            List.of(new EmployeeUsageRequestDTO(1.0, 999L))
         );
 
         when(batchRepository.findById(testId)).thenReturn(Optional.of(batch));

@@ -25,13 +25,17 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeResourceUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeMachineUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResourceUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResponseDTO;
+import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
+import com.jonasdurau.ceramicmanagement.entities.GlazeEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
@@ -39,6 +43,8 @@ import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
+import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
@@ -57,6 +63,9 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
 
     @Autowired
     private MachineRepository machineRepository;
+    
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private GlazeTransactionRepository transactionRepository;
@@ -66,6 +75,9 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
 
     @Autowired
     private GlazeMachineUsageRepository glazeMachineUsageRepository;
+    
+    @Autowired
+    private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -97,6 +109,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     public GlazeResponseDTO create(GlazeRequestDTO dto) {
         Glaze glaze = new Glaze();
         glaze.setColor(dto.color());
+
+        // Resource Usages
         for (GlazeResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
             Resource resource = resourceRepository.findById(usageDTO.resourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found: " + usageDTO.resourceId()));
@@ -106,6 +120,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             usage.setQuantity(usageDTO.quantity());
             glaze.getResourceUsages().add(usage);
         }
+        
+        // Machine Usages
         for (GlazeMachineUsageRequestDTO muDTO : dto.machineUsages()) {
             Machine machine = machineRepository.findById(muDTO.machineId())
                 .orElseThrow(() -> new ResourceNotFoundException("Machine not found: " + muDTO.machineId()));
@@ -115,6 +131,18 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             mu.setUsageTime(muDTO.usageTime());
             glaze.getMachineUsages().add(mu);
         }
+
+        // Employee Usages
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            Employee employee = employeeRepository.findById(euDTO.employeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + euDTO.employeeId()));
+            GlazeEmployeeUsage eu = new GlazeEmployeeUsage();
+            eu.setGlaze(glaze);
+            eu.setEmployee(employee);
+            eu.setUsageTime(euDTO.usageTime());
+            glaze.getEmployeeUsages().add(eu);
+        }
+
         computeUnitCost(glaze);
         glaze = glazeRepository.save(glaze);
         return entityToResponseDTO(glaze);
@@ -125,6 +153,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     public GlazeResponseDTO update(Long id, GlazeRequestDTO dto) {
         Glaze glaze = glazeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
+        
+        // Update Resource Usages
         Map<Long, GlazeResourceUsage> existingResourceUsages = glaze.getResourceUsages().stream()
             .collect(Collectors.toMap(r -> r.getResource().getId(), r -> r));
         for (GlazeResourceUsageRequestDTO usageDTO : dto.resourceUsages()) {
@@ -145,6 +175,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         for (GlazeResourceUsage removedUsage : existingResourceUsages.values()) {
             glaze.getResourceUsages().remove(removedUsage);
         }
+        
+        // Update Machine Usages
         Map<Long, GlazeMachineUsage> existingMachineUsages = glaze.getMachineUsages().stream()
             .collect(Collectors.toMap(mu -> mu.getMachine().getId(), mu -> mu));
         Set<Long> updatedMachineIds = new HashSet<>();
@@ -170,6 +202,34 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         for (GlazeMachineUsage mu : muToRemove) {
             glaze.getMachineUsages().remove(mu);
         }
+        
+        // Update Employee Usages
+        Map<Long, GlazeEmployeeUsage> existingEmployeeUsages = glaze.getEmployeeUsages().stream()
+            .collect(Collectors.toMap(eu -> eu.getEmployee().getId(), eu -> eu));
+        Set<Long> updatedEmployeeIds = new HashSet<>();
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            GlazeEmployeeUsage existingEu = existingEmployeeUsages.get(euDTO.employeeId());
+            if (existingEu != null) {
+                existingEu.setUsageTime(euDTO.usageTime());
+                updatedEmployeeIds.add(euDTO.employeeId());
+            } else {
+                Employee employee = employeeRepository.findById(euDTO.employeeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + euDTO.employeeId()));
+                GlazeEmployeeUsage newEu = new GlazeEmployeeUsage();
+                newEu.setGlaze(glaze);
+                newEu.setEmployee(employee);
+                newEu.setUsageTime(euDTO.usageTime());
+                glaze.getEmployeeUsages().add(newEu);
+                updatedEmployeeIds.add(euDTO.employeeId());
+            }
+        }
+        List<GlazeEmployeeUsage> euToRemove = glaze.getEmployeeUsages().stream()
+            .filter(eu -> !updatedEmployeeIds.contains(eu.getEmployee().getId()))
+            .collect(Collectors.toList());
+        for (GlazeEmployeeUsage eu : euToRemove) {
+            glaze.getEmployeeUsages().remove(eu);
+        }
+
         glaze.setColor(dto.color());
         computeUnitCost(glaze);
         glaze = glazeRepository.save(glaze);
@@ -248,23 +308,29 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
 
     private GlazeResponseDTO entityToResponseDTO(Glaze entity) {
         List<GlazeResourceUsageResponseDTO> resourceUsageDTOs = entity.getResourceUsages().stream()
-            .map(usage -> {
-                return new GlazeResourceUsageResponseDTO(
-                    usage.getResource().getId(),
-                    usage.getResource().getName(),
-                    usage.getQuantity()
-                );
-            })
+            .map(usage -> new GlazeResourceUsageResponseDTO(
+                usage.getResource().getId(),
+                usage.getResource().getName(),
+                usage.getQuantity()
+            ))
             .collect(Collectors.toList());
+            
         List<GlazeMachineUsageResponseDTO> machineUsageDTOs = entity.getMachineUsages().stream()
-            .map(mu -> {
-                return new GlazeMachineUsageResponseDTO(
-                    mu.getMachine().getId(),
-                    mu.getMachine().getName(),
-                    mu.getUsageTime()
-                );
-            })
+            .map(mu -> new GlazeMachineUsageResponseDTO(
+                mu.getMachine().getId(),
+                mu.getMachine().getName(),
+                mu.getUsageTime()
+            ))
             .collect(Collectors.toList());
+
+        List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
+            .map(eu -> new EmployeeUsageResponseDTO(
+                eu.getEmployee().getId(),
+                eu.getEmployee().getName(),
+                eu.getUsageTime()
+            ))
+            .collect(Collectors.toList());
+            
         return new GlazeResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
@@ -272,6 +338,7 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             entity.getColor(),
             resourceUsageDTOs,
             machineUsageDTOs,
+            employeeUsageDTOs, // Corrigido para usar a lista de funcionários
             entity.getUnitCost(),
             entity.getCurrentQuantity(),
             entity.getCurrentQuantityPrice()
@@ -286,7 +353,13 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             resourceCost = resourceCost.add(subCost);
         }
         BigDecimal machineCost = computeMachineCost(glaze);
-        BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal employeeCost = computeEmployeeCost(glaze);
+        
+        BigDecimal finalCost = resourceCost
+            .add(machineCost)
+            .add(employeeCost)
+            .setScale(2, RoundingMode.HALF_UP);
+            
         glaze.setUnitCost(finalCost);
     }
 
@@ -295,11 +368,21 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             .orElseThrow(() -> new BusinessException("ELECTRICITY resource not found"));
         BigDecimal total = BigDecimal.ZERO;
         for (GlazeMachineUsage mu : glaze.getMachineUsages()) {
-            double kwh = mu.getEnergyConsumption(); // e.g. from getEnergyConsumption() logic
+            double kwh = mu.getEnergyConsumption();
             BigDecimal cost = electricity.getUnitValue().multiply(BigDecimal.valueOf(kwh));
             total = total.add(cost);
         }
         return total.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal computeEmployeeCost(Glaze glaze) {
+        return glaze.getEmployeeUsages().stream()
+            .map(usage -> {
+                BigDecimal costPerHour = usage.getEmployee().getCostPerHour();
+                return costPerHour.multiply(BigDecimal.valueOf(usage.getUsageTime()));
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            .setScale(2, RoundingMode.HALF_UP);
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
@@ -325,6 +408,19 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
         for (Glaze g : glazes) {
             computeUnitCost(g);
             glazeRepository.save(g);
+        }
+    }
+
+    @Transactional(transactionManager = "tenantTransactionManager")
+    public void recalculateGlazesByEmployee(Long employeeId) {
+        List<GlazeEmployeeUsage> usages = glazeEmployeeUsageRepository.findByEmployeeId(employeeId);
+        List<Glaze> glazes = usages.stream()
+                .map(GlazeEmployeeUsage::getGlaze)
+                .distinct()
+                .collect(Collectors.toList());
+        for (Glaze glaze : glazes) {
+            computeUnitCost(glaze);
+            glazeRepository.save(glaze);
         }
     }
 }

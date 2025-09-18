@@ -14,5 +14,8 @@ public record GlazeRequestDTO(
     List<GlazeResourceUsageRequestDTO> resourceUsages,
     @NotEmpty(message = "A lista de máquinas não pode estar vazia.")
     @Valid
-    List<GlazeMachineUsageRequestDTO> machineUsages
+    List<GlazeMachineUsageRequestDTO> machineUsages,
+    @NotEmpty(message = "A lista de funcionários não pode estar vazia.")
+    @Valid
+    List<EmployeeUsageRequestDTO> employeeUsages
 ) {}

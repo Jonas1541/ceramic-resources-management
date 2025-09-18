@@ -15,6 +15,7 @@ import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.repositories.BatchEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
 
 @Service
 public class EmployeeService implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long>{
@@ -27,6 +28,12 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
 
     @Autowired
     private BatchEmployeeUsageRepository batchEmployeeUsageRepository;
+
+    @Autowired
+    private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
+
+    @Autowired
+    private GlazeService glazeService;
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -67,6 +74,7 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         entity.setCategory(category);
         entity.setCostPerHour(dto.costPerHour());
         entity = employeeRepository.save(entity);
+        glazeService.recalculateGlazesByEmployee(id);
         return entityToResponseDTO(entity);
     }
 
@@ -76,8 +84,12 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         Employee entity = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + id));
         boolean hasBatches = batchEmployeeUsageRepository.existsByEmployeeId(id);
+        boolean hasGlazes = glazeEmployeeUsageRepository.existsByEmployeeId(id);
         if(hasBatches) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
+        }
+        if(hasGlazes) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui glasuras associadas.");
         }
         employeeRepository.delete(entity);
     }

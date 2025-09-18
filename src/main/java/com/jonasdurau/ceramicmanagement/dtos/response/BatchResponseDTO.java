@@ -10,7 +10,7 @@ public record BatchResponseDTO(
     Instant updatedAt,
     List<BatchResourceUsageResponseDTO> resourceUsages,
     List<BatchMachineUsageResponseDTO> machineUsages,
-    List<BatchEmployeeUsageResponseDTO> employeeUsages,
+    List<EmployeeUsageResponseDTO> employeeUsages,
     double batchTotalWater,
     BigDecimal batchTotalWaterCost,
     double resourceTotalQuantity,

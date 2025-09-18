@@ -24,11 +24,11 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.BatchListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.BatchEmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BatchResourceUsageRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.BatchEmployeeUsageResponseDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchMachineUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchResourceUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BatchResponseDTO;
@@ -127,7 +127,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         }
 
         // Employee Usages
-        for (BatchEmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
             Employee employee = employeeRepository.findById(euDTO.employeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado: " + euDTO.employeeId()));
             BatchEmployeeUsage eu = new BatchEmployeeUsage();
@@ -262,7 +262,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         Map<Long, BatchEmployeeUsage> existingEmployeeUsagesMap = batch.getEmployeeUsages().stream()
                 .collect(Collectors.toMap(eu -> eu.getEmployee().getId(), eu -> eu));
         Set<Long> updatedEmployeeIds = new HashSet<>();
-        for (BatchEmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
             Long employeeId = euDTO.employeeId();
             BatchEmployeeUsage existingEu = existingEmployeeUsagesMap.get(employeeId);
             if (existingEu != null) {
@@ -391,8 +391,8 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 mu.getEnergyConsumption()))
             .collect(Collectors.toList());
 
-        List<BatchEmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
-            .map(eu -> new BatchEmployeeUsageResponseDTO(
+        List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
+            .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
                 eu.getUsageTime()))

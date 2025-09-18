@@ -16,21 +16,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.list.GlazeListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeMachineUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeResourceUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeResponseDTO;
+import com.jonasdurau.ceramicmanagement.entities.Employee;
+import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.entities.Glaze;
+import com.jonasdurau.ceramicmanagement.entities.GlazeEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeMachineUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeResourceUsage;
 import com.jonasdurau.ceramicmanagement.entities.Machine;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
@@ -51,6 +56,12 @@ public class GlazeServiceTest {
     private MachineRepository machineRepository;
 
     @Mock
+    private EmployeeRepository employeeRepository;
+
+    @Mock
+    private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
+
+    @Mock
     private GlazeTransactionRepository transactionRepository;
 
     @Mock
@@ -66,6 +77,7 @@ public class GlazeServiceTest {
     private GlazeRequestDTO requestDTO;
     private Long testId;
     private Resource electricityResource;
+    private Employee employee;
 
     @BeforeEach
     void setUp() {
@@ -76,25 +88,41 @@ public class GlazeServiceTest {
         electricityResource.setCategory(ResourceCategory.ELECTRICITY);
         electricityResource.setUnitValue(new BigDecimal("0.50"));
 
+        EmployeeCategory category = new EmployeeCategory();
+        category.setId(1L);
+        category.setName("Pintor");
+
+        employee = new Employee();
+        employee.setId(1L);
+        employee.setName("João");
+        employee.setCostPerHour(new BigDecimal("20.00"));
+        employee.setCategory(category);
+
         glaze = new Glaze();
         glaze.setId(testId);
         glaze.setColor("Azul");
         glaze.setCreatedAt(Instant.now());
         glaze.setUpdatedAt(Instant.now());
+        glaze.setUnitCost(new BigDecimal("50.00"));
+
+        GlazeEmployeeUsage employeeUsage = new GlazeEmployeeUsage();
+        employeeUsage.setEmployee(employee);
+        employeeUsage.setGlaze(glaze);
+        employeeUsage.setUsageTime(2.0);
+        glaze.getEmployeeUsages().add(employeeUsage);
 
         requestDTO = new GlazeRequestDTO(
             "Azul",
             List.of(new GlazeResourceUsageRequestDTO(1L, 2.0)),
-            List.of(new GlazeMachineUsageRequestDTO(1L, 5.0))
+            List.of(new GlazeMachineUsageRequestDTO(1L, 5.0)),
+            List.of(new EmployeeUsageRequestDTO(2.0, 1L))
         );
     }
 
     @Test
     void findAll_ShouldReturnListOfGlazes() {
         when(glazeRepository.findAll()).thenReturn(List.of(glaze));
-
         List<GlazeListDTO> result = glazeService.findAll();
-
         assertEquals(1, result.size());
         assertEquals(testId, result.getFirst().id());
         verify(glazeRepository).findAll();
@@ -103,35 +131,32 @@ public class GlazeServiceTest {
     @Test
     void findById_WhenExists_ShouldReturnGlaze() {
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-
         GlazeResponseDTO result = glazeService.findById(testId);
-
         assertEquals(testId, result.id());
+        assertFalse(result.employeeUsages().isEmpty());
         verify(glazeRepository).findById(testId);
     }
 
     @Test
     void findById_WhenNotExists_ShouldThrowException() {
         when(glazeRepository.findById(testId)).thenReturn(Optional.empty());
-
         assertThrows(ResourceNotFoundException.class, () -> glazeService.findById(testId));
         verify(glazeRepository).findById(testId);
     }
 
     @Test
     void create_WithValidData_ShouldReturnGlaze() {
-
         Resource mockResource = new Resource();
         mockResource.setUnitValue(new BigDecimal("2.00"));
 
         Machine mockMachine = new Machine();
-        mockMachine.setId(testId);
+        mockMachine.setId(1L);
         mockMachine.setPower(1500.0);
         
         when(resourceRepository.findById(1L)).thenReturn(Optional.of(mockResource));
         when(machineRepository.findById(1L)).thenReturn(Optional.of(mockMachine));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
-            .thenReturn(Optional.of(electricityResource));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
         when(glazeRepository.save(any())).thenAnswer(invocation -> {
             Glaze saved = invocation.getArgument(0);
             saved.setId(testId);
@@ -142,64 +167,54 @@ public class GlazeServiceTest {
     
         assertEquals(testId, result.id());
         assertNotNull(result.unitCost());
+        assertFalse(result.employeeUsages().isEmpty());
         verify(glazeRepository).save(any());
     }
 
     @Test
-    void create_WithMissingResource_ShouldThrowException() {
-        when(resourceRepository.findById(1L)).thenReturn(Optional.empty());
+    void create_WithMissingEmployee_ShouldThrowException() {
+        when(resourceRepository.findById(1L)).thenReturn(Optional.of(new Resource()));
+        when(machineRepository.findById(1L)).thenReturn(Optional.of(new Machine()));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> glazeService.create(requestDTO));
         verify(glazeRepository, never()).save(any());
     }
 
     @Test
-    void create_WithMissingElectricityResource_ShouldThrowException() {
-
-        Machine machine = new Machine();
-        machine.setId(1L);
-        machine.setPower(1500.0);
-    
-        Resource resource = new Resource();
-        resource.setUnitValue(new BigDecimal("2.00"));
-    
-        when(resourceRepository.findById(1L)).thenReturn(Optional.of(resource));
-        when(machineRepository.findById(1L)).thenReturn(Optional.of(machine));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.empty());
-    
-        assertThrows(BusinessException.class, () -> glazeService.create(requestDTO));
-        verify(glazeRepository, never()).save(any());
-    }
-
-    @Test
     void update_WithValidData_ShouldUpdateGlaze() {
+        // Arrange
+        Resource mockResource = new Resource();
+        mockResource.setId(1L);
+        mockResource.setUnitValue(new BigDecimal("2.00"));
 
-        Resource resource = new Resource();
-        resource.setId(1L);
-        resource.setUnitValue(new BigDecimal("2.00"));
-    
-        Machine machine = new Machine();
-        machine.setId(1L);
-        machine.setPower(1500.0);
-    
+        Machine mockMachine = new Machine();
+        mockMachine.setId(1L);
+        mockMachine.setPower(1500.0);
+        
+        when(resourceRepository.findById(1L)).thenReturn(Optional.of(mockResource));
+        when(machineRepository.findById(1L)).thenReturn(Optional.of(mockMachine));
+
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        when(resourceRepository.findById(1L)).thenReturn(Optional.of(resource));
-        when(machineRepository.findById(1L)).thenReturn(Optional.of(machine));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
-            .thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
         when(glazeRepository.save(any())).thenReturn(glaze);
-    
+        
+        // Act
         GlazeResponseDTO result = glazeService.update(testId, requestDTO);
     
+        // Assert
         assertEquals(testId, result.id());
+        assertEquals(1, result.employeeUsages().size());
         verify(glazeRepository).save(any());
     }
-
+    
     @Test
-    void update_WhenGlazeNotFound_ShouldThrowException() {
-        when(glazeRepository.findById(testId)).thenReturn(Optional.empty());
+    void update_WhenEmployeeNotFound_ShouldThrowException() {
+        GlazeRequestDTO invalidRequest = new GlazeRequestDTO("Azul", List.of(), List.of(), List.of(new EmployeeUsageRequestDTO(1.0, 999L)));
+        when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> glazeService.update(testId, requestDTO));
+        assertThrows(ResourceNotFoundException.class, () -> glazeService.update(testId, invalidRequest));
         verify(glazeRepository, never()).save(any());
     }
 
@@ -225,9 +240,7 @@ public class GlazeServiceTest {
     @Test
     void yearlyReport_WhenGlazeExists_ShouldReturnReport() {
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-
         List<YearReportDTO> reports = glazeService.yearlyReport(testId);
-
         assertTrue(reports.isEmpty());
         verify(glazeRepository).findById(testId);
     }
@@ -252,6 +265,18 @@ public class GlazeServiceTest {
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
 
         glazeService.recalculateGlazesByMachine(testId);
+
+        verify(glazeRepository).save(glaze);
+    }
+
+    @Test
+    void recalculateGlazesByEmployee_ShouldUpdateGlazes() {
+        GlazeEmployeeUsage usage = new GlazeEmployeeUsage();
+        usage.setGlaze(glaze);
+        when(glazeEmployeeUsageRepository.findByEmployeeId(1L)).thenReturn(List.of(usage));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+
+        glazeService.recalculateGlazesByEmployee(1L);
 
         verify(glazeRepository).save(glaze);
     }

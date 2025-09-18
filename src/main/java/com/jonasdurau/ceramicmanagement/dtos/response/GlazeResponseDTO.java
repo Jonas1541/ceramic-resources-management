@@ -12,6 +12,7 @@ public record GlazeResponseDTO(
     String color,
     List<GlazeResourceUsageResponseDTO> resourceUsages,
     List<GlazeMachineUsageResponseDTO> machineUsages,
+    List<EmployeeUsageResponseDTO> employeeUsages,
     BigDecimal unitCost,
     double currentQuantity,
     BigDecimal currentQuantityPrice
@@ -19,5 +20,6 @@ public record GlazeResponseDTO(
     public GlazeResponseDTO {
         resourceUsages = resourceUsages == null ? new ArrayList<>() : resourceUsages;
         machineUsages = machineUsages == null ? new ArrayList<>() : machineUsages;
+        employeeUsages = employeeUsages == null ? new ArrayList<>() : employeeUsages;
     }
 }

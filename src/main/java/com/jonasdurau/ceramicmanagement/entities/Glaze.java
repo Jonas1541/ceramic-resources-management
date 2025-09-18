@@ -25,6 +25,9 @@ public class Glaze extends BaseEntity {
     private List<GlazeMachineUsage> machineUsages = new ArrayList<>();
 
     @OneToMany(mappedBy = "glaze", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GlazeEmployeeUsage> employeeUsages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "glaze", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GlazeTransaction> transactions = new ArrayList<>();
 
     private BigDecimal unitCost;
@@ -65,6 +68,10 @@ public class Glaze extends BaseEntity {
 
     public List<GlazeMachineUsage> getMachineUsages() {
         return machineUsages;
+    }
+
+    public List<GlazeEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
     }
 
     public List<GlazeTransaction> getTransactions() {
