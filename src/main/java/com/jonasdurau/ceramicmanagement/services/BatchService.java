@@ -394,6 +394,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         List<BatchEmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
             .map(eu -> new BatchEmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
+                eu.getEmployee().getName(),
                 eu.getUsageTime()))
             .collect(Collectors.toList());
             
