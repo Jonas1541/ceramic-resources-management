@@ -3,7 +3,9 @@ package com.jonasdurau.ceramicmanagement.services;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,17 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlostRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlostResponseDTO;
+import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.GlazeFiring;
+import com.jonasdurau.ceramicmanagement.entities.GlazeFiringEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.GlazeTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Kiln;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.entities.Resource;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
@@ -43,6 +50,9 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
 
     @Autowired
     private ResourceRepository resourceRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private GlazeTransactionService glazeTransactionService;
@@ -89,7 +99,22 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         Kiln kiln = kilnRepository.findById(kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + kilnId));
         entity.setKiln(kiln);
+        
+        // Salva a entidade para gerar o ID antes de associar
         entity = firingRepository.save(entity);
+
+        // Adiciona funcionários
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            Employee employee = employeeRepository.findById(euDTO.employeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + euDTO.employeeId()));
+            GlazeFiringEmployeeUsage eu = new GlazeFiringEmployeeUsage();
+            eu.setGlazeFiring(entity);
+            eu.setEmployee(employee);
+            eu.setUsageTime(euDTO.usageTime());
+            entity.getEmployeeUsages().add(eu);
+        }
+
+        // Adiciona produtos
         for(GlostRequestDTO glostDTO : dto.glosts()) {
             ProductTransaction glost = productTransactionRepository.findById(glostDTO.productTransactionId())
                     .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + glostDTO.productTransactionId()));
@@ -104,6 +129,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             }
             entity.getGlosts().add(glost);
         }
+
         entity.setCostAtTime(calculateCostAtTime(entity));
         entity = firingRepository.save(entity);
         return entityToResponseDTO(entity);
@@ -117,9 +143,37 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         }
         GlazeFiring entity = firingRepository.findByIdAndKilnId(firingId, kilnId)
                 .orElseThrow(() -> new ResourceNotFoundException("Queima não encontrada. Id: " + firingId));
+        
         entity.setTemperature(dto.temperature());
         entity.setBurnTime(dto.burnTime());
         entity.setCoolingTime(dto.coolingTime());
+
+        // Atualiza funcionários
+        Map<Long, GlazeFiringEmployeeUsage> existingEmployeeUsages = entity.getEmployeeUsages().stream()
+            .collect(Collectors.toMap(eu -> eu.getEmployee().getId(), eu -> eu));
+        Set<Long> updatedEmployeeIds = new HashSet<>();
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            GlazeFiringEmployeeUsage existingEu = existingEmployeeUsages.get(euDTO.employeeId());
+            if (existingEu != null) {
+                existingEu.setUsageTime(euDTO.usageTime());
+                updatedEmployeeIds.add(euDTO.employeeId());
+            } else {
+                Employee employee = employeeRepository.findById(euDTO.employeeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + euDTO.employeeId()));
+                GlazeFiringEmployeeUsage newEu = new GlazeFiringEmployeeUsage();
+                newEu.setGlazeFiring(entity);
+                newEu.setEmployee(employee);
+                newEu.setUsageTime(euDTO.usageTime());
+                entity.getEmployeeUsages().add(newEu);
+                updatedEmployeeIds.add(euDTO.employeeId());
+            }
+        }
+        List<GlazeFiringEmployeeUsage> euToRemove = entity.getEmployeeUsages().stream()
+            .filter(eu -> !updatedEmployeeIds.contains(eu.getEmployee().getId()))
+            .collect(Collectors.toList());
+        entity.getEmployeeUsages().removeAll(euToRemove);
+
+        // Atualiza produtos
         List<ProductTransaction> oldList = new ArrayList<>(entity.getGlosts());
         List<ProductTransaction> newList = dto.glosts().stream()
                 .map(glostDTO -> {
@@ -138,6 +192,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                     glost.setState(ProductState.GLAZED);
                     return glost;
                 }).collect(Collectors.toList());
+
         Set<Long> oldIds = oldList.stream().map(ProductTransaction::getId).collect(Collectors.toSet());
         Set<Long> newIds = newList.stream().map(ProductTransaction::getId).collect(Collectors.toSet());
         List<ProductTransaction> toRemove = oldList.stream().filter(glost -> !newIds.contains(glost.getId())).collect(Collectors.toList());
@@ -148,9 +203,11 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             productTransactionRepository.save(glost);
         });
         entity.getGlosts().removeAll(toRemove);
+
         List<ProductTransaction> toAdd = newList.stream().filter(glost -> !oldIds.contains(glost.getId())).collect(Collectors.toList());
         toAdd.forEach(glost -> productTransactionRepository.save(glost));
         entity.getGlosts().addAll(toAdd);
+        
         entity.setCostAtTime(calculateCostAtTime(entity));
         GlazeFiring updatedEntity = firingRepository.save(entity);
         return entityToResponseDTO(updatedEntity);
@@ -174,23 +231,27 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
     }
 
     private GlazeFiringResponseDTO entityToResponseDTO(GlazeFiring entity) {
-        List<GlostResponseDTO> glostDTOs = new ArrayList<>();
-        for (ProductTransaction glost : entity.getGlosts()) {
+        List<GlostResponseDTO> glostDTOs = entity.getGlosts().stream().map(glost -> {
             Long productId = glost.getProduct().getId();
             Long productTxId = glost.getId();
             String productName = glost.getProduct().getName();
-            String glazeColor;
-            Double quantity;
+            String glazeColor = "sem glasura";
+            Double quantity = 0.0;
             if (glost.getGlazeTransaction() != null) {
                 glazeColor = glost.getGlazeTransaction().getGlaze().getColor();
                 quantity = glost.getGlazeTransaction().getQuantity();
-            } else {
-                glazeColor = "sem glasura";
-                quantity = 0.0;
             }
-            GlostResponseDTO glostDTO = new GlostResponseDTO(productId, productTxId, productName, glazeColor, quantity);
-            glostDTOs.add(glostDTO);
-        }
+            return new GlostResponseDTO(productId, productTxId, productName, glazeColor, quantity);
+        }).collect(Collectors.toList());
+
+        List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
+            .map(eu -> new EmployeeUsageResponseDTO(
+                eu.getEmployee().getId(),
+                eu.getEmployee().getName(),
+                eu.getUsageTime()
+            ))
+            .collect(Collectors.toList());
+
         return new GlazeFiringResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
@@ -201,7 +262,8 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             entity.getGasConsumption(),
             entity.getKiln().getName(),
             glostDTOs,
-            calculateCostAtTime(entity)
+            employeeUsageDTOs,
+            entity.getCostAtTime()
         );
     }
 
@@ -210,14 +272,19 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso ELECTRICITY não cadastrada!"));
         Resource gas = resourceRepository.findByCategory(ResourceCategory.GAS)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso GAS não cadastrado!"));
+        
         BigDecimal gasCost = gas.getUnitValue()
-                .multiply(BigDecimal.valueOf(entity.getGasConsumption()))
-                .setScale(2, RoundingMode.HALF_UP);
+                .multiply(BigDecimal.valueOf(entity.getGasConsumption()));
+
         BigDecimal electricCost = electricity.getUnitValue()
-                .multiply(BigDecimal.valueOf(entity.getEnergyConsumption()))
+                .multiply(BigDecimal.valueOf(entity.getEnergyConsumption()));
+        
+        BigDecimal employeeCost = entity.getEmployeeUsages().stream()
+            .map(usage -> usage.getEmployee().getCostPerHour()
+                .multiply(BigDecimal.valueOf(usage.getUsageTime())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return gasCost.add(electricCost).add(employeeCost)
                 .setScale(2, RoundingMode.HALF_UP);
-        BigDecimal costAtTime = gasCost.add(electricCost)
-                .setScale(2, RoundingMode.HALF_UP);
-        return costAtTime;
     }
 }

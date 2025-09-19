@@ -13,9 +13,11 @@ import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.repositories.BatchEmployeeUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringEmployeeUsageRepository;
 
 @Service
 public class EmployeeService implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long>{
@@ -31,6 +33,12 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
 
     @Autowired
     private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
+
+    @Autowired
+    private BisqueFiringEmployeeUsageRepository bisqueFiringEmployeeUsageRepository;
+
+    @Autowired
+    private GlazeFiringEmployeeUsageRepository glazeFiringEmployeeUsageRepository;
 
     @Autowired
     private GlazeService glazeService;
@@ -85,11 +93,19 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + id));
         boolean hasBatches = batchEmployeeUsageRepository.existsByEmployeeId(id);
         boolean hasGlazes = glazeEmployeeUsageRepository.existsByEmployeeId(id);
+        boolean hasBisqueFirings = bisqueFiringEmployeeUsageRepository.existsByEmployeeId(id);
+        boolean hasGlazeFirings = glazeFiringEmployeeUsageRepository.existsByEmployeeId(id);
         if(hasBatches) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
         }
         if(hasGlazes) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui glasuras associadas.");
+        }
+        if(hasBisqueFirings) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui queimas de biscoito associadas.");
+        }
+        if(hasGlazeFirings) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui queimas de glasura associadas.");
         }
         employeeRepository.delete(entity);
     }

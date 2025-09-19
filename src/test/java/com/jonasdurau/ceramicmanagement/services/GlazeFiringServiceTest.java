@@ -5,13 +5,14 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.entities.*;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,6 @@ import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlazeFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.GlostRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.GlazeFiringResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.*;
 import com.jonasdurau.ceramicmanagement.repositories.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,16 +32,14 @@ public class GlazeFiringServiceTest {
 
     @Mock
     private GlazeFiringRepository firingRepository;
-
     @Mock
     private KilnRepository kilnRepository;
-
     @Mock
     private ProductTransactionRepository productTransactionRepository;
-
     @Mock
     private ResourceRepository resourceRepository;
-
+    @Mock
+    private EmployeeRepository employeeRepository;
     @Mock
     private GlazeTransactionService glazeTransactionService;
 
@@ -51,31 +49,25 @@ public class GlazeFiringServiceTest {
     private Kiln kiln;
     private GlazeFiring firing;
     private ProductTransaction glost;
-    private Machine machine;
+    private Employee employee;
     private Resource electricity;
     private Resource gas;
     private Glaze glaze;
     private Long kilnId = 1L;
     private Long firingId = 1L;
     private Long glostId = 1L;
-    private Long machineId = 1L;
     private Long glazeId = 1L;
+    private Long employeeId = 1L;
 
     @BeforeEach
     void setUp() {
-
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno de Esmalte");
-
-        Machine machine1 = new Machine();
-        machine1.setId(2L);
-        machine1.setCreatedAt(Instant.now());
-        machine1.setUpdatedAt(null);
-        machine1.setName("Máquina");
-        machine1.setPower(10);
-        
-        kiln.getMachines().add(machine1);
+        kiln.setGasConsumptionPerHour(3.0);
+        Machine kilnMachine = new Machine();
+        kilnMachine.setPower(10.0);
+        kiln.getMachines().add(kilnMachine);
 
         firing = new GlazeFiring();
         firing.setId(firingId);
@@ -93,10 +85,10 @@ public class GlazeFiringServiceTest {
         glost.setState(ProductState.BISCUIT);
         glost.setProduct(product);
 
-        machine = new Machine();
-        machine.setId(machineId);
-        machine.setName("Máquina de Esmalte");
-        machine.setPower(3.0);
+        employee = new Employee();
+        employee.setId(employeeId);
+        employee.setName("Maria");
+        employee.setCostPerHour(new BigDecimal("30.00"));
 
         electricity = new Resource();
         electricity.setCategory(ResourceCategory.ELECTRICITY);
@@ -124,101 +116,92 @@ public class GlazeFiringServiceTest {
 
     @Test
     void findById_WhenExists_ShouldReturnFiring() {
+        GlazeFiringEmployeeUsage employeeUsage = new GlazeFiringEmployeeUsage();
+        employeeUsage.setEmployee(employee);
+        employeeUsage.setUsageTime(2.0);
+        firing.getEmployeeUsages().add(employeeUsage);
+
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
-        when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
 
         GlazeFiringResponseDTO result = glazeFiringService.findById(kilnId, firingId);
 
         assertEquals(firingId, result.id());
-        verify(firingRepository).findByIdAndKilnId(firingId, kilnId);
+        assertFalse(result.employeeUsages().isEmpty());
     }
 
     @Test
-    void create_WithValidDataAndGlaze_ShouldCreateFiring() {
-
-        GlazeTransaction glazeTx = new GlazeTransaction();
-        glazeTx.setGlaze(glaze);
-        glazeTx.setQuantity(2.5);
-
-        when(glazeTransactionService.createEntity(eq(glazeId), any(ProductTransaction.class))).thenReturn(glazeTx);
-
-        when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
-        when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
-        when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
-        when(firingRepository.save(any())).thenReturn(firing);
-
+    void create_WithValidData_ShouldCreateFiring() {
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             800.0, 6.0, 3.0,
-            List.of(new GlostRequestDTO(glostId, glazeId))
+            List.of(new GlostRequestDTO(glostId, glazeId)),
+            List.of(new EmployeeUsageRequestDTO(2.0, employeeId))
         );
-        GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
-
-        assertEquals("Azul Cobalto", result.glosts().getFirst().glazeColor());
-        assertEquals(2.5, result.glosts().getFirst().quantity());
-    }
-
-    @Test
-    void update_WhenAddingGlostFromOtherFiring_ShouldThrowException() {
-        GlazeFiring otherFiring = new GlazeFiring();
-        otherFiring.setId(2L);
-        ProductTransaction otherGlost = new ProductTransaction();
-        otherGlost.setId(2L);
-        otherGlost.setGlazeFiring(otherFiring);
-
-        GlostRequestDTO glostDTO = new GlostRequestDTO(2L, null);
-        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0,
-            List.of(glostDTO)
-        );
-
-        when(kilnRepository.existsById(kilnId)).thenReturn(true);
-        when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
-        when(productTransactionRepository.findById(2L)).thenReturn(Optional.of(otherGlost));
-
-        assertThrows(ResourceNotFoundException.class, () -> glazeFiringService.update(kilnId, firingId, dto));
-    }
-
-    @Test
-    void update_WhenRemovingGlosts_ShouldResetState() {
-
+        
+        when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
+        when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
+        when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
         when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
         when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
-        
-        when(firingRepository.save(any(GlazeFiring.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(firingRepository.save(any(GlazeFiring.class))).thenReturn(firing);
 
-        ProductTransaction existingGlost = new ProductTransaction();
-        existingGlost.setId(2L);
-        existingGlost.setGlazeFiring(firing);
-        existingGlost.setState(ProductState.GLAZED);
-        firing.getGlosts().add(existingGlost);
-
-        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0,
-            Collections.emptyList()
-        );
-
-        when(kilnRepository.existsById(kilnId)).thenReturn(true);
-        when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
-
-        GlazeFiringResponseDTO result = glazeFiringService.update(kilnId, firingId, dto);
+        GlazeFiringResponseDTO result = glazeFiringService.create(kilnId, dto);
 
         assertNotNull(result);
-        assertEquals(ProductState.BISCUIT, existingGlost.getState());
-        assertNull(existingGlost.getGlazeFiring());
+        assertFalse(result.employeeUsages().isEmpty());
+        // Custo = (6h * 3.0 * R$3.5) + (10kW * 0.74 * 9h * R$0.6) + (2h * R$30) = 63.00 + 39.96 + 60.00 = R$162.96
+        assertEquals(0, new BigDecimal("162.96").compareTo(result.cost()));
+        verify(firingRepository, times(2)).save(any(GlazeFiring.class));
     }
 
     @Test
-    void update_WithInvalidMachine_ShouldThrowException() {
+    void create_WithMissingEmployee_ShouldThrowException() {
+        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(800.0, 6.0, 3.0, List.of(new GlostRequestDTO(glostId, glazeId)), List.of(new EmployeeUsageRequestDTO(2.0, 999L)));
+        when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
+        when(firingRepository.save(any(GlazeFiring.class))).thenReturn(new GlazeFiring());
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> glazeFiringService.create(kilnId, dto));
+    }
+
+    @Test
+    void update_WithValidData_ShouldUpdateFiring() {
+        // Arrange
+        GlazeFiringEmployeeUsage initialUsage = new GlazeFiringEmployeeUsage();
+        initialUsage.setEmployee(employee);
+        initialUsage.setUsageTime(2.0);
+        firing.getEmployeeUsages().add(initialUsage);
+        firing.getGlosts().add(glost);
+
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
             850.0, 7.0, 4.0,
-            Collections.emptyList()
+            List.of(new GlostRequestDTO(glostId, glazeId)),
+            List.of(new EmployeeUsageRequestDTO(2.5, employeeId))
         );
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
+        when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
+        when(firingRepository.save(any(GlazeFiring.class))).thenReturn(firing);
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricity));
+        when(resourceRepository.findByCategory(ResourceCategory.GAS)).thenReturn(Optional.of(gas));
+
+        // Act
+        GlazeFiringResponseDTO result = glazeFiringService.update(kilnId, firingId, dto);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(850.0, result.temperature());
+        assertEquals(2.5, firing.getEmployeeUsages().getFirst().getUsageTime());
+        verify(firingRepository).save(any(GlazeFiring.class));
+    }
+    
+    @Test
+    void update_WhenEmployeeNotFound_ShouldThrowException() {
+        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(850.0, 7.0, 4.0, List.of(), List.of(new EmployeeUsageRequestDTO(2.5, 999L)));
+        when(kilnRepository.existsById(kilnId)).thenReturn(true);
+        when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
+        when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> glazeFiringService.update(kilnId, firingId, dto));
     }

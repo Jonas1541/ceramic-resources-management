@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -24,6 +25,9 @@ public class GlazeFiring extends BaseEntity {
 
     @OneToMany(mappedBy = "glazeFiring")
     private List<ProductTransaction> glosts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "glazeFiring", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GlazeFiringEmployeeUsage> employeeUsages = new ArrayList<>();
 
     private BigDecimal costAtTime;
 
@@ -72,6 +76,10 @@ public class GlazeFiring extends BaseEntity {
 
     public List<ProductTransaction> getGlosts() {
         return glosts;
+    }
+
+    public List<GlazeFiringEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
     }
 
     public BigDecimal getCostAtTime() {

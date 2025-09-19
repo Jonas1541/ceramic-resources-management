@@ -16,5 +16,8 @@ public record GlazeFiringRequestDTO(
     double coolingTime,
     @NotEmpty(message = "A queima deve ter produtos")
     @Valid
-    List<GlostRequestDTO> glosts
+    List<GlostRequestDTO> glosts,
+    @NotEmpty(message = "A lista de funcionários não pode estar vazia.")
+    @Valid
+    List<EmployeeUsageRequestDTO> employeeUsages
 ) {}
