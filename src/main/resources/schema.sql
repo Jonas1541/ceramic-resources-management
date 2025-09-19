@@ -299,3 +299,13 @@ CREATE TABLE tb_drying_session (
     PRIMARY KEY (id),
     FOREIGN KEY (drying_room_id) REFERENCES tb_drying_room(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE tb_drying_session_employee_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time DOUBLE NOT NULL,
+    employee_id BIGINT NOT NULL,
+    drying_session_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES tb_employee (id),
+    FOREIGN KEY (drying_session_id) REFERENCES tb_drying_session (id)
+) ENGINE=InnoDB;

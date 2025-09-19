@@ -1,10 +1,14 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -16,6 +20,9 @@ public class DryingSession extends BaseEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "drying_room_id")
     private DryingRoom dryingRoom;
+
+    @OneToMany(mappedBy = "dryingSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DryingSessionEmployeeUsage> employeeUsages = new ArrayList<>();
 
     private BigDecimal costAtTime;
 
@@ -45,6 +52,10 @@ public class DryingSession extends BaseEntity {
 
     public void setDryingRoom(DryingRoom dryingRoom) {
         this.dryingRoom = dryingRoom;
+    }
+
+    public List<DryingSessionEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
     }
 
     public BigDecimal getCostAtTime() {

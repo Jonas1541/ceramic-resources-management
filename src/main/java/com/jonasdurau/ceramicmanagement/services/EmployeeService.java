@@ -14,6 +14,7 @@ import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.repositories.BatchEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringEmployeeUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.DryingSessionEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
@@ -39,6 +40,9 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
 
     @Autowired
     private GlazeFiringEmployeeUsageRepository glazeFiringEmployeeUsageRepository;
+
+    @Autowired
+    private DryingSessionEmployeeUsageRepository dryingSessionEmployeeUsageRepository;
 
     @Autowired
     private GlazeService glazeService;
@@ -95,6 +99,7 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         boolean hasGlazes = glazeEmployeeUsageRepository.existsByEmployeeId(id);
         boolean hasBisqueFirings = bisqueFiringEmployeeUsageRepository.existsByEmployeeId(id);
         boolean hasGlazeFirings = glazeFiringEmployeeUsageRepository.existsByEmployeeId(id);
+        boolean hasDryingSessions = dryingSessionEmployeeUsageRepository.existsByEmployeeId(id);
         if(hasBatches) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
         }
@@ -106,6 +111,9 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         }
         if(hasGlazeFirings) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui queimas de glasura associadas.");
+        }
+        if(hasDryingSessions) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui usos de estufa associados.");
         }
         employeeRepository.delete(entity);
     }
