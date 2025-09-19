@@ -14,12 +14,19 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
+import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.request.ProductTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.ProductTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.entities.BaseEmployeeUsage;
+import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
+import com.jonasdurau.ceramicmanagement.entities.ProductTransactionEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
+import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 
@@ -34,6 +41,9 @@ public class ProductTransactionService {
 
     @Autowired
     private BatchRepository batchRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByProduct(Long productId) {
@@ -59,19 +69,45 @@ public class ProductTransactionService {
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public List<ProductTransactionResponseDTO> create(Long productId, int quantity) {
+    public List<ProductTransactionResponseDTO> create(Long productId, int quantity, ProductTransactionRequestDTO dto) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
-        List<ProductTransaction> list = new ArrayList<>();
-        for(int i = 0; i < quantity; i++) {
-            ProductTransaction entity = new ProductTransaction();
-            entity.setState(ProductState.GREENWARE);
-            entity.setProduct(product);
-            entity.setCost(calculateProductTransactionCost(product.getWeight()));
-            entity = transactionRepository.save(entity);
-            list.add(entity);
+
+        List<ProductTransactionEmployeeUsage> preparedEmployeeUsages = new ArrayList<>();
+        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
+            double individualUsageTime = euDTO.usageTime() / quantity;
+
+            Employee employee = employeeRepository.findById(euDTO.employeeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + euDTO.employeeId()));
+
+            ProductTransactionEmployeeUsage employeeUsage = new ProductTransactionEmployeeUsage();
+            employeeUsage.setEmployee(employee);
+            employeeUsage.setUsageTime(individualUsageTime);
+            preparedEmployeeUsages.add(employeeUsage);
         }
-        return list.stream().map(this::entityToResponseDTO).toList();
+
+        List<ProductTransaction> savedTransactions = new ArrayList<>();
+        for (int i = 0; i < quantity; i++) {
+            ProductTransaction transaction = new ProductTransaction();
+            transaction.setState(ProductState.GREENWARE);
+            transaction.setProduct(product);
+
+            List<ProductTransactionEmployeeUsage> usagesForThisTransaction = new ArrayList<>();
+            for (ProductTransactionEmployeeUsage preparedUsage : preparedEmployeeUsages) {
+                ProductTransactionEmployeeUsage newUsage = new ProductTransactionEmployeeUsage();
+                newUsage.setEmployee(preparedUsage.getEmployee());
+                newUsage.setUsageTime(preparedUsage.getUsageTime());
+                newUsage.setProductTransaction(transaction);
+                usagesForThisTransaction.add(newUsage);
+            }
+
+            transaction.setCost(calculateProductTransactionCost(product.getWeight(), usagesForThisTransaction));
+            transaction.getEmployeeUsages().addAll(usagesForThisTransaction);
+
+            savedTransactions.add(transactionRepository.save(transaction));
+        }
+
+        return savedTransactions.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
@@ -150,9 +186,10 @@ public class ProductTransactionService {
 
     private ProductTransactionResponseDTO entityToResponseDTO(ProductTransaction entity) {
         String glazeColor = "sem glasura";
-        double glazeQuantity = 0;
+        double glazeQuantity = 0.0;
         Long bisqueFiringId = null;
         Long glazeFiringId = null;
+
         if (entity.getGlazeTransaction() != null) {
             glazeColor = entity.getGlazeTransaction().getGlaze().getColor();
             glazeQuantity = entity.getGlazeTransaction().getQuantity();
@@ -163,36 +200,57 @@ public class ProductTransactionService {
         if (entity.getGlazeFiring() != null) {
             glazeFiringId = entity.getGlazeFiring().getId();
         }
+
+        // 1. Mapeia a lista de entidades de uso para a lista de DTOs
+        List<EmployeeUsageResponseDTO> employeeUsagesDTO = entity.getEmployeeUsages().stream()
+                .map(this::employeeUsageToDTO)
+                .toList();
+
+        // 2. Chama o construtor com todos os argumentos na ordem correta
         return new ProductTransactionResponseDTO(
-            entity.getId(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getOutgoingAt(),
-            entity.getState(),
-            entity.getOutgoingReason(),
-            entity.getProduct().getName(),
-            bisqueFiringId,
-            glazeFiringId,
-            glazeColor,
-            glazeQuantity,
-            entity.getCost(),
-            entity.getProfit()
-        );
+                entity.getId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getOutgoingAt(),
+                entity.getState(),
+                entity.getOutgoingReason(),
+                entity.getProduct().getName(),
+                bisqueFiringId,
+                glazeFiringId,
+                glazeColor,
+                glazeQuantity,
+                employeeUsagesDTO,
+                entity.getTotalEmployeeCost(),
+                entity.getCost(),
+                entity.getProfit());
     }
 
-    public BigDecimal calculateProductTransactionCost(double transactionWeight) {
+    private EmployeeUsageResponseDTO employeeUsageToDTO(ProductTransactionEmployeeUsage usage) {
+        return new EmployeeUsageResponseDTO(
+                usage.getEmployee().getId(),
+                usage.getEmployee().getName(),
+                usage.getUsageTime(),
+                usage.getCost());
+    }
+
+    public BigDecimal calculateProductTransactionCost(double transactionWeight, List<ProductTransactionEmployeeUsage> usages) {
         Double totalWeight = batchRepository.getTotalWeight();
         BigDecimal totalCost = batchRepository.getTotalFinalCost();
 
         if (totalWeight == null || totalWeight == 0) {
-            throw new IllegalStateException("Total weight is zero, cannot divide by zero");
+            throw new IllegalStateException("Peso total do lote é zero, impossível dividir por zero.");
         }
 
         BigDecimal transactionWeightBD = BigDecimal.valueOf(transactionWeight);
-
-        return totalCost
+        BigDecimal materialCost = totalCost
                 .multiply(transactionWeightBD)
                 .divide(BigDecimal.valueOf(totalWeight), 2, RoundingMode.HALF_UP);
+
+        BigDecimal employeeCost = usages.stream()
+                .map(BaseEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return materialCost.add(employeeCost);
     }
 
 }

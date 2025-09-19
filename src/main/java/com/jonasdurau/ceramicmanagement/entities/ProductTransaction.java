@@ -2,6 +2,8 @@ package com.jonasdurau.ceramicmanagement.entities;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
@@ -12,6 +14,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -43,6 +46,9 @@ public class ProductTransaction extends BaseEntity {
     @JoinColumn(name = "glaze_firing_id")
     private GlazeFiring glazeFiring;
 
+    @OneToMany(mappedBy = "productTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductTransactionEmployeeUsage> employeeUsages = new ArrayList<>();
+
     private BigDecimal cost;
 
     public ProductTransaction() {
@@ -56,6 +62,10 @@ public class ProductTransaction extends BaseEntity {
             profit = BigDecimal.valueOf(0);
         }
         return profit;
+    }
+
+    public BigDecimal getTotalEmployeeCost() {
+        return employeeUsages.stream().map(ProductTransactionEmployeeUsage::getCost).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public Instant getOutgoingAt() {
@@ -116,6 +126,10 @@ public class ProductTransaction extends BaseEntity {
 
     public void setGlazeFiring(GlazeFiring glazeFiring) {
         this.glazeFiring = glazeFiring;
+    }
+
+    public List<ProductTransactionEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
     }
 
     public BigDecimal getCost() {

@@ -10,5 +10,6 @@ public record DryingSessionResponseDTO(
     Instant updatedAt,
     double hours,
     List<EmployeeUsageResponseDTO> employeeUsages,
+    BigDecimal employeeTotalCost,
     BigDecimal costAtTime
 ) {}

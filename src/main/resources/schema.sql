@@ -134,6 +134,7 @@ CREATE TABLE tb_glaze_transaction (
     glaze_id BIGINT NOT NULL,
     resource_total_cost_at_time DECIMAL(10,2) NOT NULL,
     machine_energy_consumption_cost_at_time DECIMAL(10,2) NOT NULL,
+    employee_total_cost_at_time DECIMAL(10,2) NOT NULL,
     glaze_final_cost_at_time DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT FK_GLAZE_TRANSACTION_GLZ
@@ -262,6 +263,16 @@ CREATE TABLE tb_product_transaction (
     FOREIGN KEY (glaze_transaction_id) REFERENCES tb_glaze_transaction (id),
     FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id),
     FOREIGN KEY (glaze_firing_id) REFERENCES tb_glaze_firing (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE tb_product_transaction_employee_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time DOUBLE NOT NULL,
+    employee_id BIGINT NOT NULL,
+    product_transaction_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES tb_employee (id),
+    FOREIGN KEY (product_transaction_id) REFERENCES tb_product_transaction (id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE tb_drying_room (

@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.dtos.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
@@ -18,6 +19,8 @@ public record ProductTransactionResponseDTO(
     Long glazeFiringId,
     String glazeColor,
     double glazeQuantity,
+    List<EmployeeUsageResponseDTO> employeeUsages,
+    BigDecimal employeeTotalCost,
     BigDecimal cost,
     BigDecimal profit
 ) {}

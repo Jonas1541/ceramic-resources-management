@@ -236,10 +236,19 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
             Long bisqueFiringId = (biscuit.getBisqueFiring() != null) ? biscuit.getBisqueFiring().getId() : null;
             Long glazeFiringId = (biscuit.getGlazeFiring() != null) ? biscuit.getGlazeFiring().getId() : null;
 
+            List<EmployeeUsageResponseDTO> productTxEmployeeUsageDTOs = biscuit.getEmployeeUsages().stream()
+            .map(eu -> new EmployeeUsageResponseDTO(
+                eu.getEmployee().getId(),
+                eu.getEmployee().getName(),
+                eu.getUsageTime(),
+                eu.getCost()
+            ))
+            .collect(Collectors.toList());
+
             return new ProductTransactionResponseDTO(
                 biscuit.getId(), biscuit.getCreatedAt(), biscuit.getUpdatedAt(), biscuit.getOutgoingAt(),
                 biscuit.getState(), biscuit.getOutgoingReason(), productName, bisqueFiringId, glazeFiringId,
-                glazeColor, glazeQuantity, biscuit.getCost(), biscuit.getProfit()
+                glazeColor, glazeQuantity, productTxEmployeeUsageDTOs, biscuit.getTotalEmployeeCost(), biscuit.getCost(), biscuit.getProfit()
             );
         }).collect(Collectors.toList());
 
@@ -248,7 +257,8 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
-                eu.getUsageTime()
+                eu.getUsageTime(),
+                eu.getCost()
             ))
             .collect(Collectors.toList());
 
@@ -263,6 +273,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
             entity.getKiln().getName(),
             biscuitDTOs,
             employeeUsageDTOs,
+            entity.calculateEmployeeTotalCost(),
             entity.getCostAtTime()
         );
     }

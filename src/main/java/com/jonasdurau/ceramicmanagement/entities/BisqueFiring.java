@@ -34,6 +34,12 @@ public class BisqueFiring extends BaseEntity {
     public BisqueFiring() {
     }
 
+    public BigDecimal calculateEmployeeTotalCost() {
+        return employeeUsages.stream()
+                .map(BisqueFiringEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public double getEnergyConsumption() {
         return (kiln.getPower() * 0.74) * (burnTime + coolingTime);
     }

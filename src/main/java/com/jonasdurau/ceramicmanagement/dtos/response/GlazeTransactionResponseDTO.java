@@ -15,5 +15,6 @@ public record GlazeTransactionResponseDTO(
     Long productTxId,
     BigDecimal resourceTotalCostAtTime,
     BigDecimal machineEnergyConsumptionCostAtTime,
+    BigDecimal employeeTotalCostAtTime,
     BigDecimal glazeFinalCostAtTime
 ) {}

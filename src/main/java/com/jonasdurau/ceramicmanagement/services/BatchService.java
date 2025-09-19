@@ -395,7 +395,8 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
-                eu.getUsageTime()))
+                eu.getUsageTime(),
+                eu.getCost()))
             .collect(Collectors.toList());
             
         return new BatchResponseDTO(

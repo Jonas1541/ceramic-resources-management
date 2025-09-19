@@ -19,6 +19,7 @@ import com.jonasdurau.ceramicmanagement.repositories.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringEmployeeUsageRepository;
+import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionEmployeeUsageRepository;
 
 @Service
 public class EmployeeService implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long>{
@@ -43,6 +44,9 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
 
     @Autowired
     private DryingSessionEmployeeUsageRepository dryingSessionEmployeeUsageRepository;
+
+    @Autowired
+    private ProductTransactionEmployeeUsageRepository productTransactionEmployeeUsageRepository;
 
     @Autowired
     private GlazeService glazeService;
@@ -100,6 +104,7 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         boolean hasBisqueFirings = bisqueFiringEmployeeUsageRepository.existsByEmployeeId(id);
         boolean hasGlazeFirings = glazeFiringEmployeeUsageRepository.existsByEmployeeId(id);
         boolean hasDryingSessions = dryingSessionEmployeeUsageRepository.existsByEmployeeId(id);
+        boolean hasProductTransactions = productTransactionEmployeeUsageRepository.existsByEmployeeId(id);
         if(hasBatches) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
         }
@@ -114,6 +119,9 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         }
         if(hasDryingSessions) {
             throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui usos de estufa associados.");
+        }
+        if(hasProductTransactions) {
+            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui produtos associados.");
         }
         employeeRepository.delete(entity);
     }

@@ -29,6 +29,12 @@ public class DryingSession extends BaseEntity {
     public DryingSession() {
     }
 
+    public BigDecimal calculateEmployeeTotalCost() {
+        return employeeUsages.stream()
+                .map(DryingSessionEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public double getEnergyConsumption() {
         double totalKW = dryingRoom.getMachines().stream().mapToDouble(Machine::getPower).sum() * 0.74;
         return totalKW * hours;

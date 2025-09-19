@@ -35,6 +35,7 @@ public class GlazeTransaction extends BaseEntity {
 
     private BigDecimal resourceTotalCostAtTime;
     private BigDecimal machineEnergyConsumptionCostAtTime;
+    private BigDecimal employeeTotalCostAtTime;
     private BigDecimal glazeFinalCostAtTime;
 
     @OneToMany(mappedBy = "glazeTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -95,6 +96,14 @@ public class GlazeTransaction extends BaseEntity {
 
     public void setMachineEnergyConsumptionCostAtTime(BigDecimal machineEnergyConsumptionCostAtTime) {
         this.machineEnergyConsumptionCostAtTime = machineEnergyConsumptionCostAtTime;
+    }
+
+    public BigDecimal getEmployeeTotalCostAtTime() {
+        return employeeTotalCostAtTime;
+    }
+
+    public void setEmployeeTotalCostAtTime(BigDecimal employeeTotalCostAtTime) {
+        this.employeeTotalCostAtTime = employeeTotalCostAtTime;
     }
 
     public BigDecimal getGlazeFinalCostAtTime() {

@@ -69,9 +69,11 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         entity.setGlaze(glaze);
         BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.quantity());
         BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.quantity());
-        BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal employeeCost = computeEmployeeCostAtTime(glaze, dto.quantity());
+        BigDecimal finalCost = resourceCost.add(machineCost).add(employeeCost).setScale(2, RoundingMode.HALF_UP);
         entity.setResourceTotalCostAtTime(resourceCost);
         entity.setMachineEnergyConsumptionCostAtTime(machineCost);
+        entity.setEmployeeTotalCostAtTime(employeeCost);
         entity.setGlazeFinalCostAtTime(finalCost);
         if (dto.type() == TransactionType.INCOMING) {
             createResourceTransactionsForGlazeTx(entity, glaze, dto.quantity());
@@ -91,9 +93,11 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         entity.setProductTransaction(productTransaction);
         BigDecimal resourceCost = computeResourceCostAtTime(glaze, productTransaction.getProduct().getglazeQuantityPerUnit());
         BigDecimal machineCost = computeMachineCostAtTime(glaze, productTransaction.getProduct().getglazeQuantityPerUnit());
-        BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal employeeCost = computeEmployeeCostAtTime(glaze, productTransaction.getProduct().getglazeQuantityPerUnit());
+        BigDecimal finalCost = resourceCost.add(machineCost).add(employeeCost).setScale(2, RoundingMode.HALF_UP);
         entity.setResourceTotalCostAtTime(resourceCost);
         entity.setMachineEnergyConsumptionCostAtTime(machineCost);
+        entity.setEmployeeTotalCostAtTime(employeeCost);
         entity.setGlazeFinalCostAtTime(finalCost);
         entity = glazeTransactionRepository.save(entity);
         return entity;
@@ -112,9 +116,11 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         transaction.setQuantity(dto.quantity());
         BigDecimal resourceCost = computeResourceCostAtTime(glaze, dto.quantity());
         BigDecimal machineCost = computeMachineCostAtTime(glaze, dto.quantity());
-        BigDecimal finalCost = resourceCost.add(machineCost).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal employeeCost = computeEmployeeCostAtTime(glaze, dto.quantity());
+        BigDecimal finalCost = resourceCost.add(machineCost).add(employeeCost).setScale(2, RoundingMode.HALF_UP);
         transaction.setResourceTotalCostAtTime(resourceCost);
         transaction.setMachineEnergyConsumptionCostAtTime(machineCost);
+        transaction.setEmployeeTotalCostAtTime(employeeCost);
         transaction.setGlazeFinalCostAtTime(finalCost);
         transaction.getResourceTransactions().clear();
         if (dto.type() == TransactionType.INCOMING) {
@@ -179,6 +185,12 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
+    private BigDecimal computeEmployeeCostAtTime(Glaze glaze, double transactionQty) {
+        return glaze.getTotalEmployeeCost()
+                .multiply(BigDecimal.valueOf(transactionQty))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
     private GlazeTransactionResponseDTO entityToResponseDTO(GlazeTransaction entity) {
         Long productTxId = null;
         if (entity.getProductTransaction() != null) {
@@ -194,6 +206,7 @@ public class GlazeTransactionService implements DependentCrudService<GlazeTransa
             productTxId,
             entity.getResourceTotalCostAtTime(),
             entity.getMachineEnergyConsumptionCostAtTime(),
+            entity.getEmployeeTotalCostAtTime(),
             entity.getGlazeFinalCostAtTime()
         );
     }

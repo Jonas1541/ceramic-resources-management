@@ -34,6 +34,12 @@ public class GlazeFiring extends BaseEntity {
     public GlazeFiring() {
     }
 
+    public BigDecimal calculateEmployeeTotalCost() {
+        return employeeUsages.stream()
+                .map(GlazeFiringEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public double getEnergyConsumption() {
         return (kiln.getPower() * 0.74) * (burnTime + coolingTime);
     }

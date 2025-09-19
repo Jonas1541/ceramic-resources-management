@@ -327,7 +327,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
-                eu.getUsageTime()
+                eu.getUsageTime(),
+                eu.getCost()
             ))
             .collect(Collectors.toList());
             
@@ -338,7 +339,8 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
             entity.getColor(),
             resourceUsageDTOs,
             machineUsageDTOs,
-            employeeUsageDTOs, // Corrigido para usar a lista de funcionários
+            employeeUsageDTOs,
+            entity.getTotalEmployeeCost(),
             entity.getUnitCost(),
             entity.getCurrentQuantity(),
             entity.getCurrentQuantityPrice()

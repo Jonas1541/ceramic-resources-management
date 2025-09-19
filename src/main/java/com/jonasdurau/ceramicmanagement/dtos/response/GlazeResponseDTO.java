@@ -13,6 +13,7 @@ public record GlazeResponseDTO(
     List<GlazeResourceUsageResponseDTO> resourceUsages,
     List<GlazeMachineUsageResponseDTO> machineUsages,
     List<EmployeeUsageResponseDTO> employeeUsages,
+    BigDecimal employeeTotalCost,
     BigDecimal unitCost,
     double currentQuantity,
     BigDecimal currentQuantityPrice

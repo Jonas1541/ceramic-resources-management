@@ -146,7 +146,8 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
-                eu.getUsageTime()
+                eu.getUsageTime(),
+                eu.getCost()
             ))
             .collect(Collectors.toList());
 
@@ -156,6 +157,7 @@ public class DryingSessionService implements DependentCrudService<DryingSessionR
             entity.getUpdatedAt(),
             entity.getHours(),
             employeeUsageDTOs,
+            entity.calculateEmployeeTotalCost(),
             entity.getCostAtTime()
         );
     }

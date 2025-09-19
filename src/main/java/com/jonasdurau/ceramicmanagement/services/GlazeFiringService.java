@@ -248,7 +248,8 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),
                 eu.getEmployee().getName(),
-                eu.getUsageTime()
+                eu.getUsageTime(),
+                eu.getCost()
             ))
             .collect(Collectors.toList());
 
@@ -263,6 +264,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
             entity.getKiln().getName(),
             glostDTOs,
             employeeUsageDTOs,
+            entity.calculateEmployeeTotalCost(),
             entity.getCostAtTime()
         );
     }

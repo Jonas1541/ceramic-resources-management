@@ -54,6 +54,10 @@ public class Glaze extends BaseEntity {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    public BigDecimal getTotalEmployeeCost() {
+        return employeeUsages.stream().map(GlazeEmployeeUsage::getCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public String getColor() {
         return color;
     }
