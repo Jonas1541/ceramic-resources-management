@@ -14,5 +14,6 @@ public record BisqueFiringResponseDTO(
     double gasConsumption,
     String kilnName,
     List<ProductTransactionResponseDTO> biscuits,
+    List<EmployeeUsageResponseDTO> employeeUsages,
     BigDecimal cost
 ) {}

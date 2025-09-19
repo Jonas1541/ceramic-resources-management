@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.dtos.request;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -14,5 +15,8 @@ public record BisqueFiringRequestDTO(
     @PositiveOrZero(message = "O tempo de resfriamento deve ser maior ou igual a zero")
     double coolingTime,
     @NotEmpty(message = "A queima deve ter produtos")
-    List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits
+    List<@Positive(message = "O id dos produtos devem ser positivos") Long> biscuits,
+    @NotEmpty(message = "A lista de funcionários não pode estar vazia.")
+    @Valid
+    List<EmployeeUsageRequestDTO> employeeUsages
 ) {}

@@ -212,6 +212,16 @@ CREATE TABLE tb_bisque_firing (
     FOREIGN KEY (kiln_id) REFERENCES tb_kiln (id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE tb_bisque_firing_employee_usage (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    usage_time DOUBLE NOT NULL,
+    employee_id BIGINT NOT NULL,
+    bisque_firing_id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (employee_id) REFERENCES tb_employee (id),
+    FOREIGN KEY (bisque_firing_id) REFERENCES tb_bisque_firing (id)
+) ENGINE=InnoDB;
+
 CREATE TABLE tb_glaze_firing (
     id BIGINT NOT NULL AUTO_INCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
