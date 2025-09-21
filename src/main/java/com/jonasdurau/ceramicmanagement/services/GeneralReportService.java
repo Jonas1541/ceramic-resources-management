@@ -22,16 +22,14 @@ import com.jonasdurau.ceramicmanagement.dtos.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
-import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.repositories.GlazeTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
 @Service
 public class GeneralReportService {
-    
+
     @Autowired
     private ResourceTransactionRepository resourceTransactionRepository;
 
@@ -40,12 +38,6 @@ public class GeneralReportService {
 
     @Autowired
     private GlazeTransactionRepository glazeTransactionRepository;
-
-    @Autowired
-    private BisqueFiringRepository bisqueFiringRepository;
-
-    @Autowired
-    private GlazeFiringRepository glazeFiringRepository;
 
     @Autowired
     private ProductTransactionRepository productTransactionRepository;
@@ -58,6 +50,7 @@ public class GeneralReportService {
         ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, BigDecimal>> inputMap = new HashMap<>();
         Map<Integer, Map<Month, BigDecimal>> outputMap = new HashMap<>();
+
         resourceTransactionRepository.findAll().stream()
                 .filter(rt -> rt.getType() == TransactionType.INCOMING)
                 .forEach(rt -> {
@@ -67,6 +60,7 @@ public class GeneralReportService {
                     BigDecimal cost = rt.getCostAtTime() != null ? rt.getCostAtTime() : BigDecimal.ZERO;
                     addToMap(inputMap, year, month, cost);
                 });
+
         batchRepository.findAll().forEach(batch -> {
             ZonedDateTime zdt = batch.getCreatedAt().atZone(zone);
             int year = zdt.getYear();
@@ -79,29 +73,19 @@ public class GeneralReportService {
             BigDecimal cost = waterCost.add(machineCost);
             addToMap(inputMap, year, month, cost);
         });
-        glazeTransactionRepository.findAll().forEach(gt -> {
-            ZonedDateTime zdt = gt.getCreatedAt().atZone(zone);
-            int year = zdt.getYear();
-            Month month = zdt.getMonth();
-            BigDecimal cost = gt.getMachineEnergyConsumptionCostAtTime() != null
-                    ? gt.getMachineEnergyConsumptionCostAtTime()
-                    : BigDecimal.ZERO;
-            addToMap(inputMap, year, month, cost);
-        });
-        bisqueFiringRepository.findAll().forEach(bf -> {
-            ZonedDateTime zdt = bf.getCreatedAt().atZone(zone);
-            int year = zdt.getYear();
-            Month month = zdt.getMonth();
-            BigDecimal cost = bf.getCostAtTime() != null ? bf.getCostAtTime() : BigDecimal.ZERO;
-            addToMap(inputMap, year, month, cost);
-        });
-        glazeFiringRepository.findAll().forEach(gf -> {
-            ZonedDateTime zdt = gf.getCreatedAt().atZone(zone);
-            int year = zdt.getYear();
-            Month month = zdt.getMonth();
-            BigDecimal cost = gf.getCostAtTime() != null ? gf.getCostAtTime() : BigDecimal.ZERO;
-            addToMap(inputMap, year, month, cost);
-        });
+
+        glazeTransactionRepository.findAll().stream()
+                .filter(gt -> gt.getType() == TransactionType.INCOMING)
+                .forEach(gt -> {
+                    ZonedDateTime zdt = gt.getCreatedAt().atZone(zone);
+                    int year = zdt.getYear();
+                    Month month = zdt.getMonth();
+                    BigDecimal cost = gt.getMachineEnergyConsumptionCostAtTime() != null
+                            ? gt.getMachineEnergyConsumptionCostAtTime()
+                            : BigDecimal.ZERO;
+                    addToMap(inputMap, year, month, cost);
+                });
+
         dryingSessionRepository.findAll().forEach(ds -> {
             ZonedDateTime zdt = ds.getCreatedAt().atZone(zone);
             int year = zdt.getYear();
@@ -109,16 +93,23 @@ public class GeneralReportService {
             BigDecimal cost = ds.getCostAtTime() != null ? ds.getCostAtTime() : BigDecimal.ZERO;
             addToMap(inputMap, year, month, cost);
         });
+
         productTransactionRepository.findAll().forEach(pt -> {
             ZonedDateTime zdt = pt.getCreatedAt().atZone(zone);
             int year = zdt.getYear();
             Month month = zdt.getMonth();
+
+            BigDecimal cost = pt.getTotalCost() != null ? pt.getTotalCost() : BigDecimal.ZERO;
+            addToMap(inputMap, year, month, cost);
+
             BigDecimal profit = pt.getProfit() != null ? pt.getProfit() : BigDecimal.ZERO;
             addToMap(outputMap, year, month, profit);
         });
+
         Set<Integer> allYears = new HashSet<>();
         allYears.addAll(inputMap.keySet());
         allYears.addAll(outputMap.keySet());
+
         List<YearReportDTO> reports = new ArrayList<>();
         for (Integer year : allYears) {
             YearReportDTO yearReport = new YearReportDTO(year);
@@ -145,6 +136,7 @@ public class GeneralReportService {
             yearReport.setTotalOutgoingProfit(totalOutgoingProfit);
             reports.add(yearReport);
         }
+
         reports.sort((a, b) -> b.getYear() - a.getYear());
         return reports;
     }
