@@ -19,9 +19,9 @@ import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundE
 import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.BisqueFiringRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.dtos.response.BiscuitResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.entities.BisqueFiring;
 import com.jonasdurau.ceramicmanagement.entities.BisqueFiringEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.Employee;
@@ -225,34 +225,11 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
 
     private BisqueFiringResponseDTO entityToResponseDTO(BisqueFiring entity) {
         // Mapeia Biscoitos
-        List<ProductTransactionResponseDTO> biscuitDTOs = entity.getBiscuits().stream().map(biscuit -> {
+        List<BiscuitResponseDTO> biscuitDTOs = entity.getBiscuits().stream().map(biscuit -> {
             String productName = biscuit.getProduct().getName();
-            String glazeColor = "sem glasura";
-            double glazeQuantity = 0;
-            if (biscuit.getGlazeTransaction() != null && biscuit.getGlazeTransaction().getGlaze() != null) {
-                glazeColor = biscuit.getGlazeTransaction().getGlaze().getColor();
-                glazeQuantity = biscuit.getGlazeTransaction().getQuantity();
-            }
-            Long bisqueFiringId = (biscuit.getBisqueFiring() != null) ? biscuit.getBisqueFiring().getId() : null;
-            Long glazeFiringId = (biscuit.getGlazeFiring() != null) ? biscuit.getGlazeFiring().getId() : null;
-
-            List<EmployeeUsageResponseDTO> productTxEmployeeUsageDTOs = biscuit.getEmployeeUsages().stream()
-            .map(eu -> new EmployeeUsageResponseDTO(
-                eu.getEmployee().getId(),
-                eu.getEmployee().getName(),
-                eu.getUsageTime(),
-                eu.getCost()
-            ))
-            .collect(Collectors.toList());
-
-            return new ProductTransactionResponseDTO(
-                biscuit.getId(), biscuit.getCreatedAt(), biscuit.getUpdatedAt(), biscuit.getOutgoingAt(),
-                biscuit.getState(), biscuit.getOutgoingReason(), productName, bisqueFiringId, glazeFiringId,
-                glazeColor, glazeQuantity, productTxEmployeeUsageDTOs, biscuit.getTotalEmployeeCost(), biscuit.getCost(), biscuit.getProfit()
-            );
+            return new BiscuitResponseDTO(biscuit.getId(), productName);
         }).collect(Collectors.toList());
 
-        // Mapeia Funcionários
         List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
             .map(eu -> new EmployeeUsageResponseDTO(
                 eu.getEmployee().getId(),

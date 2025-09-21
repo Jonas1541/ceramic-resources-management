@@ -21,6 +21,10 @@ public record ProductTransactionResponseDTO(
     double glazeQuantity,
     List<EmployeeUsageResponseDTO> employeeUsages,
     BigDecimal employeeTotalCost,
-    BigDecimal cost,
+    BigDecimal batchCost,
+    BigDecimal bisqueFiringCost,
+    BigDecimal glazeFiringCost,
+    BigDecimal glazeTransactionCost,
+    BigDecimal totalCost,
     BigDecimal profit
 ) {}

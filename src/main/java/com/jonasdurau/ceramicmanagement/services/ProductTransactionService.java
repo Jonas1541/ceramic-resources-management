@@ -18,7 +18,6 @@ import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.request.ProductTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.dtos.response.ProductTransactionResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.BaseEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.entities.Employee;
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
@@ -100,10 +99,8 @@ public class ProductTransactionService {
                 newUsage.setProductTransaction(transaction);
                 usagesForThisTransaction.add(newUsage);
             }
-
-            transaction.setCost(calculateProductTransactionCost(product.getWeight(), usagesForThisTransaction));
             transaction.getEmployeeUsages().addAll(usagesForThisTransaction);
-
+            transaction.setCost(calculateProductTransactionCost(product.getWeight(), transaction));
             savedTransactions.add(transactionRepository.save(transaction));
         }
 
@@ -201,12 +198,10 @@ public class ProductTransactionService {
             glazeFiringId = entity.getGlazeFiring().getId();
         }
 
-        // 1. Mapeia a lista de entidades de uso para a lista de DTOs
         List<EmployeeUsageResponseDTO> employeeUsagesDTO = entity.getEmployeeUsages().stream()
                 .map(this::employeeUsageToDTO)
                 .toList();
 
-        // 2. Chama o construtor com todos os argumentos na ordem correta
         return new ProductTransactionResponseDTO(
                 entity.getId(),
                 entity.getCreatedAt(),
@@ -221,7 +216,11 @@ public class ProductTransactionService {
                 glazeQuantity,
                 employeeUsagesDTO,
                 entity.getTotalEmployeeCost(),
-                entity.getCost(),
+                calculateBatchCost(entity.getProduct().getWeight()),
+                entity.getBisqueFiringCost(),
+                entity.getGlazeFiringCost(),
+                entity.getGlazeTransactionCost(),
+                entity.getTotalCost(),
                 entity.getProfit());
     }
 
@@ -233,23 +232,25 @@ public class ProductTransactionService {
                 usage.getCost());
     }
 
-    public BigDecimal calculateProductTransactionCost(double transactionWeight, List<ProductTransactionEmployeeUsage> usages) {
+    private BigDecimal calculateBatchCost(double transactionWeight) {
         Double totalWeight = batchRepository.getTotalWeight();
         BigDecimal totalCost = batchRepository.getTotalFinalCost();
 
         if (totalWeight == null || totalWeight == 0) {
-            throw new IllegalStateException("Peso total do lote é zero, impossível dividir por zero.");
+            throw new IllegalStateException("Peso total do lote é nulo ou zero, impossível calcular o custo do material.");
         }
 
         BigDecimal transactionWeightBD = BigDecimal.valueOf(transactionWeight);
-        BigDecimal materialCost = totalCost
+
+        // Fórmula: (custoTotalLote * pesoTransacao) / pesoTotalLote
+        return totalCost
                 .multiply(transactionWeightBD)
                 .divide(BigDecimal.valueOf(totalWeight), 2, RoundingMode.HALF_UP);
+    }
 
-        BigDecimal employeeCost = usages.stream()
-                .map(BaseEmployeeUsage::getCost)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+    public BigDecimal calculateProductTransactionCost(double transactionWeight, ProductTransaction productTransaction) {
+        BigDecimal materialCost = calculateBatchCost(transactionWeight);
+        BigDecimal employeeCost = productTransaction.getTotalEmployeeCost();
         return materialCost.add(employeeCost);
     }
 

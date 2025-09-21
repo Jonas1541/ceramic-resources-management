@@ -13,7 +13,7 @@ public record BisqueFiringResponseDTO(
     double coolingTime,
     double gasConsumption,
     String kilnName,
-    List<ProductTransactionResponseDTO> biscuits,
+    List<BiscuitResponseDTO> biscuits,
     List<EmployeeUsageResponseDTO> employeeUsages,
     BigDecimal employeeTotalCost,
     BigDecimal cost

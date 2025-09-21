@@ -30,7 +30,7 @@ public class ProductTransaction extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private ProductOutgoingReason outgoingReason;
-    
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "product_id")
     private Product product;
@@ -55,25 +55,36 @@ public class ProductTransaction extends BaseEntity {
     public ProductTransaction() {
     }
 
-    public BigDecimal getTotalCost() {
-        BigDecimal bisqueShare = BigDecimal.ZERO;
+    public BigDecimal getBisqueFiringCost() {
         if (bisqueFiring != null && bisqueFiring.getBiscuits() != null && !bisqueFiring.getBiscuits().isEmpty()) {
-            bisqueShare = bisqueFiring.getCostAtTime().divide(BigDecimal.valueOf(bisqueFiring.getBiscuits().size()), RoundingMode.HALF_UP);
+            return bisqueFiring.getCostAtTime()
+                    .divide(BigDecimal.valueOf(bisqueFiring.getBiscuits().size()), RoundingMode.HALF_UP);
         }
-        BigDecimal glazeShare = BigDecimal.ZERO;
+        return BigDecimal.ZERO;
+    }
+
+    public BigDecimal getGlazeFiringCost() {
         if (glazeFiring != null && glazeFiring.getGlosts() != null && !glazeFiring.getGlosts().isEmpty()) {
-            glazeShare = glazeFiring.getCostAtTime().divide(BigDecimal.valueOf(glazeFiring.getGlosts().size()), RoundingMode.HALF_UP);
+            return glazeFiring.getCostAtTime()
+                    .divide(BigDecimal.valueOf(glazeFiring.getGlosts().size()), RoundingMode.HALF_UP);
         }
-        BigDecimal glazeTxShare = BigDecimal.ZERO;
-        if (glazeTransaction != null) {
-            glazeTxShare = glazeTransaction.getGlazeFinalCostAtTime();
-        }
-        return cost.add(bisqueShare).add(glazeShare).add(glazeTxShare);
+        return BigDecimal.ZERO;
+    }
+
+    public BigDecimal getGlazeTransactionCost() {
+        return (glazeTransaction != null) ? glazeTransaction.getGlazeFinalCostAtTime() : BigDecimal.ZERO;
+    }
+
+    public BigDecimal getTotalCost() {
+        return cost
+                .add(getBisqueFiringCost())
+                .add(getGlazeFiringCost())
+                .add(getGlazeTransactionCost());
     }
 
     public BigDecimal getProfit() {
         BigDecimal profit;
-        if(outgoingReason == ProductOutgoingReason.SOLD) {
+        if (outgoingReason == ProductOutgoingReason.SOLD) {
             profit = product.getPrice();
         } else {
             profit = BigDecimal.valueOf(0);
@@ -82,7 +93,8 @@ public class ProductTransaction extends BaseEntity {
     }
 
     public BigDecimal getTotalEmployeeCost() {
-        return employeeUsages.stream().map(ProductTransactionEmployeeUsage::getCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return employeeUsages.stream().map(ProductTransactionEmployeeUsage::getCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public Instant getOutgoingAt() {
