@@ -136,14 +136,17 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
             YearReportDTO yearReport = new YearReportDTO(year);
             double totalIncomingQtyYear = 0.0;
             double totalOutgoingQtyYear = 0.0;
+            BigDecimal totalIncomingCostYear = BigDecimal.ZERO;
             BigDecimal totalProfitYear = BigDecimal.ZERO;
             for (Month m : Month.values()) {
                 List<ProductTransaction> monthTx = mapMonth.getOrDefault(m, Collections.emptyList());
                 double incomingQty = 0.0;
                 double outgoingQty = 0.0;
+                BigDecimal incomingCost = BigDecimal.ZERO;
                 BigDecimal profit = BigDecimal.ZERO;
                 for (ProductTransaction t : monthTx) {
                     incomingQty += 1;
+                    incomingCost = incomingCost.add(t.getTotalCost());
                     if (t.getOutgoingReason() != null) {
                         outgoingQty += 1;
                         profit = profit.add(t.getProfit());
@@ -151,17 +154,18 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
                 }
                 totalIncomingQtyYear += incomingQty;
                 totalOutgoingQtyYear += outgoingQty;
+                totalIncomingCostYear = totalIncomingCostYear.add(incomingCost);
                 totalProfitYear = totalProfitYear.add(profit);
                 MonthReportDTO monthDto = new MonthReportDTO();
                 monthDto.setMonthName(m.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
                 monthDto.setIncomingQty(incomingQty);
-                monthDto.setIncomingCost(BigDecimal.ZERO);
+                monthDto.setIncomingCost(incomingCost);
                 monthDto.setOutgoingQty(outgoingQty);
                 monthDto.setOutgoingProfit(profit);
                 yearReport.getMonths().add(monthDto);
             }
             yearReport.setTotalIncomingQty(totalIncomingQtyYear);
-            yearReport.setTotalIncomingCost(BigDecimal.ZERO);
+            yearReport.setTotalIncomingCost(totalIncomingCostYear);
             yearReport.setTotalOutgoingQty(totalOutgoingQtyYear);
             yearReport.setTotalOutgoingProfit(totalProfitYear);
             yearReports.add(yearReport);

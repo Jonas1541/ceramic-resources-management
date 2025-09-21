@@ -1,6 +1,7 @@
 package com.jonasdurau.ceramicmanagement.entities;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,22 @@ public class ProductTransaction extends BaseEntity {
     private BigDecimal cost;
 
     public ProductTransaction() {
+    }
+
+    public BigDecimal getTotalCost() {
+        BigDecimal bisqueShare = BigDecimal.ZERO;
+        if (bisqueFiring != null && bisqueFiring.getBiscuits() != null && !bisqueFiring.getBiscuits().isEmpty()) {
+            bisqueShare = bisqueFiring.getCostAtTime().divide(BigDecimal.valueOf(bisqueFiring.getBiscuits().size()), RoundingMode.HALF_UP);
+        }
+        BigDecimal glazeShare = BigDecimal.ZERO;
+        if (glazeFiring != null && glazeFiring.getGlosts() != null && !glazeFiring.getGlosts().isEmpty()) {
+            glazeShare = glazeFiring.getCostAtTime().divide(BigDecimal.valueOf(glazeFiring.getGlosts().size()), RoundingMode.HALF_UP);
+        }
+        BigDecimal glazeTxShare = BigDecimal.ZERO;
+        if (glazeTransaction != null) {
+            glazeTxShare = glazeTransaction.getGlazeFinalCostAtTime();
+        }
+        return cost.add(bisqueShare).add(glazeShare).add(glazeTxShare);
     }
 
     public BigDecimal getProfit() {
