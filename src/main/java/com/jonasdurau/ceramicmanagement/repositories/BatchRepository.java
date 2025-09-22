@@ -14,4 +14,7 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
 
     @Query("SELECT COALESCE(SUM(b.weight), 0) FROM Batch b")
     Double getTotalWeight();
+
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM Batch b")
+    boolean anyExists();
 }

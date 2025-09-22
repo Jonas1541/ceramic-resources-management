@@ -45,6 +45,7 @@ import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
+import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
@@ -65,6 +66,9 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
 
     @Autowired
     private ResourceTransactionRepository resourceTransactionRepository;
+
+    @Autowired
+    private ProductTransactionRepository productTransactionRepository;
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -312,7 +316,11 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Batch batch = batchRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Batch not found: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Batelada não encontrada: " + id));
+        boolean anyPTxExists = productTransactionRepository.anyExists();
+        if (batchRepository.count() == 1 && anyPTxExists) {
+            throw new BusinessException("Não é possível deletar todas as bateladas pois há transações de produto registradas.");
+        }
         batchRepository.delete(batch);
     }
 

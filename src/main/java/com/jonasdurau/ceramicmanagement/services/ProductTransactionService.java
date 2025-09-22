@@ -69,6 +69,9 @@ public class ProductTransactionService {
 
     @Transactional(transactionManager = "tenantTransactionManager")
     public List<ProductTransactionResponseDTO> create(Long productId, int quantity, ProductTransactionRequestDTO dto) {
+        if (!batchRepository.anyExists()) {
+            throw new BusinessException("Não é possível criar uma transação de produto, pois não há nenhuma batelada cadastrada para a base de cálculo de custo.");
+        }
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
 

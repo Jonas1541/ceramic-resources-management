@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.jonasdurau.ceramicmanagement.entities.Product;
 import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
@@ -24,4 +25,6 @@ public interface ProductTransactionRepository extends JpaRepository<ProductTrans
 
     List<ProductTransaction> findByProductAndStateAndOutgoingReasonIsNotNullOrderByCreatedAtAsc(Product product, ProductState state, Pageable pageable);
 
+    @Query("SELECT CASE WHEN COUNT(pt) > 0 THEN true ELSE false END FROM ProductTransaction pt")
+    boolean anyExists();
 }
