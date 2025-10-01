@@ -1,0 +1,224 @@
+---
+config:
+  class:
+    hideEmptyMembersBox: true
+  layout: elk
+title: Sample title
+---
+classDiagram
+direction BT
+    class ProductOutgoingReason {
+	    SOLD
+	    DEFECT_DISPOSAL
+    }
+    class ProductState {
+	    GREENWARE
+	    BISCUIT
+	    GLAZED
+    }
+    class ResourceCategory {
+	    ELECTRICITY
+	    WATER
+	    GAS
+	    RAW_MATERIAL
+	    SILICATE
+	    COMPONENT
+	    RETAIL
+    }
+    class TransactionType {
+	    INCOMING
+	    OUTGOING
+    }
+    class BaseEntity {
+	    #Long id
+	    #Instant createdAt
+	    #Instant updatedAt
+	    +void prePersist()
+	    +void preUpdate()
+    }
+    class BaseEmployeeUsage {
+	    #Long id
+	    #double usageTime
+	    +BigDecimal getCost()
+    }
+    class Product {
+	    -String name
+	    -BigDecimal price
+	    -double weight
+	    +int getProductStock()
+    }
+    class Batch {
+	    -double weight
+	    -BigDecimal batchFinalCostAtTime
+	    +double calculateResourceTotalQuantity()
+	    +BigDecimal getResourceTotalCost()
+    }
+    class Resource {
+	    -String name
+	    -BigDecimal unitValue
+	    +double getCurrentQuantity()
+	    +BigDecimal getCurrentQuantityPrice()
+    }
+    class Glaze {
+	    -String color
+	    -BigDecimal unitCost
+	    +double getCurrentQuantity()
+	    +BigDecimal getCurrentQuantityPrice()
+    }
+    class Employee {
+	    -String name
+	    -BigDecimal costPerHour
+    }
+    class Machine {
+	    -String name
+	    -double power
+    }
+    class Kiln {
+	    -String name
+	    -double gasConsumptionPerHour
+	    +double getPower()
+    }
+    class DryingRoom {
+	    -String name
+	    -double gasConsumptionPerHour
+	    +int getUses()
+    }
+    class Company {
+	    -String name
+	    -String email
+	    -String cnpj
+    }
+    class BatchResourceUsage {
+	    -double initialQuantity
+	    -double umidity
+	    -double addedQuantity
+	    +double getTotalQuantity()
+    }
+    class BatchMachineUsage {
+	    -double usageTime
+	    +double getEnergyConsumption()
+    }
+    class ResourceTransaction {
+	    -double quantity
+	    -BigDecimal costAtTime
+    }
+    class ProductTransaction {
+	    -Instant outgoingAt
+	    -BigDecimal cost
+	    +BigDecimal getTotalCost()
+    }
+    class GlazeTransaction {
+	    -double quantity
+	    -BigDecimal glazeFinalCostAtTime
+    }
+    class ProductType {
+	    -String name
+    }
+    class ProductLine {
+	    -String name
+    }
+    class EmployeeCategory {
+	    -String name
+    }
+    class BisqueFiring {
+	    -double temperature
+	    -double burnTime
+	    +double getEnergyConsumption()
+    }
+    class GlazeFiring {
+	    -double temperature
+	    -double burnTime
+	    +double getEnergyConsumption()
+    }
+    class DryingSession {
+	    -double hours
+	    +double getEnergyConsumption()
+    }
+    class PasswordResetToken {
+	    -String token
+	    -Instant expiryDate
+    }
+    class BatchEmployeeUsage {
+    }
+    class BisqueFiringEmployeeUsage {
+    }
+    class DryingSessionEmployeeUsage {
+    }
+    class GlazeEmployeeUsage {
+    }
+    class GlazeFiringEmployeeUsage {
+    }
+    class ProductTransactionEmployeeUsage {
+    }
+    class GlazeResourceUsage {
+    }
+    class GlazeMachineUsage {
+    }
+	<<enumeration>> ProductOutgoingReason
+	<<enumeration>> ProductState
+	<<enumeration>> ResourceCategory
+	<<enumeration>> TransactionType
+	<<abstract>> BaseEntity
+	<<abstract>> BaseEmployeeUsage
+    BaseEntity <|-- Batch
+    BaseEntity <|-- BisqueFiring
+    BaseEntity <|-- Company
+    BaseEntity <|-- DryingRoom
+    BaseEntity <|-- DryingSession
+    BaseEntity <|-- Employee
+    BaseEntity <|-- EmployeeCategory
+    BaseEntity <|-- Glaze
+    BaseEntity <|-- GlazeFiring
+    BaseEntity <|-- GlazeTransaction
+    BaseEntity <|-- Kiln
+    BaseEntity <|-- Machine
+    BaseEntity <|-- PasswordResetToken
+    BaseEntity <|-- Product
+    BaseEntity <|-- ProductLine
+    BaseEntity <|-- ProductTransaction
+    BaseEntity <|-- ProductType
+    BaseEntity <|-- Resource
+    BaseEntity <|-- ResourceTransaction
+    BaseEmployeeUsage <|-- BatchEmployeeUsage
+    BaseEmployeeUsage <|-- BisqueFiringEmployeeUsage
+    BaseEmployeeUsage <|-- DryingSessionEmployeeUsage
+    BaseEmployeeUsage <|-- GlazeEmployeeUsage
+    BaseEmployeeUsage <|-- GlazeFiringEmployeeUsage
+    BaseEmployeeUsage <|-- ProductTransactionEmployeeUsage
+    PasswordResetToken "1" -- "1" Company
+    BaseEmployeeUsage "*" -- "1" Employee
+    Employee "*" -- "1" EmployeeCategory
+    Batch "1" *-- "*" BatchResourceUsage
+    Batch "1" *-- "*" BatchMachineUsage
+    Batch "1" *-- "*" BatchEmployeeUsage
+    Batch "1" o-- "*" ResourceTransaction
+    BatchResourceUsage "*" -- "1" Resource
+    BatchMachineUsage "*" -- "1" Machine
+    Glaze "1" *-- "*" GlazeResourceUsage
+    Glaze "1" *-- "*" GlazeMachineUsage
+    Glaze "1" *-- "*" GlazeEmployeeUsage
+    Glaze "1" *-- "*" GlazeTransaction
+    GlazeResourceUsage "*" -- "1" Resource
+    GlazeMachineUsage "*" -- "1" Machine
+    GlazeTransaction "1" o-- "*" ResourceTransaction
+    Product "*" -- "1" ProductType
+    Product "*" -- "1" ProductLine
+    Product "1" *-- "*" ProductTransaction
+    Resource "1" *-- "*" ResourceTransaction
+    ResourceTransaction ..> TransactionType
+    Resource ..> ResourceCategory
+    GlazeTransaction ..> TransactionType
+    ProductTransaction "*" -- "1" BisqueFiring
+    ProductTransaction "*" -- "1" GlazeFiring
+    ProductTransaction "1" -- "1" GlazeTransaction
+    ProductTransaction "1" *-- "*" ProductTransactionEmployeeUsage
+    ProductTransaction ..> ProductState
+    ProductTransaction ..> ProductOutgoingReason
+    BisqueFiring "1" *-- "*" BisqueFiringEmployeeUsage
+    BisqueFiring "*" -- "1" Kiln
+    GlazeFiring "1" *-- "*" GlazeFiringEmployeeUsage
+    GlazeFiring "*" -- "1" Kiln
+    DryingSession "1" *-- "*" DryingSessionEmployeeUsage
+    DryingSession "*" -- "1" DryingRoom
+    Kiln "*" -- "*" Machine
+    DryingRoom "*" -- "*" Machine
